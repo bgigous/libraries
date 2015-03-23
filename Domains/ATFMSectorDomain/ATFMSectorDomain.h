@@ -20,52 +20,44 @@ class Sector;
 
 class UAV{
 	/*
-	This class is for moving UAVs in the airspace. They interact with the environment through planning (OTHER SYSTEM), 
+	This class is for moving UAVs in the airspace. They interact with the 
+	environment through planning. Planning is done through boost. 
 	*/
 public:
-	UAV(easymath::XY start_loc, easymath::XY end_loc,std::vector<std::vector<XY> > *pathTraces);
-	easymath::XY loc;
-	int ID;
-	std::vector<std::vector<XY> > *pathTraces; // takes a pointer to the pathtrace for logging
+	const enum UAVType{SLOW, FAST, NTYPES};
+	
+	UAV(easymath::XY start_loc, easymath::XY end_loc,
+		std::vector<std::vector<XY> > *pathTraces, UAVType t);
 
+	~UAV(){};
+
+	int getDirection(); // gets the cardinal direction of the UAV
+	void moveTowardNextWaypoint(); // takes a time increment to move over
 	void pathPlan(AStar_easy* Astar_highlevel, vector<vector<bool> >*obstacle_map,
 				   vector<vector<int> >* membership_map, vector<Sector>* sectors, 
 				   map<list<AStar_easy::vertex>, AStar_easy* > &astar_lowlevel);
-
-	std::queue<easymath::XY> target_waypoints; // target waypoints, low-level
-
+	
+	int ID;
+	UAVType type_ID;
+	double speed; // connected to type_ID
+	easymath::XY loc;
 	easymath::XY end_loc;
-	double delay;
-	list<AStar_easy::vertex> high_path_prev;
-
-
-	int getDirection();
-	void moveTowardNextWaypoint(); // takes a time increment to move over
-
-
-	bool operator<(const UAV &p){
-		return delay<p.delay;
-	}
-
+	std::queue<easymath::XY> target_waypoints; // target waypoints, low-level
+	std::vector<std::vector<XY> > *pathTraces; // takes a pointer to the pathtrace for logging
+	list<AStar_easy::vertex> high_path_prev; // saves the high level path
 };
 
 class Fix{
 public:
 	Fix(XY loc);
-	XY loc;
-	const double p_gen;
-
+	~Fix(){};
+	
 	std::list<UAV> generateTraffic(std::vector<Fix>* fixes, vector<vector<bool> >* obstacle_map,std::vector<std::vector<XY> > *pathTraces);
 	void absorbTraffic(std::list<UAV>* UAVs);
+	bool atDestinationFix(const UAV &u);
 
-	bool atDestinationFix(const UAV &u){
-		double dist_thresh = 2.0;
-		return u.target_waypoints.size()					// UAV has planned a trajectory
-			&& u.target_waypoints.front()==loc				// UAV wants to go there next
-			&& easymath::distance(u.loc,loc)<dist_thresh	// UAV is close enough
-			&& u.end_loc==loc;								// This is destination fix
-	}
-
+	XY loc;
+	const double p_gen;
 };
 
 class Sector{
@@ -82,10 +74,13 @@ class ATFMSectorDomain: public IDomainStateful
 public:
 	ATFMSectorDomain(void);
 	~ATFMSectorDomain(void);
-	std::vector<double> getRewards();
-	std::vector<double> getPerformance();
 
-	std::vector<std::vector<double> > getStates();
+	// Base function overloads
+	matrix1d getRewards();
+	matrix1d getPerformance();
+	matrix2d getStates();
+	matrix3d getTypeStates();
+
 
 	unsigned int getSector(easymath::XY p);
 
@@ -110,40 +105,9 @@ public:
 
 
 	// PATH SNAPSHOT OUTPUT
-	void pathSnapShot(int snapnum){
-		matrix2d pathsnaps = matrix2d(2*UAVs->size());
-		int ind = 0; // index of path given
-		for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-			// pop through queue
-			std::queue<XY> wpt_save = u->target_waypoints;
-			while (u->target_waypoints.size()){
-				pathsnaps[ind].push_back(u->target_waypoints.front().x);
-				pathsnaps[ind+1].push_back(u->target_waypoints.front().y);
-				u->target_waypoints.pop();
-			}
-			ind+=2;
-		}
-		PrintOut::toFile2D(pathsnaps,"path-" + to_string(snapnum)+".csv");
-	}
-
-	void pathTraceSnapshot(){
-		// Exports all path traces
-		matrix2d pathsnaps =matrix2d(2*pathTraces->size());
-		for (int i=0, ind=0; i<pathTraces->size(); i++, ind+=2){
-			for (int j=0; j<pathTraces->at(i).size(); j++){
-				pathsnaps[ind].push_back(pathTraces->at(i)[j].x);
-				pathsnaps[ind+1].push_back(pathTraces->at(i)[j].y);
-			}
-		}
-		
-		PrintOut::toFile2D(pathsnaps,"trace.csv");
-	}
-
+	void pathSnapShot(int snapnum);
+	void pathTraceSnapshot();
 	vector<vector<XY> > *pathTraces; // [UAV_ID][step]
-
-
-	// END PATH SNAPSHOT OUTPUT
-
 
 	// Conflict detection/logging
 	void detectConflicts();
@@ -163,7 +127,6 @@ public:
 	AStar_easy* Astar_highlevel;
 
 	map<list<AStar_easy::vertex>, AStar_easy*> astar_lowlevel;
-
 	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)
 };
 

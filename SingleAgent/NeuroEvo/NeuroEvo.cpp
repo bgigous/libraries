@@ -2,6 +2,24 @@
 
 using namespace std;
 
+NeuroEvoParameters::NeuroEvoParameters(int inputSet, int outputSet):
+		nInput(inputSet), nOutput(outputSet), epsilon(0.1)
+{
+}
+
+
+	void NeuroEvo::updatePolicyValues(double R){
+		// Add together xi values, for averaging
+		double xi=0.1; // "learning rate" for NE
+		double V = (*pop_member_active)->evaluation;
+		V = xi*(R-V)+V;
+		(*pop_member_active)->evaluation = V;
+	}
+
+	std::vector<double> NeuroEvo::getAction(std::vector<double> state){
+		return (*pop_member_active)->predictContinuous(state);
+	}
+
 NeuroEvo::NeuroEvo(NeuroEvoParameters* neuroEvoParamsSet)
 {
 	params = neuroEvoParamsSet;

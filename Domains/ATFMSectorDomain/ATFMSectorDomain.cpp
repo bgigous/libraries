@@ -3,19 +3,31 @@
 using namespace std;
 using namespace easymath;
 
-UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces):
-	loc(start_loc),
-	end_loc(end_loc),
-	delay(0.0),
-	ID(pathTraces->size()),
-	pathTraces(pathTraces)
+UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAVType t):
+	loc(start_loc), end_loc(end_loc), ID(pathTraces->size()), pathTraces(pathTraces), type_ID(t)
 {
 	pathTraces->push_back(vector<XY>(1,loc)); // new path trace created for each UAV,starting at location
+
+	switch(t){
+	case SLOW:
+		speed = 1;
+		break;
+	case FAST:
+		speed = 2;
+		break;
+	default:{
+		printf("no speed found!!");
+		system("pause");
+		break;
+			}
+	}
+
 };
 
 void UAV::pathPlan(AStar_easy* Astar_highlevel, vector<vector<bool> >*obstacle_map,
 				   vector<vector<int> >* membership_map, vector<Sector>* sectors, 
-				   map<list<AStar_easy::vertex>, AStar_easy* > &astar_lowlevel){
+				   map<list<AStar_easy::vertex>, AStar_easy* > &astar_lowlevel)
+{
 
 	int memstart = membership_map->at(loc.x)[loc.y];
 	int memend =  membership_map->at(end_loc.x)[end_loc.y];
@@ -53,16 +65,27 @@ Fix::Fix(XY loc): loc(loc),	p_gen(0.05) // change to 1.0 if traffic controlled e
 {
 }
 
+bool Fix::atDestinationFix(const UAV &u){
+	double dist_thresh = 2.0;
+	return u.target_waypoints.size()					// UAV has planned a trajectory
+		&& u.target_waypoints.front()==loc				// UAV wants to go there next
+		&& easymath::distance(u.loc,loc)<dist_thresh	// UAV is close enough
+		&& u.end_loc==loc;								// This is destination fix
+}
+
 std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, vector<vector<bool> >* obstacle_map,std::vector<std::vector<XY> > *pathTraces){
 	// Creates a new UAV in the world
+	static int calls = 0;
+
 	std::list<UAV> newTraffic;
 	if (COIN<p_gen){
 		XY end_loc = allFixes->at(COIN_FLOOR0*allFixes->size()).loc;
 		while (end_loc==loc){
 			end_loc = allFixes->at(COIN_FLOOR0*allFixes->size()).loc;
 		}
-		newTraffic.push_back(UAV(loc,end_loc,pathTraces));
+		newTraffic.push_back(UAV(loc,end_loc,pathTraces,UAV::UAVType(calls%int(UAV::UAVType::NTYPES)))); //  even UAV types
 	}
+	calls++;
 	return newTraffic;
 }
 
@@ -87,18 +110,18 @@ void Fix::absorbTraffic(list<UAV>* UAVs){
 	//list<UAV> cur_UAVs;
 	/*UAVs->remove_if(atDestinationFix);
 	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-		u->target_waypoints.pop();
+	u->target_waypoints.pop();
 	}*/
 
 
 	/*for(list<UAV>::reverse_iterator u=UAVs->rbegin(); u!=UAVs->rend(); u++){
-		if (atDestinationFix(*u)){
-			UAVs->erase(std::next(u).base());
-			//printf("Erased!\n");
-		} else {
-			if (u->target_waypoints.size() && u->target_waypoints.front()==loc) 
-				u->target_waypoints.pop();
-		}
+	if (atDestinationFix(*u)){
+	UAVs->erase(std::next(u).base());
+	//printf("Erased!\n");
+	} else {
+	if (u->target_waypoints.size() && u->target_waypoints.front()==loc) 
+	u->target_waypoints.pop();
+	}
 	}*/
 }
 
@@ -115,7 +138,7 @@ ATFMSectorDomain::ATFMSectorDomain(void)
 	n_control_elements=4; // 4 outputs for sectors (cost in cardinal directions)
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	n_steps=100; // steps of simulation time
-	n_types=1; // type blind, for now
+	n_types=UAV::NTYPES; // type blind, for now
 
 	// Read in files for sector management
 	matrix2d obstacle_map_double = FileManip::readDouble("agent_map/obstacle_map.csv");
@@ -214,28 +237,47 @@ vector<double> ATFMSectorDomain::getPerformance(){
 vector<double> ATFMSectorDomain::getRewards(){
 	// LINEAR REWARD
 	return std::vector<double>(sectors->size(),-conflict_count); // linear reward
-	
+
 
 	// QUADRATIC REWARD
 	/*int conflict_sum = 0;
 	for (int i=0; i<conflict_count_map->size(); i++){
-		for (int j=0; j<conflict_count_map->at(i).size(); j++){
-			int c = conflict_count_map->at(i)[j];
-			conflict_sum += c*c;
-		}
+	for (int j=0; j<conflict_count_map->at(i).size(); j++){
+	int c = conflict_count_map->at(i)[j];
+	conflict_sum += c*c;
+	}
 	}
 	return std::vector<double>(sectors->size(),-conflict_sum);*/
 }
 
-vector<vector<double> > ATFMSectorDomain::getStates(){
+matrix2d ATFMSectorDomain::getStates(){
 	// States: delay assignments for UAVs that need routing
-	std::vector<std::vector<double> > allStates(n_agents);
+	matrix2d allStates(n_agents);
 	for (int i=0; i<n_agents; i++){
-		allStates[i] = std::vector<double>(4,0.0); // reserves space
+		allStates[i] = matrix1d(n_state_elements,0.0); // reserves space
 	}
 
 	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
 		allStates[getSector(u->loc)][u->getDirection()]+=1.0; // Adds the UAV impact on the state
+	}
+
+	return allStates;
+}
+
+matrix3d ATFMSectorDomain::getTypeStates(){
+	matrix3d allStates(n_agents);
+	for (int i=0; i<n_agents; i++){
+		allStates[i] = matrix2d(n_types);
+		for (int j=0; j<n_types; j++){
+			allStates[i][j] = matrix1d(n_state_elements,0.0);
+		}
+	}
+
+	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
+		int a = getSector(u->loc);
+		int id = u->type_ID;
+		int dir = u->getDirection();
+		allStates[a][id][dir]+=1.0;
 	}
 
 	return allStates;
@@ -283,16 +325,12 @@ void ATFMSectorDomain::incrementUAVPath(){
 }
 
 void UAV::moveTowardNextWaypoint(){
-/*	if (ID==7){
-		printf("debug");
-		if (target_waypoints.size()<10){
-			printf("final debug");
-		}
-	}*/
-	if (!target_waypoints.size()) return; // return if no waypoints
-	loc = target_waypoints.front();
-	pathTraces->at(ID).push_back(loc);
-	target_waypoints.pop();
+	for (int i=0; i<speed; i++){
+		if (!target_waypoints.size()) return; // return if no waypoints
+		loc = target_waypoints.front();
+		pathTraces->at(ID).push_back(loc);
+		target_waypoints.pop();
+	}
 }
 
 void ATFMSectorDomain::absorbUAVTraffic(){
@@ -312,21 +350,21 @@ void ATFMSectorDomain::getNewUAVTraffic(){
 		all_new_UAVs.splice(all_new_UAVs.end(),new_UAVs);
 	}
 
-	
+
 	//MAKE STATIC
 	/*if (UAV_targets.size()){
-		int count=0;
-		for (list<UAV>::iterator i=all_new_UAVs.begin(); i!=all_new_UAVs.end(); i++){
-			i->end_loc = UAV_targets[count];
-			count++;
-		}
+	int count=0;
+	for (list<UAV>::iterator i=all_new_UAVs.begin(); i!=all_new_UAVs.end(); i++){
+	i->end_loc = UAV_targets[count];
+	count++;
+	}
 	} else {
-		for (list<UAV>::iterator i=all_new_UAVs.begin(); i!=all_new_UAVs.end(); i++){
-			UAV_targets.push_back(i->end_loc);
-		}
+	for (list<UAV>::iterator i=all_new_UAVs.begin(); i!=all_new_UAVs.end(); i++){
+	UAV_targets.push_back(i->end_loc);
+	}
 	}*/
 	// END MAKE STATIC
-	
+
 	UAVs->splice(UAVs->end(),all_new_UAVs);
 }
 
@@ -355,19 +393,19 @@ void ATFMSectorDomain::reset(){
 	static int calls99 = 0;
 	// EXPORT CONFLICT MAP FIRST!
 	if (calls==0){
-		PrintOut::
-		(*conflict_count_map,"stat_results/conflict_map-0-"+to_string(calls0)+".csv");
-		calls0++;
+	PrintOut::
+	(*conflict_count_map,"stat_results/conflict_map-0-"+to_string(calls0)+".csv");
+	calls0++;
 	}
 	if (calls==(100*20-1)){ // 100 epochs, 20 nn -- only halfway through!
-		PrintOut::toFile(*conflict_count_map,"stat_results/conflict_map-99-"+to_string(calls99)+".csv");
-		calls99++;
-		calls = 0; // reset calls
+	PrintOut::toFile(*conflict_count_map,"stat_results/conflict_map-99-"+to_string(calls99)+".csv");
+	calls99++;
+	calls = 0; // reset calls
 	}
 	calls++;
 	*/
-	
-	
+
+
 	//PrintOut::toFile(*conflict_count_map,"conflict_map.csv");
 	// clear conflict count map
 	for (int i=0; i<conflict_count_map->size(); i++){
@@ -385,7 +423,7 @@ void ATFMSectorDomain::logStep(int step){
 	if (step==50){
 		pathSnapShot(50);
 		pathTraceSnapshot();
-	//	exit(1);
+		//	exit(1);
 	}
 }
 
@@ -401,11 +439,41 @@ void ATFMSectorDomain::detectConflicts(){
 		for (list<UAV>::iterator u2=std::next(u1); u2!=UAVs->end(); u2++){
 			if (u1!=u2 && easymath::distance(u1->loc,u2->loc)<conflict_thresh){
 				conflict_count++;
-				
+
 				int avgx = (u1->loc.x+u2->loc.x)/2;
 				int avgy = (u1->loc.y+u2->loc.y)/2;
 				conflict_count_map->at(avgx)[avgy]++;
 			}
 		}
 	}
+}
+
+// PATH SNAPSHOT OUTPUT
+void ATFMSectorDomain::pathSnapShot(int snapnum){
+	matrix2d pathsnaps = matrix2d(2*UAVs->size());
+	int ind = 0; // index of path given
+	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
+		// pop through queue
+		std::queue<XY> wpt_save = u->target_waypoints;
+		while (u->target_waypoints.size()){
+			pathsnaps[ind].push_back(u->target_waypoints.front().x);
+			pathsnaps[ind+1].push_back(u->target_waypoints.front().y);
+			u->target_waypoints.pop();
+		}
+		ind+=2;
+	}
+	PrintOut::toFile2D(pathsnaps,"path-" + to_string(snapnum)+".csv");
+}
+
+void ATFMSectorDomain::pathTraceSnapshot(){
+	// Exports all path traces
+	matrix2d pathsnaps =matrix2d(2*pathTraces->size());
+	for (int i=0, ind=0; i<pathTraces->size(); i++, ind+=2){
+		for (int j=0; j<pathTraces->at(i).size(); j++){
+			pathsnaps[ind].push_back(pathTraces->at(i)[j].x);
+			pathsnaps[ind+1].push_back(pathTraces->at(i)[j].y);
+		}
+	}
+
+	PrintOut::toFile2D(pathsnaps,"trace.csv");
 }

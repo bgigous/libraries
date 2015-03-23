@@ -10,11 +10,7 @@
 
 class NeuroEvoParameters{
 public:
-	NeuroEvoParameters(int inputSet, int outputSet):
-		nInput(inputSet),
-		nOutput(outputSet),
-		epsilon(0.1)
-	{}
+	NeuroEvoParameters(int inputSet, int outputSet);
 	static const int nHidden = 50;
 	static const int popSize=10; // surviving population size
 
@@ -34,10 +30,10 @@ public:
 	NeuroEvoParameters* params;
 	std::list<NeuralNet*> population;
 	std::list<NeuralNet*>::iterator pop_member_active;
-	std::vector<double> getActiveMemberOutput(std::vector<double> inputs){
+	//std::vector<double> getActiveMemberOutput(std::vector<double> inputs){
 		// DEPRECATED--identical to getAction
-		return (*pop_member_active)->predictContinuous(inputs);
-	}
+		//return (*pop_member_active)->predictContinuous(inputs);
+	//}
 
 	void deepCopy(NeuroEvo &NE);
 	void deletePopulation(); // deletes all neural network population member pointers
@@ -49,16 +45,8 @@ public:
 	void selectSurvivors();
 	static bool NNCompare(const NeuralNet *x, const NeuralNet *y) {return (x->evaluation>y->evaluation);}
 
-	void updatePolicyValues(double R){
-		// Add together xi values, for averaging
-		double xi=0.1; // "learning rate" for NE
-		double V = (*pop_member_active)->evaluation;
-		V = xi*(R-V)+V;
-		(*pop_member_active)->evaluation = V;
-	}
+	void updatePolicyValues(double R);
 
-	std::vector<double> getAction(std::vector<double> state){
-		return getActiveMemberOutput(state);
-	}
+	std::vector<double> getAction(std::vector<double> state);
 };
 

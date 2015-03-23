@@ -1,8 +1,8 @@
-#include "NeuroEvo\NeuroEvo.h"
-#include "../easymath.h"
+#include "NeuroEvo.h"
+#include "../../Math/easymath.h"
 #include <algorithm>
 #include <functional>
-#include "IAgent.h"
+#include "../IAgent.h"
 
 #pragma once
 class TypeNeuroEvo: public IAgent
@@ -72,7 +72,7 @@ public:
 		int neighbor_type = state.back();
 		xi[neighbor_type]++;
 		state.pop_back();
-		return NETypes[neighbor_type]->getActiveMemberOutput(state);
+		return NETypes[neighbor_type]->getAction(state);
 	}
 
 	std::vector<double> xi; // eligibility trace: count of how many times each neural net used in run

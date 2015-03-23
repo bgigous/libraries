@@ -1,31 +1,23 @@
 #pragma once
 #include "MultiagentNE.h"
-#include "TypeNeuroEvo.h"
+#include "../SingleAgent/NeuroEvo/TypeNeuroEvo.h"
+#include "../SingleAgent/NeuroEvo/NeuroEvo.h"
+//#include "TypeNeuroEvo.h"
 #include <vector>
 
 // Container for collection of 'Type Neuro Evo' agents
 class MultiagentTypeNE: public MultiagentNE
 {
 public:
+	const enum TypeHandling{BLIND, WEIGHTED, CROSSWEIGHTED, MULTIMIND}; // options for handling different types
+	TypeHandling type_mode;
+	int n_types;
+
 	MultiagentTypeNE(void){};
 
-	MultiagentTypeNE(int n_agents, int n_types, NeuroEvoParameters* NE_params)
-	{
-		for (int i=0; i<n_agents; i++){
-			agents.push_back(new TypeNeuroEvo(NE_params,n_types));
-		}
-	}
-	~MultiagentTypeNE(void){
-		for (int i=0; i<agents.size(); i++){
-			delete agents[i];
-		}
-	}
+	MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params, TypeHandling type_mode, int n_types);
+	~MultiagentTypeNE(void);
 
-	void initializeWithStereotypes(std::vector<std::vector<NeuroEvo*> > stereotypes, std::vector<int> agent_types){
-		// Specific to Type NE: initialize all of the agents with its appropriate stereotype
-		for (int i=0; i<agents.size(); i++){
-			((TypeNeuroEvo*)agents[i])->deepCopyNETypes(stereotypes[agent_types[i]]);
-		}
-	}
-	
+	//void initializeWithStereotypes(std::vector<std::vector<NeuroEvo*> > stereotypes, std::vector<int> agent_types);
+	matrix2d getActions(matrix3d state);
 };
