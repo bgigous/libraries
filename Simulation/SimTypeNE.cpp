@@ -11,6 +11,9 @@ matrix2d SimTypeNE::getActions(){
 SimTypeNE::SimTypeNE(IDomainStateful* domain, MultiagentTypeNE::TypeHandling type_mode):
 	SimNE(domain), type_mode(type_mode)
 {
+	// NOTE: THIS PART IS NEW, THERE MAY BE A BUG HERE
+	delete MAS;
+	MAS = new MultiagentTypeNE(domain->n_agents,new NeuroEvoParameters(domain->n_state_elements,domain->n_control_elements),type_mode,domain->n_types);
 }
 
 SimTypeNE::~SimTypeNE(void)

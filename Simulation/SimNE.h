@@ -24,5 +24,5 @@ public:
 	virtual void runExperiment();
 	virtual void epoch(int ep);
 	ISimNEParameters* sim_params;
-	matrix2d getActions(); // Gets actions based on current state: OVERLOAD FOR TYPES
+	virtual matrix2d getActions(); // Gets actions based on current state: OVERLOAD FOR TYPES
 };

@@ -24,7 +24,7 @@ public:
 	ISimTypeNEParameters* sim_params;
 	
 	MultiagentTypeNE::TypeHandling type_mode;
-	matrix2d getActions(); // OVERLOADED VERSION OF SIMNE ... do we need to explicitly call this in function? ... yes
+	virtual matrix2d getActions(); // OVERLOADED VERSION OF SIMNE ... do we need to explicitly call this in function? ... yes
 	//void runExperiment();
 	//void epoch(int ep);
 
