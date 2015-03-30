@@ -1,5 +1,27 @@
 #include "easymath.h"
 
+
+matrix1d zeros(int dim){
+	return matrix1d(dim,0.0);
+}
+
+matrix2d zeros(int dim1, int dim2){
+	matrix2d m = matrix2d(dim1);
+	for (int i=0; i<dim1; i++){
+		m[i] = zeros(dim2);
+	}
+	return m;
+}
+
+matrix3d zeros(int dim1, int dim2, int dim3){
+	matrix3d m = matrix3d(dim1);
+	for (int i=0; i<dim1; i++){
+		m[i] = zeros(dim2, dim3);
+	}
+	return m;
+}
+
+
 namespace easymath{
 	int cardinalDirection(XY dx_dy){
 		if (dx_dy.y>=0){ // Going up
@@ -40,7 +62,7 @@ namespace easymath{
 		double dy = p1.y-p2.y;
 		return sqrt(dx*dx+dy*dy);
 	}
-	int getMaxIndex(std::vector<double> myvector){
+	int getMaxIndex(matrix1d myvector){
 		return distance(myvector.begin(),std::max_element(myvector.begin(),myvector.end()));
 	}
 
@@ -53,8 +75,8 @@ namespace easymath{
 		return unique_positions;
 	}
 
-	std::vector<double> mean2(std::vector<std::vector<double> > myVector){
-		std::vector<double> myMean(myVector[0].size(),0.0);
+	matrix1d mean2(matrix2d myVector){
+		matrix1d myMean(myVector[0].size(),0.0);
 
 		for (int i=0; i<myVector.size(); i++){
 			for (int j=0; j<myVector[i].size(); j++){
@@ -65,8 +87,8 @@ namespace easymath{
 	}
 
 
-	std::vector<double> mean1(std::vector<std::vector<double> > myVector){
-		std::vector<double> myMean(myVector.size(),0.0);
+	matrix1d mean1(matrix2d myVector){
+		matrix1d myMean(myVector.size(),0.0);
 
 		for (int i=0; i<myVector.size(); i++){
 			for (int j=0; j<myVector[i].size(); j++){
@@ -77,12 +99,12 @@ namespace easymath{
 		return myMean;
 	}
 
-	double mean(std::vector<double> myVector){
+	double mean(matrix1d myVector){
 		return sum(myVector)/double(myVector.size());
 	}
 
-	std::vector<double> sum(std::vector<std::vector<double> > myVector){
-		std::vector<double> mySum(myVector.size(),0.0);
+	matrix1d sum(matrix2d myVector){
+		matrix1d mySum(myVector.size(),0.0);
 
 		for (int i=0; i<myVector.size(); i++){
 			for (int j=0; j<myVector[i].size(); j++){
@@ -92,7 +114,7 @@ namespace easymath{
 		return mySum;
 	}
 
-	double sum(std::vector<double> myVector){
+	double sum(matrix1d myVector){
 		double mySum = 0.0;
 		for (int i=0; i<myVector.size(); i++){
 			mySum+=myVector[i];

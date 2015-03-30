@@ -231,12 +231,12 @@ ATFMSectorDomain::~ATFMSectorDomain(void)
 
 
 vector<double> ATFMSectorDomain::getPerformance(){
-	return std::vector<double>(sectors->size(),-conflict_count);
+	return matrix1d(sectors->size(),-conflict_count);
 }
 
 vector<double> ATFMSectorDomain::getRewards(){
 	// LINEAR REWARD
-	return std::vector<double>(sectors->size(),-conflict_count); // linear reward
+	return matrix1d(sectors->size(),-conflict_count); // linear reward
 
 
 	// QUADRATIC REWARD
@@ -247,7 +247,7 @@ vector<double> ATFMSectorDomain::getRewards(){
 	conflict_sum += c*c;
 	}
 	}
-	return std::vector<double>(sectors->size(),-conflict_sum);*/
+	return matrix1d(sectors->size(),-conflict_sum);*/
 }
 
 matrix2d ATFMSectorDomain::getStates(){
@@ -294,7 +294,7 @@ void ATFMSectorDomain::getPathPlans(){
 	}
 }
 
-void ATFMSectorDomain::simulateStep(std::vector<std::vector<double> > agent_actions){
+void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
 	//static int calls = 0;
 	setCostMaps(agent_actions);
 	absorbUAVTraffic();

@@ -2,8 +2,8 @@
 #include "MultiagentNE.h"
 #include "../SingleAgent/NeuroEvo/TypeNeuroEvo.h"
 #include "../SingleAgent/NeuroEvo/NeuroEvo.h"
-//#include "TypeNeuroEvo.h"
-#include <vector>
+#include "../SingleAgent/NeuroEvo/NeuroEvoTypeWeighted.h"
+#include "../SingleAgent/NeuroEvo/NeuroEvoTypeCrossweighted.h"
 
 // Container for collection of 'Type Neuro Evo' agents
 class MultiagentTypeNE: public MultiagentNE

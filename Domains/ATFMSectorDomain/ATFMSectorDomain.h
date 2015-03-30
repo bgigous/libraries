@@ -88,13 +88,13 @@ public:
 	std::list<UAV>* UAVs; // this is in a list because it has to be modified often. Never tie an ID/index to a UAV
 	std::vector<Fix>* fixes;
 
-	std::vector<std::vector<double> > cost_map; // cost matrix (Nx4), [n1,n2,cost,var]
+	matrix2d cost_map; // cost matrix (Nx4), [n1,n2,cost,var]
 	std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
 
-	void simulateStep(std::vector<std::vector<double> > agent_actions);
+	void simulateStep(matrix2d agent_actions);
 	void incrementUAVPath();
 
-	void setCostMaps(std::vector<std::vector<double> > agent_actions);
+	void setCostMaps(matrix2d agent_actions);
 	void getNewUAVTraffic();
 	void absorbUAVTraffic();
 	void getPathPlans(); // note: when is this event?

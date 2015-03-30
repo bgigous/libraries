@@ -14,7 +14,7 @@ public:
 	NeuralNet(): evaluation(0.0){};
 	~NeuralNet(){};
 	double evaluation;
-	void mutate();
+	void mutate(); // different if child class
 
 	void addInputs(int nToAdd);
 
@@ -51,4 +51,8 @@ private:
 	matrix1d matrixMultiply(matrix1d &A, matrix2d &B);
 	void sigmoid(matrix1d &myVector);
 	void cmp_int_fatal(int a, int b);
+
+protected:
+	double randAddFanIn(double fan_in);
+	double randSetFanIn(double fan_in);
 };

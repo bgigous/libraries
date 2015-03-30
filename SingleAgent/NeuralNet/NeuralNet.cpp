@@ -3,19 +3,33 @@
 
 using namespace std;
 
+double NeuralNet::randAddFanIn(double fan_in){
+	// Adds random amount mutationRate% of the time, amount based on fan_in and mutstd
+	if (double(rand())/double(RAND_MAX)>mutationRate){
+		return 0.0;
+	} else {
+		// FOR MUTATION
+		std::default_random_engine generator;
+		generator.seed(time(NULL));
+		std::normal_distribution<double> distribution(0.0,mutStd);
+		return distribution(generator);
+	}
+}
+
+double NeuralNet::randSetFanIn(double fan_in){
+	// For initialization of the neural net weights
+		double rand_neg1to1 = ((double(rand())/double(RAND_MAX))*2.0-1.0)*0.1;
+		double scale_factor = 100.0;
+		return scale_factor*rand_neg1to1/sqrt(fan_in);
+}
+
 void NeuralNet::mutate(){
 	for (int i=0; i<Wbar.size(); i++){
 		for (int j=0; j<Wbar[i].size(); j++){
 #pragma parallel omp for
 			for (int k=0; k<Wbar[i][j].size(); k++){
-				if (double(rand())/double(RAND_MAX)<mutationRate){
-					// reset one of the weights
-					double fan_in = double(Wbar[i].size());
-					std::default_random_engine generator;
-					generator.seed(time(NULL));
-					std::normal_distribution<double> distribution(0.0,mutStd);
-					Wbar[i][j][k] += distribution(generator);
-				}
+				double fan_in = double(Wbar[i].size());
+				Wbar[i][j][k] += randAddFanIn(fan_in);
 			}
 		}
 	}
@@ -34,9 +48,7 @@ void NeuralNet::setRandomWeights(){
 			Wbar[connection][i] = matrix1d(nodes_[below]); // reserve memory for the connections below
 			for (int j=0; j<nodes_[below]; j++){
 				double fan_in = nodes_[above]+1.0;
-				double rand_neg1to1 = ((double(rand())/double(RAND_MAX))*2.0-1.0)*0.1;
-				double scale_factor = 100.0;
-				Wbar[connection][i][j] = scale_factor*rand_neg1to1/sqrt(fan_in);
+				Wbar[connection][i][j] = randSetFanIn(fan_in);
 			}
 		}
 

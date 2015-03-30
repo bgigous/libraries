@@ -30,15 +30,10 @@ public:
 	NeuroEvoParameters* params;
 	std::list<NeuralNet*> population;
 	std::list<NeuralNet*>::iterator pop_member_active;
-	//std::vector<double> getActiveMemberOutput(std::vector<double> inputs){
-		// DEPRECATED--identical to getAction
-		//return (*pop_member_active)->predictContinuous(inputs);
-	//}
 
 	void deepCopy(NeuroEvo &NE);
 	void deletePopulation(); // deletes all neural network population member pointers
-	void generateNewMembers(); // Generate k new members from existing population
-	//std::vector<double> getOutput(std::vector<double> inputs); // during simulation, use current NN to get actions
+	virtual void generateNewMembers(); // Generate k new members from existing population
 	bool selectNewMember(); // Select the next member to test; if cannot be selected, end epoch
 	double getBestMemberVal(); // get the highest evaluation in the group
 	void setNNToBestMember();
@@ -47,6 +42,7 @@ public:
 
 	void updatePolicyValues(double R);
 
-	std::vector<double> getAction(std::vector<double> state);
+	matrix1d getAction(matrix1d state);
+	matrix1d getAction(matrix2d state);
 };
 

@@ -3,22 +3,29 @@
 using namespace std;
 
 NeuroEvoParameters::NeuroEvoParameters(int inputSet, int outputSet):
-		nInput(inputSet), nOutput(outputSet), epsilon(0.1)
+	nInput(inputSet), nOutput(outputSet), epsilon(0.1)
 {
 }
 
 
-	void NeuroEvo::updatePolicyValues(double R){
-		// Add together xi values, for averaging
-		double xi=0.1; // "learning rate" for NE
-		double V = (*pop_member_active)->evaluation;
-		V = xi*(R-V)+V;
-		(*pop_member_active)->evaluation = V;
-	}
+void NeuroEvo::updatePolicyValues(double R){
+	// Add together xi values, for averaging
+	double xi=0.1; // "learning rate" for NE
+	double V = (*pop_member_active)->evaluation;
+	V = xi*(R-V)+V;
+	(*pop_member_active)->evaluation = V;
+}
 
-	std::vector<double> NeuroEvo::getAction(std::vector<double> state){
-		return (*pop_member_active)->predictContinuous(state);
-	}
+matrix1d NeuroEvo::getAction(matrix1d state){
+	return (*pop_member_active)->predictContinuous(state);
+}
+
+matrix1d NeuroEvo::getAction(matrix2d state){
+	printf("error here: if using 2d state please specify handling in child class, or rewrite neuroevo to override.");
+	system("pause");
+	exit(10);
+	return matrix1d();
+}
 
 NeuroEvo::NeuroEvo(NeuroEvoParameters* neuroEvoParamsSet)
 {
@@ -96,7 +103,7 @@ void NeuroEvo::selectSurvivors(){
 void NeuroEvo::deepCopy(NeuroEvo &NE){
 	// Creates new pointer addresses for the neural nets
 	params = NE.params;
-	
+
 	deletePopulation();
 	for (list<NeuralNet*>::iterator it=NE.population.begin(); it!=NE.population.end(); it++){
 		population.push_back(new NeuralNet(**it));

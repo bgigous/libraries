@@ -3,7 +3,29 @@
 MultiagentTypeNE::MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params, TypeHandling type_mode, int n_types):
 	MultiagentNE(n_agents,NE_params), type_mode(type_mode),n_types(n_types)
 {
+	// USING SWITCH STATEMENT FOR OBJECT CREATION. AFTER THIS POINT IN CODE, POLYMORPHISM USED.
 
+	for (int i=0; i<agents.size(); i++){
+		delete agents[i]; // delete the premade agents
+
+		switch (type_mode){
+		case MULTIMIND:
+			{
+				agents[i] = new TypeNeuroEvo(NE_params, n_types);
+				break;
+			}
+		case WEIGHTED:
+			{
+				agents[i] = new NeuroEvoTypeWeighted(NE_params,n_types,NE_params->nInput); // each type plays a part simultaneously
+				break;
+			}
+		case CROSSWEIGHTED:
+			{
+				agents[i] = new NeuroEvoTypeCrossweighted(NE_params, n_types, NE_params->nInput); // each type plays a part simultaneously
+				break;
+			}
+		}
+	}
 }
 
 MultiagentTypeNE::~MultiagentTypeNE(void){
@@ -13,32 +35,9 @@ MultiagentTypeNE::~MultiagentTypeNE(void){
 }
 
 matrix2d MultiagentTypeNE::getActions(matrix3d state){
-	matrix2d actions(state.size()); // get an action set for each agent
-	switch(type_mode){
-	case MULTIMIND:
-		{
-			// vote among all TYPES for an action
-			for (int i=0; i<agents.size(); i++){
-				matrix1d action_i_sum = agents[i]->getAction(state[i][0]);
-				for (int j=1; j<n_types; j++){ // starts at 1: initialized by 0
-					matrix1d action_i_sum_temp = agents[i]->getAction(state[i][j]);
-					for (int k=0; k<action_i_sum.size(); k++){
-						action_i_sum[k] += action_i_sum_temp[k];
-					}
-				}
-				for (int j=0; j<action_i_sum.size(); j++){
-					action_i_sum[j] /= n_types; // normalize (magnitude unbounded for voting)
-				}
-				actions[i] = action_i_sum;
-			}
-			break;
-		}
-	default:
-		{
-			printf("Invalid type handling method. Please choose MULTIMIND.");
-			system("pause");
-			break;
-		}
+	matrix2d actions(state.size()); // get an action vector for each agent
+	for (int i=0; i<agents.size(); i++){
+		actions[i] = agents[i]->getAction(state[i]);
 	}
 	return actions;
 }

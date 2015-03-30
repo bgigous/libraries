@@ -1,17 +1,17 @@
+#pragma once
 #include "NeuroEvo.h"
 #include "../../Math/easymath.h"
 #include <algorithm>
 #include <functional>
 #include "../IAgent.h"
 
-#pragma once
 class TypeNeuroEvo: public IAgent
 {
 public:
 	TypeNeuroEvo(void);
 	TypeNeuroEvo(NeuroEvoParameters* NEParams, int nTypes):
 		NETypes(std::vector<NeuroEvo*>(nTypes)),
-		xi(std::vector<double>(nTypes,0.0))
+		xi(matrix1d(nTypes,0.0))
 	{
 		for (int i=0; i<NETypes.size(); i++){
 			NETypes[i] = new NeuroEvo(NEParams);
@@ -21,7 +21,7 @@ public:
 		// Creates new pointer addresses for the neuro evo instances
 		// Calls functions inside neuro evo to create new neural net pointers
 		// deletes original pointers
-		
+
 		for (int i=0; i<NETypes.size(); i++){
 			delete NETypes[i];
 		}
@@ -35,7 +35,11 @@ public:
 
 	}
 
+
 	std::vector<NeuroEvo*> NETypes; // the set of neuro-evo instances for each type in the system
+
+
+
 	void generateNewMembers(){
 		for (int i=0; i<NETypes.size(); i++){
 			NETypes[i]->generateNewMembers();
@@ -49,8 +53,8 @@ public:
 		return selected;
 	}
 
-	std::vector<double> getBestMemberValAll(){
-		std::vector<double> memberVals = std::vector<double>(NETypes.size());
+	matrix1d getBestMemberValAll(){
+		matrix1d memberVals = matrix1d(NETypes.size());
 		for (int i=0; i<NETypes.size(); i++){
 			memberVals[i] = NETypes[i]->getBestMemberVal();
 		}
@@ -68,14 +72,45 @@ public:
 		}
 	}
 
-	std::vector<double> getAction(std::vector<double> state){
-		int neighbor_type = state.back();
+	matrix1d getAction(matrix1d state){
+		printf("GetAction being called in multimind setting. Need neighbor_type identification, or else this will not work. Debug before continuing.");
+		system("pause");
+		exit(10);
+		return matrix1d();
+	}
+
+
+	matrix1d getAction(matrix1d state, int neighbor_type){
 		xi[neighbor_type]++;
-		state.pop_back();
 		return NETypes[neighbor_type]->getAction(state);
 	}
 
-	std::vector<double> xi; // eligibility trace: count of how many times each neural net used in run
+
+	matrix1d getAction(matrix2d state){
+		// vote among all TYPES for an action
+		matrix1d action_sum = getAction(state[0],0);
+		for (int j=1; j<state.size(); j++){ // starts at 1: initialized by 0
+			matrix1d action_sum_temp = getAction(state[j],j); // specifies which NN to use
+			for (int k=0; k<action_sum.size(); k++){
+				action_sum[k] += action_sum_temp[k];
+			}
+		}
+		for (int j=0; j<action_sum.size(); j++){
+			action_sum[j] /= double(state.size()); // normalize (magnitude unbounded for voting)
+		}
+		return action_sum;
+	}
+
+	/*	OLD
+	matrix1d getAction(matrix1d state, int neighbor_type){
+	int neighbor_type = state.back();
+	xi[neighbor_type]++;
+	state.pop_back();
+	return NETypes[neighbor_type]->getAction(state);
+	}
+	*/
+
+	matrix1d xi; // eligibility trace: count of how many times each neural net used in run
 
 	void updatePolicyValues(double R){
 		// Add together xi values, for averaging
@@ -86,7 +121,7 @@ public:
 			V = xi_i*(R -V) + V;
 			(*NETypes[i]->pop_member_active)->evaluation = V;
 		}
-		xi = std::vector<double>(NETypes.size(),0.0);
+		xi = matrix1d(NETypes.size(),0.0);
 	}
 
 	~TypeNeuroEvo(void);
