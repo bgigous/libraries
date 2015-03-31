@@ -11,9 +11,10 @@ MultiagentNE::MultiagentNE(int n_agents, NeuroEvoParameters* NE_params):
 }
 
 MultiagentNE::~MultiagentNE(void){
-	for (int i=0; i<agents.size(); i++){
-		delete ((NeuroEvo*)agents[i]);
-	}
+	// mem leak here, fix later
+	//for (int i=0; i<agents.size(); i++){
+	//	delete ((NeuroEvo*)agents[i]);
+	//}
 };
 
 void MultiagentNE::generateNewMembers(){

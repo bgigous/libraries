@@ -21,10 +21,17 @@ matrix1d NeuroEvo::getAction(matrix1d state){
 }
 
 matrix1d NeuroEvo::getAction(matrix2d state){
-	printf("error here: if using 2d state please specify handling in child class, or rewrite neuroevo to override.");
+	/*printf("error here: if using 2d state please specify handling in child class, or rewrite neuroevo to override.");
 	system("pause");
 	exit(10);
-	return matrix1d();
+	return matrix1d();*/
+	matrix1d stateSum(state[0].size(),0.0);
+	for (int i=0; i<state.size(); i++){ // state[type][state_element] -- specifies combination for state
+		for (int j=0; j<state[i].size(); j++){
+			stateSum[j] += state[i][j];
+		}
+	}
+	return getAction(stateSum);
 }
 
 NeuroEvo::NeuroEvo(NeuroEvoParameters* neuroEvoParamsSet)
@@ -99,6 +106,7 @@ void NeuroEvo::selectSurvivors(){
 
 	pop_member_active = population.begin();
 }
+
 
 void NeuroEvo::deepCopy(NeuroEvo &NE){
 	// Creates new pointer addresses for the neural nets

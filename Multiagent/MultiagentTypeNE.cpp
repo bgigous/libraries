@@ -24,6 +24,10 @@ MultiagentTypeNE::MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params, 
 				agents[i] = new NeuroEvoTypeCrossweighted(NE_params, n_types,4); // each type plays a part simultaneously
 				break;
 			}
+		case BLIND:
+			{
+				agents[i] = new NeuroEvo(NE_params);
+			}
 		}
 	}
 }

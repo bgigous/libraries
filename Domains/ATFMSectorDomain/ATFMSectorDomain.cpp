@@ -372,7 +372,7 @@ void ATFMSectorDomain::reset(){
 	static int calls=0;
 
 	// Drop all UAVs
-	printf("UAVs = %i\n",UAVs->size());
+	//printf("UAVs = %i\n",UAVs->size());
 	UAVs->clear();
 	// reset weights
 	conflict_count = 0;

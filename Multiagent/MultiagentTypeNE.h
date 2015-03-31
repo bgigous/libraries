@@ -9,7 +9,7 @@
 class MultiagentTypeNE: public MultiagentNE
 {
 public:
-	const enum TypeHandling{BLIND, WEIGHTED, CROSSWEIGHTED, MULTIMIND}; // options for handling different types
+	const enum TypeHandling{BLIND, WEIGHTED, CROSSWEIGHTED, MULTIMIND, NMODES}; // options for handling different types
 	TypeHandling type_mode;
 	int n_types;
 
@@ -28,7 +28,7 @@ public:
 		std::vector<bool> is_another_member(agents.size(),false);
 		for (int i=0; i<agents.size(); i++){
 			if (type_mode==MULTIMIND) is_another_member[i] = ((TypeNeuroEvo*)agents[i])->selectNewMemberAll();
-			else if (type_mode==WEIGHTED || type_mode==CROSSWEIGHTED) is_another_member[i] = ((NeuroEvo*)agents[i])->selectNewMember();
+			else if (type_mode==WEIGHTED || type_mode==CROSSWEIGHTED || type_mode==BLIND) is_another_member[i] = ((NeuroEvo*)agents[i])->selectNewMember();
 		}
 		for (int i=0; i<is_another_member.size(); i++){
 			if (!is_another_member[i]){
@@ -44,7 +44,7 @@ public:
 	for (int i=0; i<agents.size(); i++){
 		if (type_mode==MULTIMIND){
 		((TypeNeuroEvo*)agents[i])->selectSurvivorsAll();
-		} else if (type_mode==WEIGHTED || type_mode==CROSSWEIGHTED){
+		} else if (type_mode==WEIGHTED || type_mode==CROSSWEIGHTED|| type_mode==BLIND){
 			((NeuroEvo*)agents[i])->selectSurvivors();
 		}
 	}

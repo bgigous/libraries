@@ -17,6 +17,7 @@ SimNE::~SimNE(void)
 void SimNE::runExperiment(){
 	for (int ep=0; ep<sim_params->n_epochs; ep++){
 		printf("Epoch %i\n",ep);
+		//printf(".");
 		this->epoch(ep);
 	}
 }
@@ -39,7 +40,7 @@ void SimNE::epoch(int ep){
 				domain->logStep(s);
 			}
 			t= clock();
-			printf("t=%f\n",float(t-tref)/CLOCKS_PER_SEC);
+			//printf("t=%f\n",float(t-tref)/CLOCKS_PER_SEC);
 			tref=t;
 
 			matrix1d R = domain->getRewards();
@@ -59,7 +60,8 @@ void SimNE::epoch(int ep){
 					domain->exportLog("stat_results/conflict_map-99-",ep);
 				}
 			}
-			printf("NN#%i, %f\n",n, best_run);
+			//printf("NN#%i, %f\n",n, best_run);
+			printf(".");
 			ostringstream epi,ni,ti;
 			epi << ep;
 			ni << n;
