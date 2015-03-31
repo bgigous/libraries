@@ -20,4 +20,33 @@ public:
 
 	//void initializeWithStereotypes(std::vector<std::vector<NeuroEvo*> > stereotypes, std::vector<int> agent_types);
 	matrix2d getActions(matrix3d state);
+
+	virtual bool setNextPopMembers(){
+		// Kind of hacky; select the next member and return true if not at the end
+		// Specific to Evo
+
+		std::vector<bool> is_another_member(agents.size(),false);
+		for (int i=0; i<agents.size(); i++){
+			if (type_mode==MULTIMIND) is_another_member[i] = ((TypeNeuroEvo*)agents[i])->selectNewMemberAll();
+			else if (type_mode==WEIGHTED || type_mode==CROSSWEIGHTED) is_another_member[i] = ((NeuroEvo*)agents[i])->selectNewMember();
+		}
+		for (int i=0; i<is_another_member.size(); i++){
+			if (!is_another_member[i]){
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	virtual void selectSurvivors(){
+	// Specific to Evo: select survivors
+	for (int i=0; i<agents.size(); i++){
+		if (type_mode==MULTIMIND){
+		((TypeNeuroEvo*)agents[i])->selectSurvivorsAll();
+		} else if (type_mode==WEIGHTED || type_mode==CROSSWEIGHTED){
+			((NeuroEvo*)agents[i])->selectSurvivors();
+		}
+	}
+}
 };

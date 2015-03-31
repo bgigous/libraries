@@ -40,15 +40,16 @@ public:
 
 
 
-	void generateNewMembers(){
+	virtual void generateNewMembers(){
 		for (int i=0; i<NETypes.size(); i++){
 			NETypes[i]->generateNewMembers();
 		}
 	}
-	std::vector<bool> selectNewMemberAll(){
-		std::vector<bool> selected = std::vector<bool>(NETypes.size());
+	bool selectNewMemberAll(){
+		// note; only checks the last
+		bool selected = false;
 		for (int i=0; i<NETypes.size(); i++){
-			selected[i] = NETypes[i]->selectNewMember();
+			selected = NETypes[i]->selectNewMember();
 		}
 		return selected;
 	}

@@ -21,7 +21,7 @@ MultiagentTypeNE::MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params, 
 			}
 		case CROSSWEIGHTED:
 			{
-				agents[i] = new NeuroEvoTypeCrossweighted(NE_params, n_types, NE_params->nInput); // each type plays a part simultaneously
+				agents[i] = new NeuroEvoTypeCrossweighted(NE_params, n_types,4); // each type plays a part simultaneously
 				break;
 			}
 		}
@@ -29,9 +29,9 @@ MultiagentTypeNE::MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params, 
 }
 
 MultiagentTypeNE::~MultiagentTypeNE(void){
-	for (int i=0; i<agents.size(); i++){
+	/*for (int i=0; i<agents.size(); i++){
 		delete ((NeuroEvo*)agents[i]);
-	}
+	}*/
 }
 
 matrix2d MultiagentTypeNE::getActions(matrix3d state){

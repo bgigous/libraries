@@ -10,8 +10,8 @@ public:
 	MultiagentNE(int n_agents, NeuroEvoParameters* NE_params);
 	~MultiagentNE(void);
 	void generateNewMembers();
-	void selectSurvivors();
-	bool setNextPopMembers();
+	virtual void selectSurvivors();
+	virtual bool setNextPopMembers();
 
 	NeuroEvoParameters* NE_params;
 };
