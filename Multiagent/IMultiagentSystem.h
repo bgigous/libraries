@@ -16,7 +16,7 @@ class IMultiagentSystem
 
 public:
 	IMultiagentSystem(void);
-	~IMultiagentSystem(void);
+	virtual ~IMultiagentSystem(void);
 
 	std::vector<IAgent*> agents; // Set of agents in the system (set externally)
 

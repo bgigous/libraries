@@ -16,6 +16,12 @@ SimTypeNE::SimTypeNE(IDomainStateful* domain, MultiagentTypeNE::TypeHandling typ
 	MAS = new MultiagentTypeNE(domain->n_agents,new NeuroEvoParameters(domain->n_state_elements,domain->n_control_elements),type_mode,domain->n_types);
 }
 
+SimTypeNE::SimTypeNE(IDomainStateful *domain, MultiagentNE* MAS, MultiagentTypeNE::TypeHandling type_mode):
+	SimNE(domain, MAS), type_mode(type_mode)
+{
+
+}
+
 SimTypeNE::~SimTypeNE(void)
 {
 	/*

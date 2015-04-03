@@ -13,7 +13,9 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 		speed = 1;
 		break;
 	case FAST:
-		speed = 2;
+		// substitute: high priority
+		speed = 1;
+		//speed = 2;
 		break;
 	default:{
 		printf("no speed found!!");
@@ -137,7 +139,7 @@ ATFMSectorDomain::ATFMSectorDomain(void)
 	// inherritance elements: constant
 	n_control_elements=4; // 4 outputs for sectors (cost in cardinal directions)
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
-	n_steps=100; // steps of simulation time
+	n_steps=1; // steps of simulation time
 	n_types=UAV::NTYPES; // type blind, for now
 
 	// Read in files for sector management
@@ -437,12 +439,18 @@ void ATFMSectorDomain::detectConflicts(){
 	double conflict_thresh = 1.0;
 	for (list<UAV>::iterator u1=UAVs->begin(); u1!=UAVs->end(); u1++){
 		for (list<UAV>::iterator u2=std::next(u1); u2!=UAVs->end(); u2++){
-			if (u1!=u2 && easymath::distance(u1->loc,u2->loc)<conflict_thresh){
-				conflict_count++;
+			double d = easymath::distance(u1->loc,u2->loc);
+			double large_thresh = 5*conflict_thresh;
+			if (u1!=u2){
+				if (((u1->type_ID+u2->type_ID)==0 && d<conflict_thresh)
+					|| ((u1->type_ID+u2->type_ID)==1 && d<(conflict_thresh+large_thresh)/2)
+					|| (((u1->type_ID+u2->type_ID)==2 && d<large_thresh))){
+						conflict_count++;
 
-				int avgx = (u1->loc.x+u2->loc.x)/2;
-				int avgy = (u1->loc.y+u2->loc.y)/2;
-				conflict_count_map->at(avgx)[avgy]++;
+						int avgx = (u1->loc.x+u2->loc.x)/2;
+						int avgy = (u1->loc.y+u2->loc.y)/2;
+						conflict_count_map->at(avgx)[avgy]++;
+				}
 			}
 		}
 	}

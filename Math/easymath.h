@@ -16,6 +16,14 @@ typedef std::vector<std::vector<double> > matrix2d;
 typedef std::vector<std::vector<std::vector<double> > > matrix3d;
 
 template <class T>
+void clear_all(T &ptrs){
+	while (T.size()){
+		delete ptrs.back();
+		ptrs.pop_back();
+	}
+}
+
+template <class T>
 void clear_all(std::vector<T*> &ptrs){
 	// Deletes all pointers in a container
 	for (int i=0; i<ptrs.size(); i++){

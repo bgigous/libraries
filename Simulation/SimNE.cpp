@@ -1,17 +1,23 @@
 #include "SimNE.h"
 
 SimNE::SimNE(IDomainStateful* domain):
-	ISimulator(domain, new MultiagentNE(domain->n_agents,
-	new NeuroEvoParameters(domain->n_state_elements,domain->n_control_elements))),
-	sim_params(new ISimNEParameters())
+	ISimulator(domain, new MultiagentNE(domain->n_agents, new NeuroEvoParameters(domain->n_state_elements,domain->n_control_elements)))
 {
+	sim_params = new ISimNEParameters();
+}
+
+// FOR DEBUGGING
+SimNE::SimNE(IDomainStateful* domain, MultiagentNE* MAS):
+	ISimulator(domain, MAS)
+{
+	sim_params = new ISimNEParameters();
 }
 
 SimNE::~SimNE(void)
 {
 	delete sim_params;
 	delete ((MultiagentNE*)MAS)->NE_params;
-	delete ((MultiagentNE*)MAS);
+	delete MAS;
 }
 
 void SimNE::runExperiment(){

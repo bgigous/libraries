@@ -33,9 +33,7 @@ MultiagentTypeNE::MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params, 
 }
 
 MultiagentTypeNE::~MultiagentTypeNE(void){
-	/*for (int i=0; i<agents.size(); i++){
-		delete ((NeuroEvo*)agents[i]);
-	}*/
+
 }
 
 matrix2d MultiagentTypeNE::getActions(matrix3d state){
