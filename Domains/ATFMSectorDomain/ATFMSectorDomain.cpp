@@ -139,7 +139,7 @@ ATFMSectorDomain::ATFMSectorDomain(void)
 	// inherritance elements: constant
 	n_control_elements=4; // 4 outputs for sectors (cost in cardinal directions)
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
-	n_steps=1; // steps of simulation time
+	n_steps=100; // steps of simulation time
 	n_types=UAV::NTYPES; // type blind, for now
 
 	// Read in files for sector management
