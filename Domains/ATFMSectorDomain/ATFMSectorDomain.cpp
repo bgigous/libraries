@@ -129,7 +129,7 @@ void Fix::absorbTraffic(list<UAV>* UAVs){
 
 ATFMSectorDomain::ATFMSectorDomain(void)
 {
-	pathTraces = new vector<vector<XY> >();
+	pathTraces = new vector<vector<XY> >(); // traces the path (reset each epoch)
 
 	// Object creation
 	sectors = new vector<Sector>();
@@ -415,6 +415,10 @@ void ATFMSectorDomain::reset(){
 			conflict_count_map->at(i)[j] = 0; // set all 0
 		}
 	}
+
+
+	// reset the path trace so it doesn't get too big
+	pathTraces->clear();
 }
 
 void ATFMSectorDomain::logStep(int step){
