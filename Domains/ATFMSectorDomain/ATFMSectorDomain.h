@@ -49,13 +49,14 @@ public:
 
 class Fix{
 public:
-	Fix(XY loc);
+	Fix(XY loc, bool deterministic);
 	~Fix(){};
 	
 	std::list<UAV> generateTraffic(std::vector<Fix>* fixes, vector<vector<bool> >* obstacle_map,std::vector<std::vector<XY> > *pathTraces);
 	void absorbTraffic(std::list<UAV>* UAVs);
 	bool atDestinationFix(const UAV &u);
 
+	bool is_deterministic;
 	XY loc;
 	const double p_gen;
 };
@@ -72,7 +73,7 @@ public:
 class ATFMSectorDomain: public IDomainStateful
 {
 public:
-	ATFMSectorDomain(void);
+	ATFMSectorDomain(bool deterministic=false);
 	~ATFMSectorDomain(void);
 
 	// Base function overloads
@@ -81,7 +82,7 @@ public:
 	matrix2d getStates();
 	matrix3d getTypeStates();
 
-
+	bool is_deterministic; // the simulation is deterministic (for testing learning)
 	unsigned int getSector(easymath::XY p);
 
 	std::vector<Sector>* sectors;

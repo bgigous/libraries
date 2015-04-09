@@ -14,6 +14,9 @@ typedef std::vector<std::string> string_matrix1d;
 typedef std::vector<std::vector<double> > matrix2d;
 typedef std::vector<double> matrix1d;
 
+
+
+
 class FileManip{
 public:
 	static string_matrix2d read(std::string filename, std::string separator = STRING_UNINITIALIZED);
@@ -21,6 +24,39 @@ public:
 	static string_matrix1d divide(std::string myString, std::string separator);
 	static matrix2d str2double(string_matrix2d mystring);
 };
+
+template <typename T>
+void load_variable(std::vector<std::vector<T> >& var, std::string filename, std::string separator = STRING_UNINITIALIZED){
+	string_matrix2d f = FileManip::read(filename, separator);
+
+	ostringstream convert;
+	for (int i=0; i<f.size(); i++){
+		for (int j=0; j<f[i].size(); j++){
+			int vardata = stoi(f[i][j]);
+			var[i][j] = static_cast<T>(vardata);
+		}
+	}
+}
+
+template <typename T>
+void load_variable(std::vector<std::vector<T> >* var, std::string filename, std::string separator = STRING_UNINITIALIZED){
+	string_matrix2d f = FileManip::read(filename, separator);
+	*var = std::vector<std::vector<T> >(f.size());
+
+	std::stringstream convert;
+	for (int i=0; i<f.size(); i++){
+		var->at(i) = std::vector<T>(f[i].size());
+		for (int j=0; j<f[i].size(); j++){
+			convert.str(f[i][j]);
+			T hello;
+			convert >> hello;
+			var->at(i)[j] = hello;
+			//convert >> var->at(i)[j];
+			convert.str("");
+			convert.clear();
+		}
+	}
+}
 
 class DataManip{
 public:

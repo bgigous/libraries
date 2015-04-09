@@ -16,6 +16,15 @@ typedef std::vector<std::vector<double> > matrix2d;
 typedef std::vector<std::vector<std::vector<double> > > matrix3d;
 
 template <class T>
+std::vector<std::vector<T> > vector_init(int XDIM, int YDIM, T INITVAL){
+	std::vector<std::vector<T> > retval(XDIM);
+	for (int i=0; i<XDIM; i++){
+		retval[i] = std::vector<T>(YDIM,INITVAL);
+	}
+}
+
+
+template <class T>
 void clear_all(T &ptrs){
 	while (T.size()){
 		delete ptrs.back();

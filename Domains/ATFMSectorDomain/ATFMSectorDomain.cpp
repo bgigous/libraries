@@ -63,7 +63,7 @@ Sector::Sector(XY xy): xy(xy)
 {
 }
 
-Fix::Fix(XY loc): loc(loc),	p_gen(0.05) // change to 1.0 if traffic controlled elsewhere
+Fix::Fix(XY loc, bool deterministic): is_deterministic(deterministic), loc(loc), p_gen(0.05) // change to 1.0 if traffic controlled elsewhere
 {
 }
 
@@ -80,12 +80,36 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, vector<vector<bool> >
 	static int calls = 0;
 
 	std::list<UAV> newTraffic;
-	if (COIN<p_gen){
-		XY end_loc = allFixes->at(COIN_FLOOR0*allFixes->size()).loc;
-		while (end_loc==loc){
-			end_loc = allFixes->at(COIN_FLOOR0*allFixes->size()).loc;
+
+
+	if (is_deterministic){
+		if (calls%10==0){
+			XY end_loc = allFixes->at(calls%allFixes->size()).loc;
+			if (end_loc==loc) end_loc = allFixes->at(calls%(allFixes->size()+1)).loc;
+
+			// HACK
+			UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES));
+			if (type_id_set==UAV::FAST) end_loc = allFixes->at(0).loc;
+			else end_loc = allFixes->at(0).loc;
+			// HACK
+
+			newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set)); //  even UAV types
 		}
-		newTraffic.push_back(UAV(loc,end_loc,pathTraces,UAV::UAVType(calls%int(UAV::UAVType::NTYPES)))); //  even UAV types
+	} else {
+		if (COIN<p_gen){
+			XY end_loc = allFixes->at(COIN_FLOOR0*allFixes->size()).loc;
+			while (end_loc==loc){
+				end_loc = allFixes->at(COIN_FLOOR0*allFixes->size()).loc;
+			}
+
+			// HACK
+			UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES));
+			if (type_id_set==UAV::FAST) end_loc = allFixes->at(0).loc;
+			else end_loc = allFixes->at(0).loc;
+			// HACK
+
+			newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set)); //  even UAV types
+		}
 	}
 	calls++;
 	return newTraffic;
@@ -127,7 +151,8 @@ void Fix::absorbTraffic(list<UAV>* UAVs){
 	}*/
 }
 
-ATFMSectorDomain::ATFMSectorDomain(void)
+ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
+	is_deterministic(deterministic)
 {
 	pathTraces = new vector<vector<XY> >(); // traces the path (reset each epoch)
 
@@ -143,8 +168,15 @@ ATFMSectorDomain::ATFMSectorDomain(void)
 	n_types=UAV::NTYPES; // type blind, for now
 
 	// Read in files for sector management
+	obstacle_map = new vector<vector<bool> >();
+	membership_map = new vector<vector<int> >();
+	load_variable(obstacle_map,"agent_map/obstacle_map.csv");
+	load_variable(membership_map,"agent_map/membership_map.csv");
+
+	/*
 	matrix2d obstacle_map_double = FileManip::readDouble("agent_map/obstacle_map.csv");
 	matrix2d membership_map_double = FileManip::readDouble("agent_map/membership_map.csv");
+
 
 	obstacle_map = new vector<vector<bool> >(obstacle_map_double.size());
 	for (int i=0; i<obstacle_map_double.size(); i++){
@@ -161,6 +193,7 @@ ATFMSectorDomain::ATFMSectorDomain(void)
 			membership_map->at(i)[j] = int(membership_map_double[i][j]);
 		}
 	}
+	*/
 
 	matrix2d agent_coords = FileManip::readDouble("agent_map/agent_map.csv");
 	matrix2d connection_map = FileManip::readDouble("agent_map/connections.csv");
@@ -192,13 +225,9 @@ ATFMSectorDomain::ATFMSectorDomain(void)
 	}
 	weights = vector<double>(edges.size(),1.0); //initialization of weights
 
-
-
-
-
 	// initialize fixes
 	for (int i=0; i<fix_locs.size(); i++){
-		fixes->push_back(Fix(XY(fix_locs[i][0],fix_locs[i][1])));
+		fixes->push_back(Fix(XY(fix_locs[i][0],fix_locs[i][1]),is_deterministic));
 	}
 
 	n_agents = sectors->size(); // number of agents dictated by read in file
@@ -208,6 +237,7 @@ ATFMSectorDomain::ATFMSectorDomain(void)
 
 	// Initialize Astar object (must re-create this each time weight change
 	AStar_easy Astar_highlevel = AStar_easy(agent_locs,edges,weights);
+
 
 	conflict_count_map = new vector<vector<int> >(obstacle_map->size());
 	for (int i=0; i<conflict_count_map->size(); i++){
