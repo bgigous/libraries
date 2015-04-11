@@ -24,8 +24,9 @@ class UAV{
 	environment through planning. Planning is done through boost. 
 	*/
 public:
-	const enum UAVType{SLOW, FAST, NTYPES};
-	
+	const enum UAVType{SLOW, FAST, NTYPES=1}; // make one type only
+	//const enum UAVType{SLOW,NTYPES};
+
 	UAV(easymath::XY start_loc, easymath::XY end_loc,
 		std::vector<std::vector<XY> > *pathTraces, UAVType t);
 
@@ -34,9 +35,9 @@ public:
 	int getDirection(); // gets the cardinal direction of the UAV
 	void moveTowardNextWaypoint(); // takes a time increment to move over
 	void pathPlan(AStar_easy* Astar_highlevel, vector<vector<bool> >*obstacle_map,
-				   vector<vector<int> >* membership_map, vector<Sector>* sectors, 
-				   map<list<AStar_easy::vertex>, AStar_easy* > &astar_lowlevel);
-	
+		vector<vector<int> >* membership_map, vector<Sector>* sectors, 
+		map<list<AStar_easy::vertex>, AStar_easy* > &astar_lowlevel);
+
 	int ID;
 	UAVType type_ID;
 	double speed; // connected to type_ID
@@ -51,7 +52,7 @@ class Fix{
 public:
 	Fix(XY loc, bool deterministic);
 	~Fix(){};
-	
+
 	std::list<UAV> generateTraffic(std::vector<Fix>* fixes, vector<vector<bool> >* obstacle_map,std::vector<std::vector<XY> > *pathTraces);
 	void absorbTraffic(std::list<UAV>* UAVs);
 	bool atDestinationFix(const UAV &u);
@@ -103,6 +104,23 @@ public:
 	void reset();
 	void logStep(int step);
 	void exportLog(std::string fid, double G);
+
+	void load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED){
+		// must be above threshold to be counted as a boolean
+		string_matrix2d f = FileManip::read(filename, separator);
+		*var = std::vector<std::vector<bool> >(f.size());
+
+		for (int i=0; i<f.size(); i++){
+			var->at(i) = std::vector<bool>(f[i].size());
+			for (int j=0; j<f[i].size(); j++){
+				if (atof(f[i][j].c_str())<=thresh){
+					var->at(i)[j] = false;
+				} else {
+					var->at(i)[j] = true;
+				}
+			}
+		}
+	}
 
 
 	// PATH SNAPSHOT OUTPUT

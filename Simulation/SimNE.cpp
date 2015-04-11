@@ -66,8 +66,8 @@ void SimNE::epoch(int ep){
 					domain->exportLog("stat_results/conflict_map-99-",ep);
 				}
 			}
-			//printf("NN#%i, %f\n",n, best_run);
-			printf(".");
+			printf("NN#%i, %f\n",n, best_run);
+			//printf(".");
 			ostringstream epi,ni,ti;
 			epi << ep;
 			ni << n;

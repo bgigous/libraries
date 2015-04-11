@@ -96,7 +96,8 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, vector<vector<bool> >
 			newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set)); //  even UAV types
 		}
 	} else {
-		if (COIN<p_gen){
+		double coin = COIN_FLOOR0;
+		if (coin<p_gen){
 			XY end_loc = allFixes->at(COIN_FLOOR0*allFixes->size()).loc;
 			while (end_loc==loc){
 				end_loc = allFixes->at(COIN_FLOOR0*allFixes->size()).loc;
@@ -104,8 +105,10 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, vector<vector<bool> >
 
 			// HACK
 			UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES));
+			/*
 			if (type_id_set==UAV::FAST) end_loc = allFixes->at(0).loc;
 			else end_loc = allFixes->at(0).loc;
+			*/
 			// HACK
 
 			newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set)); //  even UAV types
@@ -122,7 +125,7 @@ void Fix::absorbTraffic(list<UAV>* UAVs){
 		if (atDestinationFix(*u)){
 			// don't copy over
 		} else {
-			if (u->target_waypoints.size() && u->target_waypoints.front()==loc){
+			if (u->target_waypoints.size() && u->target_waypoints.front()==loc){ // deleted if size==0; drop invalid plans
 				u->target_waypoints.pop();
 			}
 			cur_UAVs.push_back(*u);
@@ -165,13 +168,13 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	n_control_elements=4; // 4 outputs for sectors (cost in cardinal directions)
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	n_steps=100; // steps of simulation time
-	n_types=UAV::NTYPES; // type blind, for now
+	n_types=UAV::NTYPES;
 
 	// Read in files for sector management
 	obstacle_map = new vector<vector<bool> >();
 	membership_map = new vector<vector<int> >();
-	load_variable(obstacle_map,"agent_map/obstacle_map.csv");
-	load_variable(membership_map,"agent_map/membership_map.csv");
+	load_variable(obstacle_map,"agent_map/obstacle_map.csv",0.0); // last element specifies height threshold for obstacle
+	DataManip::load_variable(membership_map,"agent_map/membership_map.csv");
 
 	/*
 	matrix2d obstacle_map_double = FileManip::readDouble("agent_map/obstacle_map.csv");
@@ -448,7 +451,7 @@ void ATFMSectorDomain::reset(){
 
 
 	// reset the path trace so it doesn't get too big
-	pathTraces->clear();
+	// pathTraces->clear();
 }
 
 void ATFMSectorDomain::logStep(int step){
@@ -457,9 +460,9 @@ void ATFMSectorDomain::logStep(int step){
 		pathSnapShot(0);
 	}
 	if (step==50){
-		pathSnapShot(50);
+ 		pathSnapShot(50);
 		pathTraceSnapshot();
-		//	exit(1);
+		//exit(1);
 	}
 }
 
@@ -503,6 +506,7 @@ void ATFMSectorDomain::pathSnapShot(int snapnum){
 			u->target_waypoints.pop();
 		}
 		ind+=2;
+		u->target_waypoints = wpt_save;
 	}
 	PrintOut::toFile2D(pathsnaps,"path-" + to_string(snapnum)+".csv");
 }

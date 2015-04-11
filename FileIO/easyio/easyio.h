@@ -24,7 +24,7 @@ public:
 	static string_matrix1d divide(std::string myString, std::string separator);
 	static matrix2d str2double(string_matrix2d mystring);
 };
-
+/*
 template <typename T>
 void load_variable(std::vector<std::vector<T> >& var, std::string filename, std::string separator = STRING_UNINITIALIZED){
 	string_matrix2d f = FileManip::read(filename, separator);
@@ -37,29 +37,30 @@ void load_variable(std::vector<std::vector<T> >& var, std::string filename, std:
 		}
 	}
 }
-
-template <typename T>
-void load_variable(std::vector<std::vector<T> >* var, std::string filename, std::string separator = STRING_UNINITIALIZED){
-	string_matrix2d f = FileManip::read(filename, separator);
-	*var = std::vector<std::vector<T> >(f.size());
-
-	std::stringstream convert;
-	for (int i=0; i<f.size(); i++){
-		var->at(i) = std::vector<T>(f[i].size());
-		for (int j=0; j<f[i].size(); j++){
-			convert.str(f[i][j]);
-			T hello;
-			convert >> hello;
-			var->at(i)[j] = hello;
-			//convert >> var->at(i)[j];
-			convert.str("");
-			convert.clear();
-		}
-	}
-}
+*/
 
 class DataManip{
 public:
+	template <typename T>
+	static void load_variable(std::vector<std::vector<T> >* var, std::string filename, std::string separator = STRING_UNINITIALIZED){
+		string_matrix2d f = FileManip::read(filename, separator);
+		*var = std::vector<std::vector<T> >(f.size());
+
+		std::stringstream convert;
+		for (int i=0; i<f.size(); i++){
+			var->at(i) = std::vector<T>(f[i].size());
+			for (int j=0; j<f[i].size(); j++){
+				convert.str(f[i][j]);
+				T hello;
+				convert >> hello;
+				var->at(i)[j] = hello;
+				//convert >> var->at(i)[j];
+				convert.str("");
+				convert.clear();
+			}
+		}
+	}
+
 	static matrix2d stringToDouble(string_matrix2d stringVector);
 	static double stringToDouble(std::string s);
 	static matrix1d getColumn(matrix2d doubleVector, int col);
@@ -112,7 +113,7 @@ public:
 		ofstream file;
 		file.open(fileName.c_str());
 		if (file.is_open()){
-			for (M2::iterator outer=output2d.end(); outer!=output2d.end(); outer++){
+			for (M2::iterator outer=output2d.begin(); outer!=output2d.end(); outer++){
 				fileOut1D(*outer, file,separator);
 				file << "\n";
 			}
