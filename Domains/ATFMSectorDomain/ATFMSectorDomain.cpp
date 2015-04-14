@@ -82,7 +82,7 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, vector<vector<bool> >
 	std::list<UAV> newTraffic;
 
 
-	if (is_deterministic){
+	/*if (is_deterministic){
 		if (calls%10==0){
 			XY end_loc = allFixes->at(calls%allFixes->size()).loc;
 			if (end_loc==loc) end_loc = allFixes->at(calls%(allFixes->size()+1)).loc;
@@ -95,7 +95,7 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, vector<vector<bool> >
 
 			newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set)); //  even UAV types
 		}
-	} else {
+	} else {*/
 		double coin = COIN_FLOOR0;
 		if (coin<p_gen){
 			XY end_loc = allFixes->at(COIN_FLOOR0*allFixes->size()).loc;
@@ -112,7 +112,7 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, vector<vector<bool> >
 			// HACK
 
 			newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set)); //  even UAV types
-		}
+		//}
 	}
 	calls++;
 	return newTraffic;
@@ -344,8 +344,8 @@ void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
 
 void ATFMSectorDomain::setCostMaps(vector<vector<double> > agent_actions){
 	for (int i=0; i<weights.size(); i++){
-		//weights[i] = agent_actions[sector_dir_map[i].first][sector_dir_map[i].second]; // AGENT SETUP
-		weights[i] = 1.0; // NO AGENTS
+		weights[i] = agent_actions[sector_dir_map[i].first][sector_dir_map[i].second]; // AGENT SETUP
+		//weights[i] = 1.0; // NO AGENTS
 	}
 
 	delete Astar_highlevel;
@@ -477,7 +477,10 @@ void ATFMSectorDomain::detectConflicts(){
 	for (list<UAV>::iterator u1=UAVs->begin(); u1!=UAVs->end(); u1++){
 		for (list<UAV>::iterator u2=std::next(u1); u2!=UAVs->end(); u2++){
 			double d = easymath::distance(u1->loc,u2->loc);
+			
+/* size type
 			double large_thresh = 5*conflict_thresh;
+
 			if (u1!=u2){
 				if (((u1->type_ID+u2->type_ID)==0 && d<conflict_thresh)
 					|| ((u1->type_ID+u2->type_ID)==1 && d<(conflict_thresh+large_thresh)/2)
@@ -489,6 +492,20 @@ void ATFMSectorDomain::detectConflicts(){
 						conflict_count_map->at(avgx)[avgy]++;
 				}
 			}
+			*/
+			if (u1!=u2){
+				if (d<conflict_thresh){
+						conflict_count++;
+
+						int avgx = (u1->loc.x+u2->loc.x)/2;
+						int avgy = (u1->loc.y+u2->loc.y)/2;
+						conflict_count_map->at(avgx)[avgy]++;
+						if (u1->type_ID==UAV::FAST || u2->type_ID==UAV::FAST){
+							conflict_count+=10; // big penalty for high priority ('fast' here)
+						}
+				}
+			}
+
 		}
 	}
 }
