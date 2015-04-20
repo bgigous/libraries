@@ -90,7 +90,6 @@ public:
 	std::list<UAV>* UAVs; // this is in a list because it has to be modified often. Never tie an ID/index to a UAV
 	std::vector<Fix>* fixes;
 
-	matrix2d cost_map; // cost matrix (Nx4), [n1,n2,cost,var]
 	std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
 
 	void simulateStep(matrix2d agent_actions);
@@ -100,6 +99,7 @@ public:
 	void getNewUAVTraffic();
 	void absorbUAVTraffic();
 	void getPathPlans(); // note: when is this event?
+	void getPathPlans(std::list<UAV> &new_UAVs);
 
 	void reset();
 	void logStep(int step);
@@ -142,8 +142,10 @@ public:
 	// for A* (boost)
 	vector<XY> agent_locs;
 	vector<AStar_easy::edge> edges;
-	vector<double> weights;
-	AStar_easy* Astar_highlevel;
+	// vector<double> weights; // old
+	matrix2d weights; // [type][connection]
+	std::vector<AStar_easy*> Astar_highlevel;
+	//AStar_easy* Astar_highlevel; // old
 
 	map<list<AStar_easy::vertex>, AStar_easy*> astar_lowlevel;
 	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)

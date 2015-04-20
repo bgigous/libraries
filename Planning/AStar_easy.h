@@ -163,7 +163,21 @@ public:
 	static vector<XY> get8GridNeighbors(int x, int y, vector<vector<bool> >* obstacle_map){
 		int XDIM = obstacle_map->size();
 		int YDIM = obstacle_map->at(0).size();
-		vector<XY> neighbors;
+		vector<XY> neighbors(8);
+		int n = 0;
+		
+		if (x>0 && y>0 && !obstacle_map->at(x-1)[y-1])				neighbors[n++] = XY(x-1,y-1);
+		if (x>0 && !obstacle_map->at(x-1)[y])						neighbors[n++] = XY(x-1,y);
+		if (x>0 && y<YDIM-1 && !obstacle_map->at(x-1)[y+1])			neighbors[n++] = XY(x-1,y+1);
+		if (y>0 && !obstacle_map->at(x)[y-1])						neighbors[n++] = XY(x,y-1);
+		if (y<YDIM-1 && !obstacle_map->at(x)[y+1])					neighbors[n++] = XY(x,y+1);
+		if (x<XDIM-1 && y>0 && !obstacle_map->at(x+1)[y-1])			neighbors[n++] = XY(x+1,y-1);
+		if (x<XDIM-1 && !obstacle_map->at(x+1)[y])					neighbors[n++] = XY(x+1,y);
+		if (x<XDIM-1 && y<YDIM-1 && !obstacle_map->at(x+1)[y+1])	neighbors[n++] = XY(x+1,y+1);
+
+		neighbors.resize(n);
+
+	/*
 		if (x>0 && y>0 && !obstacle_map->at(x-1)[y-1]) neighbors.push_back(XY(x-1,y-1));
 		if (x>0 && !obstacle_map->at(x-1)[y]) neighbors.push_back(XY(x-1,y));
 		if (x>0 && y<YDIM-1 && !obstacle_map->at(x-1)[y+1]) neighbors.push_back(XY(x-1,y+1));
@@ -172,6 +186,7 @@ public:
 		if (x<XDIM-1 && y>0 && !obstacle_map->at(x+1)[y-1]) neighbors.push_back(XY(x+1,y-1));
 		if (x<XDIM-1 && !obstacle_map->at(x+1)[y]) neighbors.push_back(XY(x+1,y));
 		if (x<XDIM-1 && y<YDIM-1 && !obstacle_map->at(x+1)[y+1]) neighbors.push_back(XY(x+1,y+1));
+		*/
 		return neighbors;
 	}
 

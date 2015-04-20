@@ -46,7 +46,7 @@ void SimNE::epoch(int ep){
 				domain->logStep(s);
 			}
 			t= clock();
-			//printf("t=%f\n",float(t-tref)/CLOCKS_PER_SEC);
+			printf("t=%f\n",float(t-tref)/CLOCKS_PER_SEC);
 			tref=t;
 
 			matrix1d R = domain->getRewards();
