@@ -63,7 +63,7 @@ Sector::Sector(XY xy): xy(xy)
 {
 }
 
-Fix::Fix(XY loc, bool deterministic): is_deterministic(deterministic), loc(loc), p_gen(1.0) // change to 1.0 if traffic controlled elsewhere
+Fix::Fix(XY loc, bool deterministic): is_deterministic(deterministic), loc(loc), p_gen(0.05) // change to 1.0 if traffic controlled elsewhere
 {
 }
 
@@ -335,14 +335,12 @@ unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 	return membership_map->at(p.x)[p.y];
 }
 
-/*
-HACK: ONLY GET PATH PLANS OF UAVS just generated
+//HACK: ONLY GET PATH PLANS OF UAVS just generated
 void ATFMSectorDomain::getPathPlans(){
 	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
 		u->pathPlan(Astar_highlevel[u->type_ID],obstacle_map,membership_map,sectors,astar_lowlevel); // sets own next waypoint
 	}
 }
-*/
 
 void ATFMSectorDomain::getPathPlans(std::list<UAV> &new_UAVs){
 	for (list<UAV>::iterator u=new_UAVs.begin(); u!=new_UAVs.end(); u++){
@@ -358,10 +356,10 @@ void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
 	absorbUAVTraffic();
 
 	// only do this every Nth call!
-	if (calls%gen_frequency==0){
+	//if (calls%gen_frequency==0){
 		getNewUAVTraffic(); // probabilistic traffic
-		//getPathPlans(); // HACK: ONLY GET PATH PLANS OF UAVS JUST GENERATED
-	}
+		getPathPlans(); // HACK: ONLY GET PATH PLANS OF UAVS JUST GENERATED
+	//}
 	//calls++;
 
 
