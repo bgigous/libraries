@@ -60,6 +60,8 @@ public:
 	bool is_deterministic;
 	XY loc;
 	const double p_gen;
+	const double dist_thresh;
+	static const int gen_frequency=10;
 };
 
 class Sector{
