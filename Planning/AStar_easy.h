@@ -177,16 +177,6 @@ public:
 
 		neighbors.resize(n);
 
-	/*
-		if (x>0 && y>0 && !obstacle_map->at(x-1)[y-1]) neighbors.push_back(XY(x-1,y-1));
-		if (x>0 && !obstacle_map->at(x-1)[y]) neighbors.push_back(XY(x-1,y));
-		if (x>0 && y<YDIM-1 && !obstacle_map->at(x-1)[y+1]) neighbors.push_back(XY(x-1,y+1));
-		if (y>0 && !obstacle_map->at(x)[y-1]) neighbors.push_back(XY(x,y-1));
-		if (y<YDIM-1 && !obstacle_map->at(x)[y+1]) neighbors.push_back(XY(x,y+1));
-		if (x<XDIM-1 && y>0 && !obstacle_map->at(x+1)[y-1]) neighbors.push_back(XY(x+1,y-1));
-		if (x<XDIM-1 && !obstacle_map->at(x+1)[y]) neighbors.push_back(XY(x+1,y));
-		if (x<XDIM-1 && y<YDIM-1 && !obstacle_map->at(x+1)[y+1]) neighbors.push_back(XY(x+1,y+1));
-		*/
 		return neighbors;
 	}
 
