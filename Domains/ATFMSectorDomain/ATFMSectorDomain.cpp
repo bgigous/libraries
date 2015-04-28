@@ -27,14 +27,22 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 };
 
 void UAV::pathPlan(AStar_easy* Astar_highlevel, vector<vector<bool> >*obstacle_map,
-				   vector<vector<int> >* membership_map, vector<Sector>* sectors, 
-				   map<list<AStar_easy::vertex>, AStar_easy* > &astar_lowlevel)
+				   vector<vector<int> >* membership_map, vector<Sector>* sectors)
 {
 
 	int memstart = membership_map->at(loc.x)[loc.y];
 	int memend =  membership_map->at(end_loc.x)[end_loc.y];
 	list<AStar_easy::vertex> high_path = Astar_highlevel->search(memstart,memend);
 
+	if (high_path_prev != high_path){
+		high_path_prev = high_path; // checking to see if path needs to be re-created
+		vector<XY> low_path = astar_lowlevel->search(high_path,loc, end_loc);
+		while (target_waypoints.size()) target_waypoints.pop(); // clear the queue;
+		for (int i=0; i<low_path.size(); i++) target_waypoints.push(low_path[i]); // adds waypoints to visit
+		target_waypoints.pop(); // remove CURRENT location from target	
+	}
+
+	/*
 	if(high_path_prev !=high_path){
 		high_path_prev = high_path;
 		AStar_easy* astar_low;
@@ -48,10 +56,13 @@ void UAV::pathPlan(AStar_easy* Astar_highlevel, vector<vector<bool> >*obstacle_m
 		list<AStar_easy::vertex> low_path= astar_low->search(loc,end_loc);
 		while (target_waypoints.size()) target_waypoints.pop();
 		for (list<AStar_easy::vertex>::iterator it=low_path.begin(); it!=low_path.end(); it++){
-			target_waypoints.push(astar_low->rlookup[*it]); // adds to list to visit
+			int x, y;
+			astar_low->ind2sub(astar_low->YDIM,*it, x,y);
+			target_waypoints.push(XY(x,y)); // adds to list to visit
 		}
 		target_waypoints.pop(); // removes CURRENT location from target
 	}
+	*/
 }
 
 int UAV::getDirection(){
@@ -192,6 +203,8 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	}
 
 
+	Astar_lowlevel = new AStar_easy(obstacle_map,membership_map);
+
 	conflict_count_map = new vector<vector<int> >(obstacle_map->size());
 	for (int i=0; i<conflict_count_map->size(); i++){
 		conflict_count_map->at(i) = vector<int>(obstacle_map->at(i).size(),0);
@@ -205,10 +218,12 @@ ATFMSectorDomain::~ATFMSectorDomain(void)
 	delete sectors;
 	delete obstacle_map;
 	delete membership_map;
-	for (map<list<AStar_easy::vertex>, AStar_easy* >::iterator it=astar_lowlevel.begin();
+
+	delete Astar_lowlevel;
+	/*for (map<list<AStar_easy::vertex>, AStar_easy* >::iterator it=astar_lowlevel.begin();
 		it!=astar_lowlevel.end(); it++){
 			delete it->second;
-	}
+	}*/
 	delete conflict_count_map;
 	for (int i=0; i<Astar_highlevel.size(); i++){
 		delete Astar_highlevel[i];
@@ -278,13 +293,13 @@ unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
 void ATFMSectorDomain::getPathPlans(){
 	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-		u->pathPlan(Astar_highlevel[u->type_ID],obstacle_map,membership_map,sectors,astar_lowlevel); // sets own next waypoint
+		u->pathPlan(Astar_highlevel[u->type_ID],obstacle_map,membership_map,sectors); // sets own next waypoint
 	}
 }
 
 void ATFMSectorDomain::getPathPlans(std::list<UAV> &new_UAVs){
 	for (list<UAV>::iterator u=new_UAVs.begin(); u!=new_UAVs.end(); u++){
-		u->pathPlan(Astar_highlevel[u->type_ID],obstacle_map,membership_map,sectors,astar_lowlevel); // sets own next waypoint
+		u->pathPlan(Astar_highlevel[u->type_ID],obstacle_map,membership_map,sectors); // sets own next waypoint
 	}
 }
 
@@ -378,10 +393,10 @@ void ATFMSectorDomain::reset(){
 	}
 
 	// re-create low level a*
-	for (map<list<AStar_easy::vertex>, AStar_easy* >::iterator it=astar_lowlevel.begin(); it!=astar_lowlevel.end(); it++){
+	/*for (map<list<AStar_easy::vertex>, AStar_easy* >::iterator it=astar_lowlevel.begin(); it!=astar_lowlevel.end(); it++){
 		delete it->second;
 	}
-	astar_lowlevel.clear();
+	astar_lowlevel.clear();*/
 
 	//PrintOut::toFile(*conflict_count_map,"conflict_map.csv");
 	// clear conflict count map

@@ -30,19 +30,36 @@ class distance_heuristic : public astar_heuristic<Graph, CostType>
 {
 public:
 	typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
-	distance_heuristic(LocMap l, Vertex goal): 
+	distance_heuristic(LocMap l, Vertex goal, int xdim, int ydim): 
 		m_location(l), 
-		m_goal(goal) 
+		m_goal(goal),
+		XDIM(xdim),
+		YDIM(ydim)
 	{};
 	CostType operator()(Vertex u)
 	{
-		CostType dx = m_location[m_goal].x - m_location[u].x;
-		CostType dy = m_location[m_goal].y - m_location[u].y;
+		//CostType dx = m_location[m_goal].x - m_location[u].x;
+		//CostType dy = m_location[m_goal].y - m_location[u].y;
+
+		int x1, y1, x2, y2;
+		AStar_easy::ind2sub(YDIM, u, x1, y1);
+		AStar_easy::ind2sub(YDIM, m_goal, x2, y2);
+		
+		double dx = x2-x1;
+		double dy = y2-y1;
+
 		return ::sqrt(dx * dx + dy * dy);
 	}
 private:
 	LocMap m_location;
 	Vertex m_goal;
+	int XDIM, YDIM;
+	/*void ind2sub(int cols, int ind, int &r, int &c){
+		//0-indexed: ind-1 always called
+		// NOTE: REPLICA OF THE ONE IN ASTAR
+		r = (ind-1)%cols;
+		c = floor((ind-1)/cols);
+	}*/
 };
 
 
@@ -63,8 +80,6 @@ private:
 	Vertex m_goal;
 };
 
-
-#pragma once
 class AStar_easy
 {
 public:
@@ -90,9 +105,9 @@ public:
 	}
 
 	// create connections on map
-	AStar_easy(list<AStar_easy::vertex> &high_path,vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
+	AStar_easy(vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
 		// Get 8-connected grid
-		get8GridEdges(high_path,obstacle_map,membership_map); // populate reachable_locs, lookup, edge_array
+		get8GridEdges(obstacle_map,membership_map); // populate reachable_locs, lookup, edge_array
 
 		weights = vector<double>(edge_array.size(),1.0);
 		g = mygraph_t(locations.size());
@@ -129,7 +144,7 @@ public:
 			astar_search
 				(g, start,
 				distance_heuristic<mygraph_t, cost, vector<easymath::XY> >
-				(locations, goal),
+				(locations, goal,XDIM,YDIM),
 				predecessor_map(&p[0]).distance_map(&d[0]).
 				visitor(astar_goal_visitor<vertex>(goal)));
 
@@ -147,15 +162,42 @@ public:
 	}
 
 	list<vertex> search(easymath::XY loc,easymath::XY goal){
-		// Assumes mask already on high-level path: graph created externally: order enforced here
-		// takes specific start and end points in space
-		// lookup, looks up ID's for given nodes (loc,goal)
-
+		// Takes specific start and end points in space
+		
 		int v1 = sub2ind(loc.x,loc.y,XDIM,YDIM);
 		int v2 = sub2ind(goal.x,goal.y,XDIM,YDIM);
 
 		if (nodes.count(loc) && nodes.count(goal))
 			return search(vertex(v1),vertex(v2));
+		else {
+			printf("Goal not in mask. Aborting.");
+			system("pause");
+			exit(2);
+		}
+	}
+
+	vector<XY> search(list<AStar_easy::vertex> high_path, easymath::XY loc,easymath::XY goal){
+		// Assumes mask already on high-level path: graph created externally: order enforced here
+		// takes specific start and end points in space
+		
+		add_boundaries(high_path); // ADD IMPACT OF HIGH-LEVEL PATH
+		
+		int v1 = sub2ind(loc.x,loc.y,XDIM,YDIM);
+		int v2 = sub2ind(goal.x,goal.y,XDIM,YDIM);
+		list<vertex> path_output_vertices;
+
+		if (nodes.count(loc) && nodes.count(goal)){
+			path_output_vertices = search(vertex(v1),vertex(v2));
+			remove_boundaries(high_path); // REMOVE IMPACT OF HIGH-LEVEL PATH
+			vector<XY> path_output(path_output_vertices.size());
+			int i=0;
+			for (list<vertex>::iterator v=path_output_vertices.begin(); v!= path_output_vertices.end(); v++){
+				int x,y;
+				ind2sub(YDIM,*v,x,y);
+				path_output[i++] = XY(x,y);
+			}
+			return path_output;
+		}
 		else {
 			printf("Goal not in mask. Aborting.");
 			system("pause");
@@ -184,13 +226,13 @@ public:
 		return neighbors;
 	}
 
-	int sub2ind(int r, int c, int m, int n){ 
+	static int sub2ind(int r, int c, int m, int n){ 
 		// 1-index!
 		r++;
 		c++;
 		return (c-1)*m+r;
 	}
-	void ind2sub(int cols, int ind, int &r, int &c){
+	static void ind2sub(int cols, int ind, int &r, int &c){
 		//0-indexed: ind-1 always called
 		r = (ind-1)%cols;
 		c = floor((ind-1)/cols);
@@ -203,15 +245,37 @@ public:
 	map<pair<int,int>,vector<edge> > boundary_edges; // lists boundary connections between different sectors
 
 	void add_boundaries(list<AStar_easy::vertex> &high_path){
+		
+		// create graph
+		// THIS ALL PULLED FROM GRAPH CREATION PART...
+		g = mygraph_t(locations.size());
+		weightmap = get(edge_weight, g);
+		for(std::size_t j = 0; j < edge_array.size(); ++j) {
+			edge_descriptor e;
+			bool inserted;
+			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
+			weightmap[e] = weights[j];
+		}
+		// END PULL
+		
+		//TODO: do other things here that influence graph creation
 		for (list<AStar_easy::vertex>::iterator i=high_path.begin(); i!=prev(high_path.end()); i++){
 			vector<edge> b = boundary_edges[pair<int,int>(*i,*std::next(i))];
 			for (vector<edge>::iterator e=b.begin(); e!=b.end(); e++){
 				edge_array.push_back(*e);
 			}
 		}
+
 	}
 
-	void get8GridEdges(list<AStar_easy::vertex> &high_path, vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
+	void remove_boundaries(list<AStar_easy::vertex> &high_path){
+
+	}
+
+	void get8GridEdges(vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
+		// Gets the 8-grid edges broken up by sectors specified by "membership map".
+		// Reconnection of the sectors is based on the high-level plan during the search, and connects
+		// relevant edges in boundary_edges container.
 
 		XDIM = obstacle_map->size();
 		YDIM = obstacle_map->at(0).size();
@@ -226,9 +290,6 @@ public:
 						edge e;
 						e.first = sub2ind(x,y,YDIM,XDIM);
 						e.second = sub2ind(neighbors[i].x,neighbors[i].y,YDIM,XDIM);
-						//matrix1d edge(2); // edge is 1-indexed (matlab interfacing...)
-						//edge[0] = sub2ind(x,y,YDIM,XDIM);
-						//edge[1] = sub2ind(neighbors[i].x,neighbors[i].y,YDIM,XDIM);
 
 						int m1 = membership_map->at(x)[y];
 						int m2 = membership_map->at(neighbors[i].x)[neighbors[i].y];
@@ -242,8 +303,6 @@ public:
 				}
 			}
 		}
-
-		add_boundaries(high_path);
 
 		locations = vector<XY>(nodes.size());
 		int count=0;

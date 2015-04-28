@@ -35,8 +35,7 @@ public:
 	int getDirection(); // gets the cardinal direction of the UAV
 	void moveTowardNextWaypoint(); // takes a time increment to move over
 	void pathPlan(AStar_easy* Astar_highlevel, vector<vector<bool> >*obstacle_map,
-		vector<vector<int> >* membership_map, vector<Sector>* sectors, 
-		map<list<AStar_easy::vertex>, AStar_easy* > &astar_lowlevel);
+		vector<vector<int> >* membership_map, vector<Sector>* sectors);
 
 	int ID;
 	UAVType type_ID;
@@ -147,9 +146,10 @@ public:
 	// vector<double> weights; // old
 	matrix2d weights; // [type][connection]
 	std::vector<AStar_easy*> Astar_highlevel;
+	AStar_easy* Astar_lowlevel;
 	//AStar_easy* Astar_highlevel; // old
 
-	map<list<AStar_easy::vertex>, AStar_easy*> astar_lowlevel;
+	//map<list<AStar_easy::vertex>, AStar_easy*> astar_lowlevel;
 	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)
 };
 
