@@ -89,7 +89,7 @@ public:
 		}
 	}
 
-		// create connections on map
+	// create connections on map
 	AStar_easy(list<AStar_easy::vertex> &high_path,vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
 		// Get 8-connected grid
 		get8GridEdges(high_path,obstacle_map,membership_map); // populate reachable_locs, lookup, edge_array
@@ -107,8 +107,8 @@ public:
 	~AStar_easy(void){};
 
 	// translating to real things...
-	map<XY,int> lookup;
-	map<AStar_easy::vertex,XY> rlookup;
+	//	map<XY,int> lookup;
+	//	map<AStar_easy::vertex,XY> rlookup;
 
 
 
@@ -150,8 +150,12 @@ public:
 		// Assumes mask already on high-level path: graph created externally: order enforced here
 		// takes specific start and end points in space
 		// lookup, looks up ID's for given nodes (loc,goal)
-		if (lookup.count(loc) && lookup.count(goal))
-			return search(vertex(lookup[loc]),vertex(lookup[goal]));
+
+		int v1 = sub2ind(loc.x,loc.y,XDIM,YDIM);
+		int v2 = sub2ind(goal.x,goal.y,XDIM,YDIM);
+
+		if (nodes.count(loc) && nodes.count(goal))
+			return search(vertex(v1),vertex(v2));
 		else {
 			printf("Goal not in mask. Aborting.");
 			system("pause");
@@ -160,78 +164,91 @@ public:
 	}
 
 
-	static vector<XY> get8GridNeighbors(int x, int y, vector<vector<bool> >* obstacle_map){
+	static 	vector<XY> get8GridNeighbors(int x, int y, vector<vector<bool> >* obstacle_map){
 		int XDIM = obstacle_map->size();
 		int YDIM = obstacle_map->at(0).size();
 		vector<XY> neighbors(8);
 		int n = 0;
-		
-		if (x>0 && y>0 && !obstacle_map->at(x-1)[y-1])				neighbors[n++] = XY(x-1,y-1);
-		if (x>0 && !obstacle_map->at(x-1)[y])						neighbors[n++] = XY(x-1,y);
-		if (x>0 && y<YDIM-1 && !obstacle_map->at(x-1)[y+1])			neighbors[n++] = XY(x-1,y+1);
-		if (y>0 && !obstacle_map->at(x)[y-1])						neighbors[n++] = XY(x,y-1);
-		if (y<YDIM-1 && !obstacle_map->at(x)[y+1])					neighbors[n++] = XY(x,y+1);
-		if (x<XDIM-1 && y>0 && !obstacle_map->at(x+1)[y-1])			neighbors[n++] = XY(x+1,y-1);
-		if (x<XDIM-1 && !obstacle_map->at(x+1)[y])					neighbors[n++] = XY(x+1,y);
-		if (x<XDIM-1 && y<YDIM-1 && !obstacle_map->at(x+1)[y+1])	neighbors[n++] = XY(x+1,y+1);
+
+		if (x>0	&& y>0 && !obstacle_map->at(x-1)[y-1])				neighbors[n++] = XY(x-1,y-1);
+		if (x>0	&& !obstacle_map->at(x-1)[y])						neighbors[n++] = XY(x-1,y);
+		if (x>0	&& y<YDIM-1	&&	!obstacle_map->at(x-1)[y+1])		neighbors[n++] = XY(x-1,y+1);
+		if (y>0	&& !obstacle_map->at(x)[y-1])						neighbors[n++] = XY(x,y-1);
+		if (y<YDIM-1 &&	!obstacle_map->at(x)[y+1])					neighbors[n++] = XY(x,y+1);
+		if (x<XDIM-1 &&	y>0	&&	!obstacle_map->at(x+1)[y-1])		neighbors[n++] = XY(x+1,y-1);
+		if (x<XDIM-1 &&	!obstacle_map->at(x+1)[y])					neighbors[n++] = XY(x+1,y);
+		if (x<XDIM-1 &&	y<YDIM-1 &&	!obstacle_map->at(x+1)[y+1])	neighbors[n++] = XY(x+1,y+1);
 
 		neighbors.resize(n);
 
 		return neighbors;
 	}
 
-	void get8GridEdges(list<AStar_easy::vertex> &high_path, vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
-		
-		set<XY> nodes; // set of nodes already found
-		// create connections on map
-		map<int,set<int> > member_connections;
-		for (list<AStar_easy::vertex>::iterator i=high_path.begin(); i!=high_path.end(); i++){
-			member_connections[*i] = set<int>();
-			member_connections[*i].insert(*i); // insert self connection;
-			if (std::next(i)!=high_path.end()){ // insert connection at next node
-				member_connections[*i].insert(*std::next(i));
+	int sub2ind(int r, int c, int m, int n){ 
+		// 1-index!
+		r++;
+		c++;
+		return (c-1)*m+r;
+	}
+	void ind2sub(int cols, int ind, int &r, int &c){
+		//0-indexed: ind-1 always called
+		r = (ind-1)%cols;
+		c = floor((ind-1)/cols);
+	}
+	int XDIM, YDIM; // dimensions of the map
+	set<XY> nodes; // set of nodes already found
+
+	// better to add back in the boundaries?
+
+	map<pair<int,int>,vector<edge> > boundary_edges; // lists boundary connections between different sectors
+
+	void add_boundaries(list<AStar_easy::vertex> &high_path){
+		for (list<AStar_easy::vertex>::iterator i=high_path.begin(); i!=prev(high_path.end()); i++){
+			vector<edge> b = boundary_edges[pair<int,int>(*i,*std::next(i))];
+			for (vector<edge>::iterator e=b.begin(); e!=b.end(); e++){
+				edge_array.push_back(*e);
 			}
 		}
-		
-		int XDIM = obstacle_map->size();
-		int YDIM = obstacle_map->at(0).size();
+	}
+
+	void get8GridEdges(list<AStar_easy::vertex> &high_path, vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
+
+		XDIM = obstacle_map->size();
+		YDIM = obstacle_map->at(0).size();
+
+		// create connections on map
 		for (int x=0; x<XDIM; x++){
 			for (int y=0; y<YDIM; y++){
-//				if (x==166 && y==187){
-	//				printf("here!");
-		//		}
-				vector<XY> neighbors = get8GridNeighbors(x,y, obstacle_map);
-
-				// TODO: CREATE GRAPH FROM REACHABLE NEIGHBORS
-				int mem1 = membership_map->at(x)[y];
-
-				if(mem1==int(high_path.front()) || member_connections.count(mem1)){
+				if (!obstacle_map->at(x)[y]){
+					nodes.insert(XY(x,y)); // add to list of possible nodes, if not in an obstacle
+					vector<XY> neighbors = get8GridNeighbors(x,y, obstacle_map);
 					for (int i=0; i<neighbors.size(); i++){
-						int mem2 = membership_map->at(neighbors[i].x)[neighbors[i].y];
-						if (mem1==mem2 || member_connections[mem1].count(mem2)){
-							if (nodes.find(XY(x,y))==nodes.end()){
-								lookup[XY(x,y)]=nodes.size(); // add to existing set
-								rlookup[nodes.size()]=XY(x,y);
-								nodes.insert(XY(x,y));
-							}
-							// add node AND EDGE
-							if (nodes.find(neighbors[i])==nodes.end()){
-								lookup[neighbors[i]]=nodes.size(); // add to existing set
-								rlookup[nodes.size()]=neighbors[i];
-								nodes.insert(neighbors[i]);
-							}
-							edge_array.push_back(AStar_easy::edge(lookup[XY(x,y)],lookup[neighbors[i]]));
+						edge e;
+						e.first = sub2ind(x,y,YDIM,XDIM);
+						e.second = sub2ind(neighbors[i].x,neighbors[i].y,YDIM,XDIM);
+						//matrix1d edge(2); // edge is 1-indexed (matlab interfacing...)
+						//edge[0] = sub2ind(x,y,YDIM,XDIM);
+						//edge[1] = sub2ind(neighbors[i].x,neighbors[i].y,YDIM,XDIM);
+
+						int m1 = membership_map->at(x)[y];
+						int m2 = membership_map->at(neighbors[i].x)[neighbors[i].y];
+
+						if (m1==m2){
+							edge_array.push_back(e);
+						} else {
+							boundary_edges[pair<int,int>(m1,m2)].push_back(e);
 						}
 					}
 				}
 			}
 		}
 
+		add_boundaries(high_path);
+
 		locations = vector<XY>(nodes.size());
 		int count=0;
 		for (set<XY>::iterator it=nodes.begin(); it!=nodes.end(); it++){
-			locations[count] = *it;
-			count++;
+			locations[count++] = *it;
 		}
 	}
 };
