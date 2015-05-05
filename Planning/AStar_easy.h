@@ -48,7 +48,7 @@ public:
 		double dx = x2-x1;
 		double dy = y2-y1;
 
-		return ::sqrt(dx * dx + dy * dy);
+		return CostType(::sqrt(dx * dx + dy * dy));
 	}
 private:
 	LocMap m_location;
@@ -246,30 +246,29 @@ public:
 
 	void add_boundaries(list<AStar_easy::vertex> &high_path){
 		
-		// create graph
-		// THIS ALL PULLED FROM GRAPH CREATION PART...
-		g = mygraph_t(locations.size());
-		weightmap = get(edge_weight, g);
-		for(std::size_t j = 0; j < edge_array.size(); ++j) {
-			edge_descriptor e;
-			bool inserted;
-			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
-			weightmap[e] = weights[j];
-		}
-		// END PULL
-		
 		//TODO: do other things here that influence graph creation
 		for (list<AStar_easy::vertex>::iterator i=high_path.begin(); i!=prev(high_path.end()); i++){
 			vector<edge> b = boundary_edges[pair<int,int>(*i,*std::next(i))];
 			for (vector<edge>::iterator e=b.begin(); e!=b.end(); e++){
 				edge_array.push_back(*e);
+				
+				// add it into the graph!
+				edge_descriptor desc;
+				bool inserted;
+				boost::tuples::tie(desc, inserted) = add_edge(e->first, e->second, g);
+				weightmap[desc] = 1.0; // HARDCODING
 			}
 		}
 
 	}
 
 	void remove_boundaries(list<AStar_easy::vertex> &high_path){
-
+		for (list<AStar_easy::vertex>::iterator i=high_path.begin(); i!=prev(high_path.end()); i++){
+			vector<edge> b = boundary_edges[pair<int,int>(*i,*std::next(i))];
+			for (int j=0; j<b.size(); j++){
+				remove_edge(b[j].first,b[j].second,g);
+			}
+		}
 	}
 
 	void get8GridEdges(vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){

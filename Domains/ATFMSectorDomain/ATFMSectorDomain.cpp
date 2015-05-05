@@ -26,7 +26,7 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 
 };
 
-void UAV::pathPlan(AStar_easy* Astar_highlevel, vector<vector<bool> >*obstacle_map,
+void UAV::pathPlan(AStar_easy* Astar_highlevel, AStar_easy* Astar_lowlevel, vector<vector<bool> >*obstacle_map,
 				   vector<vector<int> >* membership_map, vector<Sector>* sectors)
 {
 
@@ -36,7 +36,7 @@ void UAV::pathPlan(AStar_easy* Astar_highlevel, vector<vector<bool> >*obstacle_m
 
 	if (high_path_prev != high_path){
 		high_path_prev = high_path; // checking to see if path needs to be re-created
-		vector<XY> low_path = astar_lowlevel->search(high_path,loc, end_loc);
+		vector<XY> low_path = Astar_lowlevel->search(high_path,loc, end_loc);
 		while (target_waypoints.size()) target_waypoints.pop(); // clear the queue;
 		for (int i=0; i<low_path.size(); i++) target_waypoints.push(low_path[i]); // adds waypoints to visit
 		target_waypoints.pop(); // remove CURRENT location from target	
@@ -293,13 +293,13 @@ unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
 void ATFMSectorDomain::getPathPlans(){
 	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-		u->pathPlan(Astar_highlevel[u->type_ID],obstacle_map,membership_map,sectors); // sets own next waypoint
+		u->pathPlan(Astar_highlevel[u->type_ID],Astar_lowlevel,obstacle_map,membership_map,sectors); // sets own next waypoint
 	}
 }
 
 void ATFMSectorDomain::getPathPlans(std::list<UAV> &new_UAVs){
 	for (list<UAV>::iterator u=new_UAVs.begin(); u!=new_UAVs.end(); u++){
-		u->pathPlan(Astar_highlevel[u->type_ID],obstacle_map,membership_map,sectors); // sets own next waypoint
+		u->pathPlan(Astar_highlevel[u->type_ID],Astar_lowlevel,obstacle_map,membership_map,sectors); // sets own next waypoint
 	}
 }
 

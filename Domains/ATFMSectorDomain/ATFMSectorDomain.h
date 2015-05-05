@@ -34,7 +34,7 @@ public:
 
 	int getDirection(); // gets the cardinal direction of the UAV
 	void moveTowardNextWaypoint(); // takes a time increment to move over
-	void pathPlan(AStar_easy* Astar_highlevel, vector<vector<bool> >*obstacle_map,
+	void pathPlan(AStar_easy* Astar_highlevel, AStar_easy* Astar_lowlevel, vector<vector<bool> >*obstacle_map,
 		vector<vector<int> >* membership_map, vector<Sector>* sectors);
 
 	int ID;
