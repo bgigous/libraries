@@ -110,7 +110,7 @@ public:
 		/*
 		Output function for 2d vector, list, etc: anything that can be iterated over
 		*/
-		ofstream file;
+		std::ofstream file;
 		file.open(fileName.c_str());
 		if (file.is_open()){
 			for (M2::iterator outer=output2d.begin(); outer!=output2d.end(); outer++){

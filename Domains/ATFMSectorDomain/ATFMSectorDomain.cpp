@@ -26,8 +26,8 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 
 };
 
-void UAV::pathPlan(AStar_easy* Astar_highlevel, AStar_easy* Astar_lowlevel, vector<vector<bool> >*obstacle_map,
-				   vector<vector<int> >* membership_map, vector<Sector>* sectors)
+void UAV::pathPlan(AStar_easy* Astar_highlevel, grid_lookup* m2astar, barrier_grid*obstacle_map,
+				   ID_grid* membership_map, vector<Sector>* sectors)
 {
 
 	int memstart = membership_map->at(loc.x)[loc.y];
@@ -36,7 +36,9 @@ void UAV::pathPlan(AStar_easy* Astar_highlevel, AStar_easy* Astar_lowlevel, vect
 
 	if (high_path_prev != high_path){
 		high_path_prev = high_path; // checking to see if path needs to be re-created
-		vector<XY> low_path = Astar_lowlevel->search(high_path,loc, end_loc);
+
+		// TODO: VERIFY HERE THAT THE HIGH_PATH_BEGIN() IS THE NEXT MEMBER... NOT THE FIRST...
+		vector<XY> low_path = m2astar->at(memstart)[*high_path.begin()].m.solve(high_path,loc, end_loc);
 		while (target_waypoints.size()) target_waypoints.pop(); // clear the queue;
 		for (int i=0; i<low_path.size(); i++) target_waypoints.push(low_path[i]); // adds waypoints to visit
 		target_waypoints.pop(); // remove CURRENT location from target	
@@ -89,7 +91,7 @@ bool Fix::atDestinationFix(const UAV &u){
 		&& u.end_loc==loc;								// This is destination fix
 }
 
-std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, vector<vector<bool> >* obstacle_map,std::vector<std::vector<XY> > *pathTraces){
+std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, barrier_grid* obstacle_map,std::vector<std::vector<XY> > *pathTraces){
 	// Creates a new UAV in the world
 	static int calls = 0;
 	std::list<UAV> newTraffic;
@@ -146,8 +148,8 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	n_types=UAV::NTYPES;
 
 	// Read in files for sector management
-	obstacle_map = new vector<vector<bool> >();
-	membership_map = new vector<vector<int> >();
+	obstacle_map = new barrier_grid();
+	membership_map = new ID_grid();
 	load_variable(obstacle_map,"agent_map/obstacle_map.csv",0.0); // last element specifies height threshold for obstacle
 	DataManip::load_variable(membership_map,"agent_map/membership_map.csv");
 
@@ -202,10 +204,16 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 		Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]);
 	}
 
+	// Add a different A* for each connection
+	for (int i=0; i<connection_map.size(); i++){
+		for (int j=0; j<connection_map[j].size(); j++){
+			if (connection_map[i][j]>0){
+				m2astar[i].insert(std::make_pair(j,AStar_grid(obstacle_map,membership_map,i,j)));
+			}
+		}
+	}
 
-	Astar_lowlevel = new AStar_easy(obstacle_map,membership_map);
-
-	conflict_count_map = new vector<vector<int> >(obstacle_map->size());
+	conflict_count_map = new ID_grid(obstacle_map->size());
 	for (int i=0; i<conflict_count_map->size(); i++){
 		conflict_count_map->at(i) = vector<int>(obstacle_map->at(i).size(),0);
 	}
@@ -219,7 +227,7 @@ ATFMSectorDomain::~ATFMSectorDomain(void)
 	delete obstacle_map;
 	delete membership_map;
 
-	delete Astar_lowlevel;
+	delete m2astar;
 	/*for (map<list<AStar_easy::vertex>, AStar_easy* >::iterator it=astar_lowlevel.begin();
 		it!=astar_lowlevel.end(); it++){
 			delete it->second;
@@ -293,13 +301,13 @@ unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
 void ATFMSectorDomain::getPathPlans(){
 	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-		u->pathPlan(Astar_highlevel[u->type_ID],Astar_lowlevel,obstacle_map,membership_map,sectors); // sets own next waypoint
+		u->pathPlan(Astar_highlevel[u->type_ID],m2astar,obstacle_map,membership_map,sectors); // sets own next waypoint
 	}
 }
 
 void ATFMSectorDomain::getPathPlans(std::list<UAV> &new_UAVs){
 	for (list<UAV>::iterator u=new_UAVs.begin(); u!=new_UAVs.end(); u++){
-		u->pathPlan(Astar_highlevel[u->type_ID],Astar_lowlevel,obstacle_map,membership_map,sectors); // sets own next waypoint
+		u->pathPlan(Astar_highlevel[u->type_ID],m2astar,obstacle_map,membership_map,sectors); // sets own next waypoint
 	}
 }
 
