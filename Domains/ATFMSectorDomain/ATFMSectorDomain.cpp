@@ -26,7 +26,7 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 
 };
 
-void UAV::pathPlan(AStar_easy* Astar_highlevel, grid_lookup* m2astar, barrier_grid*obstacle_map,
+void UAV::pathPlan(AStar_easy* Astar_highlevel, grid_lookup &m2astar, barrier_grid*obstacle_map,
 				   ID_grid* membership_map, vector<Sector>* sectors)
 {
 
@@ -34,11 +34,29 @@ void UAV::pathPlan(AStar_easy* Astar_highlevel, grid_lookup* m2astar, barrier_gr
 	int memend =  membership_map->at(end_loc.x)[end_loc.y];
 	list<AStar_easy::vertex> high_path = Astar_highlevel->search(memstart,memend);
 
-	if (high_path_prev != high_path){
-		high_path_prev = high_path; // checking to see if path needs to be re-created
+	if (high_path_prev != high_path){ // Check if any course change necessary
+		high_path_prev = high_path;
+
+
+		int memnext;
+		if (high_path.size()==1){
+			memnext = high_path.front();
+		} else {
+			memnext = *std::next(high_path.begin());
+		}
+		XY waypoint;
+		if (memnext==memend){
+			waypoint = end_loc;
+		} else {
+			waypoint = sectors->at(memnext).xy;
+		}
 
 		// TODO: VERIFY HERE THAT THE HIGH_PATH_BEGIN() IS THE NEXT MEMBER... NOT THE FIRST...
-		vector<XY> low_path = m2astar->at(memstart)[*high_path.begin()].m.solve(high_path,loc, end_loc);
+		// target the center of the sector, or the goal if it is reachable
+		vector<XY> low_path = m2astar[memstart][memnext]->m.get_solution_path(loc,waypoint);
+
+		if (low_path.empty()) low_path.push_back(loc); // stay in place...
+
 		while (target_waypoints.size()) target_waypoints.pop(); // clear the queue;
 		for (int i=0; i<low_path.size(); i++) target_waypoints.push(low_path[i]); // adds waypoints to visit
 		target_waypoints.pop(); // remove CURRENT location from target	
@@ -160,8 +178,8 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	// Add sectors
 	agent_locs = vector<XY>(agent_coords.size()); // save this for later Astar recreation
 	for (int i=0; i<agent_coords.size(); i++){
-		sectors->push_back(Sector(XY(agent_coords[i][0],agent_coords[i][1])));
-		agent_locs[i] = XY(agent_coords[i][0],agent_coords[i][1]);
+		sectors->push_back(Sector(XY(agent_coords[i][1],agent_coords[i][0]))); // SWAPPED; accounts for different coordinates
+		agent_locs[i] = XY(agent_coords[i][1],agent_coords[i][0]); // ALSO SWAPPED
 	}
 
 	// Adjust the connection map to be the edges
@@ -206,12 +224,22 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 
 	// Add a different A* for each connection
 	for (int i=0; i<connection_map.size(); i++){
-		for (int j=0; j<connection_map[j].size(); j++){
+		for (int j=0; j<connection_map[i].size(); j++){
 			if (connection_map[i][j]>0){
-				m2astar[i].insert(std::make_pair(j,AStar_grid(obstacle_map,membership_map,i,j)));
+				m2astar[i][j] = new AStar_grid(obstacle_map,membership_map,i,j);
 			}
 		}
 	}
+
+	// HACK: PRINT OUT ALL OF THE MASKS!
+	/*for (grid_lookup::iterator it=m2astar.begin(); it!=m2astar.end(); it++){
+		for (map<int,AStar_grid*>::iterator inner = it->second.begin(); inner!=it->second.end(); inner++){
+			inner->second->m.printMap("masks/", it->first, inner->first);
+		}
+	}
+	system("pause");
+	exit(1);*/
+	//end hack
 
 	conflict_count_map = new ID_grid(obstacle_map->size());
 	for (int i=0; i<conflict_count_map->size(); i++){
@@ -227,7 +255,14 @@ ATFMSectorDomain::~ATFMSectorDomain(void)
 	delete obstacle_map;
 	delete membership_map;
 
-	delete m2astar;
+	// Delete all pointers: recreate later...
+	for (grid_lookup::iterator it=m2astar.begin(); it!=m2astar.end(); it++){
+		for (std::map<int,AStar_grid*>::iterator inner=it->second.begin(); inner!=it->second.end(); inner++){
+			delete inner->second;
+		}
+	}
+
+	//delete m2astar;
 	/*for (map<list<AStar_easy::vertex>, AStar_easy* >::iterator it=astar_lowlevel.begin();
 		it!=astar_lowlevel.end(); it++){
 			delete it->second;

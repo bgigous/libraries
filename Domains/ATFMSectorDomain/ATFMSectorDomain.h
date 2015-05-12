@@ -11,6 +11,7 @@
 #include "../../Planning/AStar_grid.h"
 
 
+
 #define WORLD_SIZE 100.0
 
 
@@ -19,7 +20,7 @@ using namespace easymath;
 
 typedef vector<vector<bool> > barrier_grid;
 typedef vector<vector<int> > ID_grid;
-typedef std::map<int,std::map<int,AStar_grid> > grid_lookup;
+typedef std::map<int,std::map<int,AStar_grid*> > grid_lookup;
 
 class Sector;
 
@@ -39,7 +40,7 @@ public:
 
 	int getDirection(); // gets the cardinal direction of the UAV
 	void moveTowardNextWaypoint(); // takes a time increment to move over
-	void pathPlan(AStar_easy* Astar_highlevel, grid_lookup* Astar_lowlevel, barrier_grid*obstacle_map,
+	void pathPlan(AStar_easy* Astar_highlevel, grid_lookup &m2astar, barrier_grid*obstacle_map,
 		ID_grid* membership_map, vector<Sector>* sectors);
 
 	int ID;
@@ -151,7 +152,7 @@ public:
 	// vector<double> weights; // old
 	matrix2d weights; // [type][connection]
 	std::vector<AStar_easy*> Astar_highlevel;
-	grid_lookup* m2astar;
+	grid_lookup m2astar;
 	//AStar_easy* Astar_highlevel; // old
 
 	//map<list<AStar_easy::vertex>, AStar_easy*> astar_lowlevel;
