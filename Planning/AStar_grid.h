@@ -108,6 +108,25 @@ public:
 	maze(std::size_t x, std::size_t y):m_grid(create_grid(x, y)),
 		m_barrier_grid(create_barrier_grid()) {};
 
+	maze(Matrix<bool,2> *obstacle_map):
+		m_grid(create_grid(obstacle_map->dim1(),obstacle_map->dim2())),
+		m_barrier_grid(create_barrier_grid())
+	{
+		int v_index = 0;
+		// NOTE: V_INDEX COUNT ASSUMES YOU'RE GOING THROUGH THE OBSTACLES DIFFERENTLY...
+		//for (std::vector<std::vector<bool> >::iterator obs = obstacle_map->begin(); obs!=obstacle_map->end(); obs++){
+			//for (std::vector<bool>::iterator o = obs->begin(); o!=obs->end(); o++){
+		for (int y=0; y<obstacle_map->dim2(); y++){
+			for (int x=0; x<obstacle_map->dim1(); x++){
+				if ((*obstacle_map)(x,y)){ // there is an obstacle!
+					mt::vertex_descriptor u = vertex(v_index,m_grid);
+					m_barriers.insert(u); // insert a barrier!
+				}
+				v_index++; // increment v_index even if no barrier added!
+			}
+		}
+	}
+
 	maze(std::vector<std::vector<bool> >* obstacle_map):
 		m_grid(create_grid(obstacle_map->size(),obstacle_map->begin()->size())),
 		m_barrier_grid(create_barrier_grid())
@@ -334,6 +353,10 @@ public:
 	}
 	AStar_grid(Matrix<bool,2> *obstacle_map, Matrix<int,2> *members, int m1, int m2):
 		m(maze(obstacle_map,members,m1,m2))
+	{
+	}
+	AStar_grid(Matrix<bool,2> *obstacle_map):
+		m(maze(obstacle_map))
 	{
 	}
 	~AStar_grid(void){};
