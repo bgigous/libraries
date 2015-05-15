@@ -59,7 +59,7 @@ public:
 	euclidean_heuristic(){};
 
   double operator()(mt::vertex_descriptor v) {
-    return sqrt(pow(double(m_goal[0] - v[0]), 2) + pow(double(m_goal[1] - v[1]), 2));
+	  return sqrt(pow(double(m_goal[0]) - double(v[0]), 2) + pow(double(m_goal[1]) - double(v[1]), 2));
   }
 
   mt::vertex_descriptor m_goal;
@@ -272,6 +272,8 @@ public:
 			output << std::endl;
 		}
 	}
+		// The vertices on a solution path through the maze
+	mt::vertex_set m_solution;
 
 private:
 	// Create the underlying rank-2 grid with the specified dimensions.
@@ -291,8 +293,7 @@ private:
 	mt::filtered_grid m_barrier_grid;
 	// The barriers in the maze
 	mt::vertex_set m_barriers;
-	// The vertices on a solution path through the maze
-	mt::vertex_set m_solution;
+
 	
 };
 
@@ -301,17 +302,21 @@ static std::ostream& operator<<(std::ostream& output, const maze& m) {
 		std::string BARRIER = "#";
 
 		//for (mt::vertices_size_type i = 0; i < m.length(0)+2; i++)
-		for (mt::vertices_size_type i = 0; i < 78+2; i++)
+
+		int START = 78;
+		int END = START+78;
+
+		for (mt::vertices_size_type i = START; i < END+2; i++)
 			output << BARRIER;
 		output << std::endl;
 		// Body
-		for (int y = 0; y<m.length(1)-1; y++){//m.length(1)-1; y >= 0; y--) {
+		for (int y = 0; y<m.length(1); y++){//m.length(1)-1; y >= 0; y--) {
 			// Enumerate rows in reverse order and columns in regular order so that
 			// (0,0) appears in the lower left-hand corner.  This requires that y be
 			// int and not the unsigned vertices_size_type because the loop exit
 			// condition is y==-1.
 			//for (mt::vertices_size_type x = 0; x < m.length(0); x++) { // hack to fit on screen
-			for (mt::vertices_size_type x = 0; x < 78; x++) {
+			for (mt::vertices_size_type x = START; x < END; x++) {
 				// Put a barrier on the left-hand side.
 				if (x == 0)
 					output << BARRIER;
@@ -331,7 +336,7 @@ static std::ostream& operator<<(std::ostream& output, const maze& m) {
 			output << std::endl;
 		}
 		// Footer
-		for (mt::vertices_size_type i = 0; i < 78+2; i++)
+		for (mt::vertices_size_type i = START; i < END+2; i++)
 			output << BARRIER;
 		if (m.solved())
 			output << std::endl << "Solution length " << m.m_solution_length;
