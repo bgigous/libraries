@@ -9,6 +9,7 @@
 #include "../../FileIO/easyio/easyio.h"
 #include "../../Planning/AStar_easy.h"
 #include "../../Planning/AStar_grid.h"
+#include "../../Math/Matrix.h"
 
 
 
@@ -18,8 +19,8 @@
 using namespace std;
 using namespace easymath;
 
-typedef vector<vector<bool> > barrier_grid;
-typedef vector<vector<int> > ID_grid;
+typedef Matrix<bool,2> barrier_grid;
+typedef Matrix<int,2> ID_grid;
 typedef std::map<int,std::map<int,AStar_grid*> > grid_lookup;
 
 class Sector;
@@ -112,6 +113,32 @@ public:
 	void logStep(int step);
 	void exportLog(std::string fid, double G);
 
+	void load_variable(Matrix<int,2> &var, std::string filename, std::string separator = STRING_UNINITIALIZED){
+		// must be above threshold to be counted as a boolean
+		string_matrix2d f = FileManip::read(filename, separator);
+		
+		for (int i=0; i<f.size(); i++){
+			for (int j=0; j<f[i].size(); j++){
+				var(i,j) = atoi(f[i][j].c_str());
+			}
+		}
+	}
+
+	void load_variable(Matrix<bool,2> &var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED){
+		// must be above threshold to be counted as a boolean
+		string_matrix2d f = FileManip::read(filename, separator);
+		
+		for (int i=0; i<f.size(); i++){
+			for (int j=0; j<f[i].size(); j++){
+				if (atof(f[i][j].c_str())<=thresh){
+					var(i,j) = false;
+				} else {
+					var(i,j) = true;
+				}
+			}
+		}
+	}
+
 	void load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED){
 		// must be above threshold to be counted as a boolean
 		string_matrix2d f = FileManip::read(filename, separator);
@@ -138,11 +165,11 @@ public:
 	// Conflict detection/logging
 	void detectConflicts();
 	int conflict_count;
-	std::vector<std::vector<int> > *conflict_count_map; // this counts the number of conflicts in each grid (reset() clears this)
+	Matrix<int,2> *conflict_count_map; // this counts the number of conflicts in each grid (reset() clears this)
 
 	//backend
-	std::vector<std::vector<int> > * membership_map; // technically this should be an int matrix. fix later
-	std::vector<std::vector<bool> > * obstacle_map; // pass these to uavs later to determine where the obstacles are
+	Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later
+	Matrix<bool,2> * obstacle_map; // pass these to uavs later to determine where the obstacles are
 	//matrix2d* connection_map;
 
 

@@ -6,6 +6,7 @@
 #include <list>
 #include <vector>
 #include <map>
+#include "../../Math/Matrix.h"
 
 #define STRING_UNINITIALIZED "nosep"
 
@@ -115,6 +116,27 @@ public:
 		if (file.is_open()){
 			for (M2::iterator outer=output2d.begin(); outer!=output2d.end(); outer++){
 				fileOut1D(*outer, file,separator);
+				file << "\n";
+			}
+			file.close();
+		}
+		else {
+			printf("Failed to open %s.",fileName.c_str());
+		}
+	}
+
+	template<typename M2>
+	static void toFileMatrix2D(Numeric_lib::Matrix<M2,2> output2d, std::string fileName, std::string separator=","){
+		/*
+		Output function for 2d vector, list, etc: anything that can be iterated over
+		*/
+		std::ofstream file;
+		file.open(fileName.c_str());
+		if (file.is_open()){
+			for (int i=0; i<output2d.dim1(); i++){
+				for (int j=0; j<output2d.dim2(); j++){
+					file << output2d(i,j) << separator;
+				}
 				file << "\n";
 			}
 			file.close();

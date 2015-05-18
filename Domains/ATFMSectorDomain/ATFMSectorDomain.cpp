@@ -29,13 +29,8 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 void UAV::pathPlan(AStar_easy* Astar_highlevel, grid_lookup &m2astar, barrier_grid*obstacle_map,
 				   ID_grid* membership_map, vector<Sector>* sectors)
 {
-
-	if (ID==18){
-		printf("here!");
-	}
-
-	int memstart = membership_map->at(loc.x)[loc.y];
-	int memend =  membership_map->at(end_loc.x)[end_loc.y];
+	int memstart = (*membership_map)(loc.x,loc.y);
+	int memend =  (*membership_map)(end_loc.x,end_loc.y);
 	list<AStar_easy::vertex> high_path = Astar_highlevel->search(memstart,memend);
 
 	if (high_path_prev != high_path){ // Check if any course change necessary
@@ -175,10 +170,10 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	n_types=UAV::NTYPES;
 
 	// Read in files for sector management
-	obstacle_map = new barrier_grid();
-	membership_map = new ID_grid();
-	load_variable(obstacle_map,"agent_map/obstacle_map.csv",0.0); // last element specifies height threshold for obstacle
-	DataManip::load_variable(membership_map,"agent_map/membership_map.csv");
+	obstacle_map = new barrier_grid(256,256);
+	membership_map = new ID_grid(256,256); //HARDCODED
+	load_variable(*obstacle_map,"agent_map/obstacle_map.csv",0.0); // last element specifies height threshold for obstacle
+	load_variable(*membership_map,"agent_map/membership_map.csv");
 
 	matrix2d agent_coords = FileManip::readDouble("agent_map/agent_map.csv");
 	matrix2d connection_map = FileManip::readDouble("agent_map/connections.csv");
@@ -201,7 +196,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 				XY xyj = agent_locs[j];
 				XY dx_dy = xyj-xyi;
 				int xydir = cardinalDirection(dx_dy);
-				int memj = membership_map->at(xyj.x)[xyj.y]; // only care about cost INTO sector
+				int memj = (*membership_map)(xyj.x,xyj.y); // only care about cost INTO sector
 				sector_dir_map[edges.size()] = make_pair(memj,xydir); // add at new index
 				edges.push_back(AStar_easy::edge(i,j));
 			}
@@ -250,10 +245,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	exit(1);
 	//end hack*/
 
-	conflict_count_map = new ID_grid(obstacle_map->size());
-	for (int i=0; i<conflict_count_map->size(); i++){
-		conflict_count_map->at(i) = vector<int>(obstacle_map->at(i).size(),0);
-	}
+	conflict_count_map = new ID_grid(obstacle_map->dim1(), obstacle_map->dim2());
 }
 
 ATFMSectorDomain::~ATFMSectorDomain(void)
@@ -339,7 +331,7 @@ matrix3d ATFMSectorDomain::getTypeStates(){
 
 unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 	// tests membership for sector, given a location
-	return membership_map->at(p.x)[p.y];
+	return (*membership_map)(p.x,p.y);
 }
 
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
@@ -455,9 +447,9 @@ void ATFMSectorDomain::reset(){
 
 	//PrintOut::toFile(*conflict_count_map,"conflict_map.csv");
 	// clear conflict count map
-	for (int i=0; i<conflict_count_map->size(); i++){
-		for (int j=0; j<conflict_count_map->at(i).size(); j++){
-			conflict_count_map->at(i)[j] = 0; // set all 0
+	for (int i=0; i<conflict_count_map->dim1(); i++){
+		for (int j=0; j<conflict_count_map->dim2(); j++){
+			(*conflict_count_map)(i,j) = 0; // set all 0
 		}
 	}
 
@@ -479,7 +471,7 @@ void ATFMSectorDomain::logStep(int step){
 
 void ATFMSectorDomain::exportLog(std::string fid, double G){
 	static int calls = 0;
-	PrintOut::toFile2D(*conflict_count_map,fid+to_string(calls)+".csv");
+	PrintOut::toFileMatrix2D(*conflict_count_map,fid+to_string(calls)+".csv");
 	calls++;
 }
 
@@ -495,7 +487,7 @@ void ATFMSectorDomain::detectConflicts(){
 
 					int avgx = (u1->loc.x+u2->loc.x)/2;
 					int avgy = (u1->loc.y+u2->loc.y)/2;
-					conflict_count_map->at(avgx)[avgy]++;
+					(*conflict_count_map)(avgx,avgy)=(*conflict_count_map)(avgx,avgy)+1;
 					if (u1->type_ID==UAV::FAST || u2->type_ID==UAV::FAST){
 						conflict_count+=10; // big penalty for high priority ('fast' here)
 					}
