@@ -11,6 +11,7 @@
 #ifndef MATRIX_LIB
 #define MATRIX_LIB
 
+#include "../Math/easymath.h"
 #include<string>
 #include<algorithm>
 //#include<iostream>
@@ -437,6 +438,13 @@ public:
     // subscripting:
           T& operator()(Index n1, Index n2)       { range_check(n1,n2); return this->elem[n1*d2+n2]; }
     const T& operator()(Index n1, Index n2) const { range_check(n1,n2); return this->elem[n1*d2+n2]; }
+
+	// subscripting for pointers
+	      T& at(Index n1, Index n2)       { range_check(n1,n2); return this->elem[n1*d2+n2]; }
+    const T& at(Index n1, Index n2) const { range_check(n1,n2); return this->elem[n1*d2+n2]; }
+	      T& at(easymath::XY n)       { range_check(int(n.x),int(n.y)); return this->elem[int(n.x)*d2+int(n.y)]; }
+    const T& at(easymath::XY n) const { range_check(int(n.x),int(n.y)); return this->elem[int(n.x)*d2+int(n.y)]; }
+
 
     // slicing (return a row):
           Row<T,1> operator[](Index n)       { return row(n); }

@@ -29,8 +29,8 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 void UAV::pathPlan(AStar_easy* Astar_highlevel, grid_lookup &m2astar, barrier_grid*obstacle_map,
 				   ID_grid* membership_map, vector<Sector>* sectors)
 {
-	int memstart = (*membership_map)(loc.x,loc.y);
-	int memend =  (*membership_map)(end_loc.x,end_loc.y);
+	int memstart = membership_map->at(loc.x,loc.y);
+	int memend = membership_map->at(end_loc.x,end_loc.y);
 	list<AStar_easy::vertex> high_path = Astar_highlevel->search(memstart,memend);
 
 	if (high_path_prev != high_path){ // Check if any course change necessary
@@ -129,10 +129,7 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, barrier_grid* obstacl
 			newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set));
 		}
 
-		if (newTraffic.front().ID==18){
-			printf("18 found!");
-		}
-
+		calls++;
 		return newTraffic;
 	}
 }
@@ -196,7 +193,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 				XY xyj = agent_locs[j];
 				XY dx_dy = xyj-xyi;
 				int xydir = cardinalDirection(dx_dy);
-				int memj = (*membership_map)(xyj.x,xyj.y); // only care about cost INTO sector
+				int memj = membership_map->at(xyj); // only care about cost INTO sector
 				sector_dir_map[edges.size()] = make_pair(memj,xydir); // add at new index
 				edges.push_back(AStar_easy::edge(i,j));
 			}
@@ -323,6 +320,10 @@ matrix3d ATFMSectorDomain::getTypeStates(){
 		int a = getSector(u->loc);
 		int id = u->type_ID;
 		int dir = u->getDirection();
+		if (a<0){
+			printf("we have an issue!");
+			system("pause");
+		}
 		allStates[a][id][dir]+=1.0;
 	}
 
@@ -331,7 +332,7 @@ matrix3d ATFMSectorDomain::getTypeStates(){
 
 unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 	// tests membership for sector, given a location
-	return (*membership_map)(p.x,p.y);
+	return membership_map->at(p);
 }
 
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
@@ -384,9 +385,6 @@ void ATFMSectorDomain::incrementUAVPath(){
 }
 
 void UAV::moveTowardNextWaypoint(){
-	if (ID==18){
-		printf("18 found moving!");
-	}
 	for (int i=0; i<speed; i++){
 		if (!target_waypoints.size()) return; // return if no waypoints
 		loc = target_waypoints.front();
@@ -449,7 +447,7 @@ void ATFMSectorDomain::reset(){
 	// clear conflict count map
 	for (int i=0; i<conflict_count_map->dim1(); i++){
 		for (int j=0; j<conflict_count_map->dim2(); j++){
-			(*conflict_count_map)(i,j) = 0; // set all 0
+			conflict_count_map->at(i,j) = 0; // set all 0
 		}
 	}
 
@@ -487,7 +485,7 @@ void ATFMSectorDomain::detectConflicts(){
 
 					int avgx = (u1->loc.x+u2->loc.x)/2;
 					int avgy = (u1->loc.y+u2->loc.y)/2;
-					(*conflict_count_map)(avgx,avgy)=(*conflict_count_map)(avgx,avgy)+1;
+					conflict_count_map->at(avgx,avgy)++;
 					if (u1->type_ID==UAV::FAST || u2->type_ID==UAV::FAST){
 						conflict_count+=10; // big penalty for high priority ('fast' here)
 					}
