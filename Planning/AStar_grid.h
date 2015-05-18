@@ -42,6 +42,7 @@ public:
 	};
 
 	typedef boost::unordered_set<vertex_descriptor, vertex_hash> vertex_set;
+	typedef vector<vertex_descriptor> vertex_vector;
 	typedef boost::vertex_subset_complement_filter<grid, vertex_set>::type
 		filtered_grid;
 
@@ -220,8 +221,8 @@ public:
 			// Walk backwards from the goal through the predecessor chain adding
 			// vertices to the solution path.
 			for (mt::vertex_descriptor u = g; u != s; u = predecessor[u])
-				m_solution.insert(u);
-			m_solution.insert(s);
+				m_solution.push_back(u);
+			m_solution.push_back(s);
 			m_solution_length = distance[g];
 			//return true;
 			return m_solution_length;
@@ -234,7 +235,7 @@ public:
 		solve(source.x,source.y, goal.x, goal.y);
 
 		std::vector<XY> soln;
-		for (mt::vertex_set::iterator it=m_solution.begin(); it!=m_solution.end(); it++){
+		for (mt::vertex_vector::iterator it=m_solution.begin(); it!=m_solution.end(); it++){
 			soln.push_back(XY(it->front(), it->back()));
 		}
 		return soln;
@@ -242,7 +243,7 @@ public:
 
 	bool solved() const {return !m_solution.empty();}
 	bool solution_contains(mt::vertex_descriptor u) const {
-		return m_solution.find(u) != m_solution.end();
+		return std::find(m_solution.begin(),m_solution.end(),u) != m_solution.end();
 	}
 
 	euclidean_heuristic heuristic;
@@ -273,7 +274,7 @@ public:
 		}
 	}
 		// The vertices on a solution path through the maze
-	mt::vertex_set m_solution;
+	mt::vertex_vector m_solution;
 
 private:
 	// Create the underlying rank-2 grid with the specified dimensions.

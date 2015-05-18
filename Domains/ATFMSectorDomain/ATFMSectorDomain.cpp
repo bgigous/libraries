@@ -30,6 +30,10 @@ void UAV::pathPlan(AStar_easy* Astar_highlevel, grid_lookup &m2astar, barrier_gr
 				   ID_grid* membership_map, vector<Sector>* sectors)
 {
 
+	if (ID==18){
+		printf("here!");
+	}
+
 	int memstart = membership_map->at(loc.x)[loc.y];
 	int memend =  membership_map->at(end_loc.x)[end_loc.y];
 	list<AStar_easy::vertex> high_path = Astar_highlevel->search(memstart,memend);
@@ -129,6 +133,11 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, barrier_grid* obstacl
 			UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES)); // EVEN TYPE NUMBER
 			newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set));
 		}
+
+		if (newTraffic.front().ID==18){
+			printf("18 found!");
+		}
+
 		return newTraffic;
 	}
 }
@@ -231,15 +240,15 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 		}
 	}
 
-	// HACK: PRINT OUT ALL OF THE MASKS!
-	/*for (grid_lookup::iterator it=m2astar.begin(); it!=m2astar.end(); it++){
+	/*// HACK: PRINT OUT ALL OF THE MASKS!
+	for (grid_lookup::iterator it=m2astar.begin(); it!=m2astar.end(); it++){
 		for (map<int,AStar_grid*>::iterator inner = it->second.begin(); inner!=it->second.end(); inner++){
 			inner->second->m.printMap("masks/", it->first, inner->first);
 		}
 	}
 	system("pause");
-	exit(1);*/
-	//end hack
+	exit(1);
+	//end hack*/
 
 	conflict_count_map = new ID_grid(obstacle_map->size());
 	for (int i=0; i<conflict_count_map->size(); i++){
@@ -383,6 +392,9 @@ void ATFMSectorDomain::incrementUAVPath(){
 }
 
 void UAV::moveTowardNextWaypoint(){
+	if (ID==18){
+		printf("18 found moving!");
+	}
 	for (int i=0; i<speed; i++){
 		if (!target_waypoints.size()) return; // return if no waypoints
 		loc = target_waypoints.front();
