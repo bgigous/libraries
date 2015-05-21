@@ -246,8 +246,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	for (int i=0; i<weights.size(); i++){
 		weights[i] = matrix1d(edges.size(),1.0);
 	}
-
-
+	
 	// initialize fixes
 	for (int i=0; i<fix_locs.size(); i++){
 		fixes->push_back(Fix(XY(fix_locs[i][0],fix_locs[i][1]),is_deterministic));
@@ -273,16 +272,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 		}
 	}
 
-	/*// HACK: PRINT OUT ALL OF THE MASKS!
-	for (grid_lookup::iterator it=m2astar.begin(); it!=m2astar.end(); it++){
-	for (map<int,AStar_grid*>::iterator inner = it->second.begin(); inner!=it->second.end(); inner++){
-	inner->second->m.printMap("masks/", it->first, inner->first);
-	}
-	}
-	system("pause");
-	exit(1);
-	//end hack*/
-
+	
 	conflict_count_map = new ID_grid(obstacle_map->dim1(), obstacle_map->dim2());
 
 
@@ -318,15 +308,8 @@ ATFMSectorDomain::~ATFMSectorDomain(void)
 		}
 	}
 
-	//delete m2astar;
-	/*for (map<list<AStar_easy::vertex>, AStar_easy* >::iterator it=astar_lowlevel.begin();
-	it!=astar_lowlevel.end(); it++){
-	delete it->second;
-	}*/
 	delete conflict_count_map;
-	for (int i=0; i<Astar_highlevel.size(); i++){
-		delete Astar_highlevel[i];
-	}
+	clear_all(Astar_highlevel);
 	delete pathTraces;
 }
 
@@ -354,29 +337,18 @@ vector<double> ATFMSectorDomain::getRewards(){
 		}
 		}
 		return matrix1d(sectors->size(),-conflict_sum);*/
-
-
-		// LOCAL AGENT REWARD:
-		// OVER CAPACITY LINKS
-		// NOTE: SHOULD THIS BE OVER NODES INSTEAD?
-
 	} else {
 		//int overcap[n_agents][UAV::NTYPES];
-		matrix2d overcap(n_agents);
-		for (int i=0; i<overcap.size(); i++){
-			overcap[i] = matrix1d(UAV::NTYPES,0.0); // starts at 'capacity'
-		}
-		for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-			overcap[getSector(u->loc)][u->type_ID]-=1.0;
-			//L[getSector(u->loc)] =  
-		}
 
 		double G=0;
 		for (int i=0; i<overcap.size(); i++){
 			for (int j=0; j<overcap[i].size(); j++){
 				G -= overcap[i][j]*overcap[i][j]; // worse with higher concentration of planes!
+				// clear overcap once used!
+				overcap[i][j] = 0;
 			}
 		}
+
 		return matrix1d(n_agents, G); // global reward
 	}
 }
@@ -508,23 +480,28 @@ void ATFMSectorDomain::absorbUAVTraffic(){
 
 
 void ATFMSectorDomain::getNewUAVTraffic(){
+	static int calls = 0;
 	//static vector<XY> UAV_targets; // making static targets
 
 	// Generates (with some probability) plane traffic for each sector
 	list<UAV> all_new_UAVs;
 	for (int i=0; i<fixes->size(); i++){
-		list<UAV> new_UAVs = fixes->at(i).generateTraffic(fixes, obstacle_map,pathTraces);
-		all_new_UAVs.splice(all_new_UAVs.end(),new_UAVs);
+		if (calls%10==0){
+			list<UAV> new_UAVs = fixes->at(i).generateTraffic(fixes, obstacle_map,pathTraces);
+			all_new_UAVs.splice(all_new_UAVs.end(),new_UAVs);
 
-		// obstacle check
-		if (new_UAVs.size() && membership_map->at(new_UAVs.front().loc)<0){
-			printf("issue!");
+			// obstacle check
+			if (new_UAVs.size() && membership_map->at(new_UAVs.front().loc)<0){
+				printf("issue!");
+				exit(1);
+			}
 		}
 	}
 
 	getPathPlans(all_new_UAVs);
 
 	UAVs->splice(UAVs->end(),all_new_UAVs);
+	calls++;
 }
 
 void ATFMSectorDomain::reset(){
@@ -588,24 +565,29 @@ void ATFMSectorDomain::exportLog(std::string fid, double G){
 }
 
 void ATFMSectorDomain::detectConflicts(){
-	double conflict_thresh = 1.0;
-	for (list<UAV>::iterator u1=UAVs->begin(); u1!=UAVs->end(); u1++){
-		for (list<UAV>::iterator u2=std::next(u1); u2!=UAVs->end(); u2++){
-			double d = easymath::distance(u1->loc,u2->loc);
 
-			if (u1!=u2){
-				if (d<conflict_thresh){
-					conflict_count++;
+	if (abstraction_mode){
+		count_overcap();
+	} else {
+		double conflict_thresh = 1.0;
+		for (list<UAV>::iterator u1=UAVs->begin(); u1!=UAVs->end(); u1++){
+			for (list<UAV>::iterator u2=std::next(u1); u2!=UAVs->end(); u2++){
+				double d = easymath::distance(u1->loc,u2->loc);
 
-					int avgx = (u1->loc.x+u2->loc.x)/2;
-					int avgy = (u1->loc.y+u2->loc.y)/2;
-					conflict_count_map->at(avgx,avgy)++;
-					if (u1->type_ID==UAV::FAST || u2->type_ID==UAV::FAST){
-						conflict_count+=10; // big penalty for high priority ('fast' here)
+				if (u1!=u2){
+					if (d<conflict_thresh){
+						conflict_count++;
+
+						int avgx = (u1->loc.x+u2->loc.x)/2;
+						int avgy = (u1->loc.y+u2->loc.y)/2;
+						conflict_count_map->at(avgx,avgy)++;
+						if (u1->type_ID==UAV::FAST || u2->type_ID==UAV::FAST){
+							conflict_count+=10; // big penalty for high priority ('fast' here)
+						}
 					}
 				}
-			}
 
+			}
 		}
 	}
 }

@@ -191,5 +191,36 @@ public:
 
 	//map<list<AStar_easy::vertex>, AStar_easy*> astar_lowlevel;
 	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)
+
+
+	void printMasks(){
+		for (grid_lookup::iterator it=m2astar.begin(); it!=m2astar.end(); it++){
+			for (map<int,AStar_grid*>::iterator inner = it->second.begin(); inner!=it->second.end(); inner++){
+				inner->second->m.printMap("masks/", it->first, inner->first);
+			}
+		}
+	}
+
+
+	/*template <class T>
+	void initialize(vector<T>* p_vector, string file_name){
+		
+	}*/
+
+	matrix2d overcap;
+
+	void count_overcap(){
+		if(!overcap.size()){
+			overcap = matrix2d(n_agents);
+
+			for (int i=0; i<overcap.size(); i++){
+				overcap[i] = matrix1d(UAV::NTYPES,0.0); // starts at 'capacity'
+			}
+		}
+		for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
+			overcap[getSector(u->loc)][u->type_ID]-=1.0;
+			//L[getSector(u->loc)] =  
+		}
+	}
 };
 
