@@ -80,6 +80,17 @@ private:
 	Vertex m_goal;
 };
 
+
+class zero_heuristic {
+public:
+	zero_heuristic(){};
+		typedef adjacency_list<listS, vecS, undirectedS, no_property,
+		property<edge_weight_t, cost> > mygraph_t;
+  double operator()( mygraph_t::vertex_descriptor v) {
+	  return 0.0;
+  }
+};
+
 class AStar_easy
 {
 public:
@@ -141,13 +152,18 @@ public:
 		vector<cost> d(num_vertices(g));
 		try {
 			// call astar named parameter interface
-			astar_search
+			/*astar_search
 				(g, start,
 				distance_heuristic<mygraph_t, cost, vector<easymath::XY> >
 				(locations, goal,XDIM,YDIM),
 				predecessor_map(&p[0]).distance_map(&d[0]).
 				visitor(astar_goal_visitor<vertex>(goal)));
-
+				*/
+			astar_search
+				(g, start,
+				zero_heuristic(),
+				predecessor_map(&p[0]).distance_map(&d[0]).
+				visitor(astar_goal_visitor<vertex>(goal)));
 
 		} catch(found_goal fg) { // found a path to the goal
 			list<vertex> shortest_path;

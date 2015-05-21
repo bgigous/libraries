@@ -42,7 +42,7 @@ public:
 	int getDirection(); // gets the cardinal direction of the UAV
 	void moveTowardNextWaypoint(); // takes a time increment to move over
 	void pathPlan(AStar_easy* Astar_highlevel, grid_lookup &m2astar, barrier_grid*obstacle_map,
-		ID_grid* membership_map, vector<Sector>* sectors);
+		ID_grid* membership_map, vector<Sector>* sectors, bool abstraction_mode, int connection_time[15][15]);
 
 	int ID;
 	UAVType type_ID;
@@ -52,6 +52,9 @@ public:
 	std::queue<easymath::XY> target_waypoints; // target waypoints, low-level
 	std::vector<std::vector<XY> > *pathTraces; // takes a pointer to the pathtrace for logging
 	list<AStar_easy::vertex> high_path_prev; // saves the high level path
+
+	// ABSTRACTION MODE; TIME UNTIL SWITCH
+	int t;
 };
 
 class Fix{
@@ -92,6 +95,10 @@ public:
 	matrix3d getTypeStates();
 
 	bool is_deterministic; // the simulation is deterministic (for testing learning)
+	bool abstraction_mode; // in this mode, there is no low-level planning, and a simple network is used
+	int connection_time[15][15]; // time to travel from first to second agent == HARDCODED FOR 15 AGENTS
+	int connection_capacity[15][15][UAV::NTYPES]; // capacity for each type of UAV
+
 	unsigned int getSector(easymath::XY p);
 
 	std::vector<Sector>* sectors;
