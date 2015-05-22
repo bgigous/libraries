@@ -31,7 +31,7 @@ class UAV{
 	environment through planning. Planning is done through boost. 
 	*/
 public:
-	const enum UAVType{SLOW, FAST, NTYPES};
+	const enum UAVType{SLOW, FAST, NTYPES=1};
 	//const enum UAVType{SLOW,NTYPES};
 
 	UAV(easymath::XY start_loc, easymath::XY end_loc,
@@ -59,13 +59,14 @@ public:
 
 class Fix{
 public:
-	Fix(XY loc, bool deterministic);
+	Fix(XY loc, int ID, bool deterministic);
 	~Fix(){};
 
 	std::list<UAV> generateTraffic(std::vector<Fix>* fixes, barrier_grid* obstacle_map,std::vector<std::vector<XY> > *pathTraces);
 	void absorbTraffic(std::list<UAV>* UAVs);
 	bool atDestinationFix(const UAV &u);
-
+	int ID;
+	
 	bool is_deterministic;
 	XY loc;
 	const double p_gen;

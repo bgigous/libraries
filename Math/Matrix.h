@@ -507,7 +507,7 @@ public:
     Matrix operator!() { return xfer(Matrix(*this,Not<T>())); }
     Matrix operator-() { return xfer(Matrix(*this,Unary_minus<T>())); }
     Matrix operator~() { return xfer(Matrix(*this,Complement<T>()));  }
-
+	
     template<class F> Matrix apply_new(F f) { return xfer(Matrix(*this,f)); }
     
     void swap_rows(Index i, Index j)

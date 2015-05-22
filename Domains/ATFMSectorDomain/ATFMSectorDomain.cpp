@@ -122,8 +122,8 @@ Sector::Sector(XY xy): xy(xy)
 {
 }
 
-Fix::Fix(XY loc, bool deterministic): 
-	is_deterministic(deterministic), loc(loc), 
+Fix::Fix(XY loc, int ID_set, bool deterministic): 
+	is_deterministic(deterministic), ID(ID_set), loc(loc), 
 	//p_gen(0.05) // change to 1.0 if traffic controlled elsewhere
 	p_gen(int(is_deterministic)*(1.0-0.05)+0.05), // modifies to depend on if deterministic
 	dist_thresh(2.0)
@@ -146,7 +146,23 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, barrier_grid* obstacl
 	static int calls = 0;
 	// Creates a new UAV in the world
 	std::list<UAV> newTraffic;
+	
+	// CONSTANT TRAFFIC FLOW METHOD
+	double coin = COIN_FLOOR0;
+	if (coin<p_gen){
+		XY end_loc;
+		if (ID==0){
+			end_loc = allFixes->back().loc;
+		} else {
+			end_loc = allFixes->at(ID-1).loc; // go to previous
+		}
+		UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES)); // EVEN TYPE NUMBER
+		newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set));
+	}
 
+
+
+	/* VARIABLE TRAFFIC METHOD
 	double coin = COIN_FLOOR0;
 	if (coin<p_gen){
 		XY end_loc;
@@ -155,7 +171,7 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, barrier_grid* obstacl
 		} while (end_loc==loc);
 		UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES)); // EVEN TYPE NUMBER
 		newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set));
-	}
+	}*/
 
 	calls++;
 	return newTraffic;
@@ -249,7 +265,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	
 	// initialize fixes
 	for (int i=0; i<fix_locs.size(); i++){
-		fixes->push_back(Fix(XY(fix_locs[i][0],fix_locs[i][1]),is_deterministic));
+		fixes->push_back(Fix(XY(fix_locs[i][0],fix_locs[i][1]),i,is_deterministic));
 	}
 
 	n_agents = sectors->size(); // number of agents dictated by read in file
