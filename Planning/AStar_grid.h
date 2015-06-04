@@ -210,6 +210,7 @@ public:
 		mt::vertex_descriptor g = {{xgoal, ygoal}};
 		heuristic.m_goal = g;
 		visitor.m_goal = g;
+		m_solution.clear();
 
 		try {
 			astar_search(m_barrier_grid, s, heuristic,
@@ -233,6 +234,8 @@ public:
 
 	std::vector<XY> get_solution_path(XY source, XY goal){
 		solve(source.x,source.y, goal.x, goal.y);
+
+//		printf("size = %i\n",m_solution.size());
 
 		std::vector<XY> soln;
 		for (mt::vertex_vector::iterator it=m_solution.begin(); it!=m_solution.end(); it++){

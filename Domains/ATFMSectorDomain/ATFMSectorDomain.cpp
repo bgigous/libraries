@@ -8,10 +8,6 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 {
 	pathTraces->push_back(vector<XY>(1,loc)); // new path trace created for each UAV,starting at location
 
-	if (ID==1){
-		printf("1 made");
-	}
-
 	switch(t){
 	case SLOW:
 		speed = 1;
@@ -197,7 +193,7 @@ void Fix::absorbTraffic(list<UAV>* UAVs){
 }
 
 ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
-	is_deterministic(deterministic), abstraction_mode(true) // hardcode for the abstraction...
+	is_deterministic(deterministic), abstraction_mode(false) // hardcode for the abstraction...
 {
 
 	pathTraces = new vector<vector<XY> >(); // traces the path (reset each epoch)
@@ -425,9 +421,12 @@ void ATFMSectorDomain::getPathPlans(std::list<UAV> &new_UAVs){
 }
 
 void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
+	static int calls=0;
 	setCostMaps(agent_actions);
 	absorbUAVTraffic();
-	getNewUAVTraffic();
+	if (calls%10==0)
+		getNewUAVTraffic();
+	calls++;
 	getPathPlans();
 	incrementUAVPath();
 	detectConflicts();
@@ -496,28 +495,26 @@ void ATFMSectorDomain::absorbUAVTraffic(){
 
 
 void ATFMSectorDomain::getNewUAVTraffic(){
-	static int calls = 0;
+	//static int calls = 0;
 	//static vector<XY> UAV_targets; // making static targets
 
 	// Generates (with some probability) plane traffic for each sector
 	list<UAV> all_new_UAVs;
 	for (int i=0; i<fixes->size(); i++){
-		if (calls%10==0){
-			list<UAV> new_UAVs = fixes->at(i).generateTraffic(fixes, obstacle_map,pathTraces);
-			all_new_UAVs.splice(all_new_UAVs.end(),new_UAVs);
+		list<UAV> new_UAVs = fixes->at(i).generateTraffic(fixes, obstacle_map,pathTraces);
+		all_new_UAVs.splice(all_new_UAVs.end(),new_UAVs);
 
-			// obstacle check
-			if (new_UAVs.size() && membership_map->at(new_UAVs.front().loc)<0){
-				printf("issue!");
-				exit(1);
-			}
+		// obstacle check
+		if (new_UAVs.size() && membership_map->at(new_UAVs.front().loc)<0){
+			printf("issue!");
+			exit(1);
 		}
 	}
 
 	getPathPlans(all_new_UAVs);
 
 	UAVs->splice(UAVs->end(),all_new_UAVs);
-	calls++;
+	//calls++;
 }
 
 void ATFMSectorDomain::reset(){
