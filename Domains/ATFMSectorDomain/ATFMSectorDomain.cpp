@@ -18,8 +18,9 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 		//speed = 2;
 		break;
 	default:{
-		printf("no speed found!!");
-		system("pause");
+		//printf("no speed found!!");
+		speed = 1;
+		//system("pause");
 		break;
 			}
 	}
@@ -193,7 +194,7 @@ void Fix::absorbTraffic(list<UAV>* UAVs){
 }
 
 ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
-	is_deterministic(deterministic), abstraction_mode(false) // hardcode for the abstraction...
+	is_deterministic(deterministic), abstraction_mode(true) // hardcode for the abstraction...
 {
 
 	pathTraces = new vector<vector<XY> >(); // traces the path (reset each epoch)
@@ -437,9 +438,11 @@ void ATFMSectorDomain::setCostMaps(vector<vector<double> > agent_actions){
 	// [next sector][direction of travel] -- current
 	// agent_actions  = agent, [type, dir<-- alternating]
 
-	for (int i=0; i<weights.size(); i++){
+	for (int i=0; i<weights[0].size(); i++){
 		for (int j=0; j<UAV::NTYPES; j++){
-			weights[j][i] = agent_actions[sector_dir_map[i].first][j*UAV::NTYPES + sector_dir_map[i].second];
+			int s = sector_dir_map[i].first;
+			int d = j*UAV::NTYPES + sector_dir_map[i].second;
+			weights[j][i] = agent_actions[s][d];
 		}
 		// HACK
 		// weights[i] = agent_actions[sector_dir_map[i].first][sector_dir_map[i].second]; // AGENT SETUP // old
@@ -456,6 +459,12 @@ void ATFMSectorDomain::incrementUAVPath(){
 	if (!abstraction_mode){
 		for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
 			u->moveTowardNextWaypoint(); // moves toward next waypoint (next in low-level plan)
+		}
+	} else {
+		// in abstraction mode, move to next center of target
+		for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
+			u->loc = sectors->at(*u->high_path_prev.begin()).xy;
+			u->high_path_prev.pop_front();
 		}
 	}
 	// IMPORTANT! At this point in the code, agent states may have changed

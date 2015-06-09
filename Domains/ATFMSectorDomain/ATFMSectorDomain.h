@@ -31,7 +31,7 @@ class UAV{
 	environment through planning. Planning is done through boost. 
 	*/
 public:
-	const enum UAVType{SLOW, FAST, NTYPES=1};
+	const enum UAVType{SLOW, FAST, NTYPES=5};
 	//const enum UAVType{SLOW,NTYPES};
 
 	UAV(easymath::XY start_loc, easymath::XY end_loc,
@@ -218,6 +218,7 @@ public:
 				overcap[i] = matrix1d(UAV::NTYPES,0.0); // starts at 'capacity'
 			}
 		}
+
 		for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
 			overcap[getSector(u->loc)][u->type_ID]-=1.0;
 			//L[getSector(u->loc)] =  
