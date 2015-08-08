@@ -22,6 +22,8 @@ using namespace easymath;
 typedef Matrix<bool,2> barrier_grid;
 typedef Matrix<int,2> ID_grid;
 typedef std::map<int,std::map<int,AStar_grid*> > grid_lookup;
+typedef std::vector<int> Demographics;
+
 
 class Sector;
 
@@ -31,6 +33,7 @@ class UAV{
 	environment through planning. Planning is done through boost. 
 	*/
 public:
+	int time_left_on_edge;
 	const enum UAVType{SLOW, FAST, NTYPES=5};
 	//const enum UAVType{SLOW,NTYPES};
 
@@ -77,15 +80,27 @@ public:
 class Sector{
 public:
 	// An area of space that contains some fixes
-	Sector(XY xy);
+	int sectorID; // the identifier for this sector
+	Sector(XY xy, int sectorIDset);
 	Sector(){}; // default constructor
 	~Sector(){};
 	XY xy; // sector center
+	std::list<UAV*> toward; // the UAVs that are going toward the sector
+	Demographics getLoad(){
+		// Get demographic information about the UAVs traveling toward the sector
+		Demographics load(UAV::NTYPES,0);
+		for (UAV* u: toward){
+			load[u->type_ID]++;
+		}
+		return load;
+	}
 };
 
 class ATFMSectorDomain: public IDomainStateful
 {
 public:
+	vector<vector<int> > edge_time; // time that you need to be on an edge
+
 	ATFMSectorDomain(bool deterministic=false);
 	~ATFMSectorDomain(void);
 
@@ -94,6 +109,7 @@ public:
 	matrix1d getPerformance();
 	matrix2d getStates();
 	matrix3d getTypeStates();
+	vector<Demographics> getLoads();
 
 	bool is_deterministic; // the simulation is deterministic (for testing learning)
 	bool abstraction_mode; // in this mode, there is no low-level planning, and a simple network is used
@@ -181,13 +197,15 @@ public:
 	//matrix2d* connection_map;
 
 
-	// for A* (boost)
+	// for A* (boost) -- REPLACE THIS WITH ASTARMANAGER
 	vector<XY> agent_locs;
 	vector<AStar_easy::edge> edges;
 	// vector<double> weights; // old
 	matrix2d weights; // [type][connection]
 	std::vector<AStar_easy*> Astar_highlevel;
 	grid_lookup m2astar;
+
+
 	//AStar_easy* Astar_highlevel; // old
 
 	//map<list<AStar_easy::vertex>, AStar_easy*> astar_lowlevel;
@@ -199,29 +217,6 @@ public:
 			for (map<int,AStar_grid*>::iterator inner = it->second.begin(); inner!=it->second.end(); inner++){
 				inner->second->m.printMap("masks/", it->first, inner->first);
 			}
-		}
-	}
-
-
-	/*template <class T>
-	void initialize(vector<T>* p_vector, string file_name){
-		
-	}*/
-
-	matrix2d overcap;
-
-	void count_overcap(){
-		if(!overcap.size()){
-			overcap = matrix2d(n_agents);
-
-			for (int i=0; i<overcap.size(); i++){
-				overcap[i] = matrix1d(UAV::NTYPES,0.0); // starts at 'capacity'
-			}
-		}
-
-		for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-			overcap[getSector(u->loc)][u->type_ID]-=1.0;
-			//L[getSector(u->loc)] =  
 		}
 	}
 };

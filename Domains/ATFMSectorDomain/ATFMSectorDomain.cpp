@@ -115,7 +115,7 @@ int UAV::getDirection(){
 	return cardinalDirection(loc-end_loc);
 }
 
-Sector::Sector(XY xy): xy(xy)
+Sector::Sector(XY xy, int sectorIDSet): xy(xy), sectorID(sectorIDSet)
 {
 }
 
@@ -197,6 +197,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	is_deterministic(deterministic), abstraction_mode(true) // hardcode for the abstraction...
 {
 
+
 	pathTraces = new vector<vector<XY> >(); // traces the path (reset each epoch)
 
 	// Object creation
@@ -233,7 +234,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	// Add sectors
 	agent_locs = vector<XY>(agent_coords.size()); // save this for later Astar recreation
 	for (int i=0; i<agent_coords.size(); i++){
-		sectors->push_back(Sector(XY(agent_coords[i][0],agent_coords[i][1])));
+		sectors->push_back(Sector(XY(agent_coords[i][0],agent_coords[i][1]),i));
 		agent_locs[i] = sectors->back().xy;
 	}
 
@@ -304,6 +305,9 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 			}
 		}
 	}
+
+	edge_time = vector<vector<int> >(n_agents);
+	for (int i=0; i<n_agents; i++) edge_time[i] = vector<int>(n_agents,10); // time cost to be on an edge
 }
 
 ATFMSectorDomain::~ATFMSectorDomain(void)
@@ -335,6 +339,29 @@ vector<double> ATFMSectorDomain::getPerformance(){
 	}
 }
 
+/**
+* Loads and capacities are [sector][type]
+*/
+double G(matrix2d loads, matrix2d capacities){
+	double global=0;
+	for (int i=0; i<loads.size(); i++){
+		for (int j=0; j<loads[i].size(); j++){
+			double overcap = loads[i][j] - capacities[i][j];
+			global -= overcap*overcap; // worse with higher concentration of planes!
+		}
+	}
+	return global;
+}
+
+/**
+* Go through all the sectors and return loads, format [sector][type]
+*/
+vector<vector<int> > ATFMSectorDomain::getLoads(){
+	for (Sector s: *sectors){
+		vector<int> = s.getLoad();
+	}
+}
+
 vector<double> ATFMSectorDomain::getRewards(){
 	// LINEAR REWARD
 	if (!abstraction_mode){
@@ -351,18 +378,45 @@ vector<double> ATFMSectorDomain::getRewards(){
 		}
 		return matrix1d(sectors->size(),-conflict_sum);*/
 	} else {
-		//int overcap[n_agents][UAV::NTYPES];
+		// Calculate loads
+		matrix3d loads = matrix3d(n_agents); // agent removed, agent for load, type
+		vector<Demographics> oldLoads = getLoads(); // get the current loads on all sectors
+		vector<Demographics> loads = oldLoads;
+			
+			
+		// Count the adjusted load
+		for(Sector s: *sectors){
+			
+			// Go through each UAV in the sector
+			// Get the 'toward' load, currently
+			//loads[s.sectorID] = oldLoads[s.sectorID]; // taken care of above
 
-		double G=0;
-		for (int i=0; i<overcap.size(); i++){
-			for (int j=0; j<overcap[i].size(); j++){
-				G -= overcap[i][j]*overcap[i][j]; // worse with higher concentration of planes!
-				// clear overcap once used!
-				overcap[i][j] = 0;
+			
+			// build the map with the blacked-out sector
+			matrix1d mod_weights = weights[
+			mod_weights[s.sectorID] = 9999999.99;
+			astar = astar_setup(mod_weights);
+			// Remove UAVs traveling toward this sector
+			loads[s.sectorID] = Demographics(UAV::NTYPES,0.0);
+			
+			for (UAV* u: s.toward){
+				// Get the 'reroute' load, later
+				// plan a path using a generic A* with modified weights
+				plantemp = astar(u->loc,u->end_loc);
+				int newnextsector = plan.nextsector;
+				loads[s.sectorID][newnextsector][u->type_ID]++;
 			}
+
 		}
 
-		return matrix1d(n_agents, G); // global reward
+		// Calculate D from counterfactual
+		matrix1d D = matrix1d(n_agents);
+		for (int i=0; i<n_agents; i++){
+			D[i] = G-Gc[i];
+		}
+		// 
+
+		return D; // global reward
 	}
 }
 
@@ -441,7 +495,9 @@ void ATFMSectorDomain::setCostMaps(vector<vector<double> > agent_actions){
 	for (int i=0; i<weights[0].size(); i++){
 		for (int j=0; j<UAV::NTYPES; j++){
 			int s = sector_dir_map[i].first;
-			int d = j*UAV::NTYPES + sector_dir_map[i].second;
+			//int d = j*UAV::NTYPES + sector_dir_map[i].second; // wrong
+
+			int d = j + sector_dir_map[i].second*UAV::NTYPES;
 			weights[j][i] = agent_actions[s][d];
 		}
 		// HACK
@@ -463,8 +519,12 @@ void ATFMSectorDomain::incrementUAVPath(){
 	} else {
 		// in abstraction mode, move to next center of target
 		for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-			u->loc = sectors->at(*u->high_path_prev.begin()).xy;
-			u->high_path_prev.pop_front();
+			if (u->time_left_on_edge <=0){
+				u->loc = sectors->at(*u->high_path_prev.begin()).xy;
+				u->high_path_prev.pop_front();
+			} else {
+				u->time_left_on_edge--;
+			}
 		}
 	}
 	// IMPORTANT! At this point in the code, agent states may have changed
