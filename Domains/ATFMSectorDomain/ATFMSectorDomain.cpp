@@ -3,196 +3,6 @@
 using namespace std;
 using namespace easymath;
 
-UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAVType t):
-	loc(start_loc), end_loc(end_loc), ID(pathTraces->size()), pathTraces(pathTraces), type_ID(t)
-{
-	pathTraces->push_back(vector<XY>(1,loc)); // new path trace created for each UAV,starting at location
-
-	switch(t){
-	case SLOW:
-		speed = 1;
-		break;
-	case FAST:
-		// substitute: high priority
-		speed = 1;
-		//speed = 2;
-		break;
-	default:{
-		//printf("no speed found!!");
-		speed = 1;
-		//system("pause");
-		break;
-			}
-	}
-
-};
-
-void UAV::pathPlan(AStar_easy* Astar_highlevel, grid_lookup &m2astar, barrier_grid*obstacle_map,
-				   ID_grid* membership_map, vector<Sector>* sectors, bool abstraction_mode, int connection_time[15][15])
-{
-	int memstart = membership_map->at(loc.x,loc.y);
-	int memend = membership_map->at(end_loc.x,end_loc.y);
-	list<AStar_easy::vertex> high_path = Astar_highlevel->search(memstart,memend);
-
-	if (abstraction_mode){
-		if (!high_path_prev.size()){ // new, put on time
-			if (memstart==memend){
-				t = 0;
-			} else {
-				t = connection_time[*high_path.begin()][*std::next(high_path.begin())];
-			}
-			high_path_prev = high_path;
-		} else if (t<=0 && memstart==memend){ // on final leg; get to goal
-			loc = end_loc;
-		} else if (t<=0){ // middle leg; plan rest of path
-			high_path.pop_front();
-			loc = sectors->at(int(high_path.front())).xy; // now in a new sector!
-			if (high_path.size()>1 && *high_path.begin()!=*std::next(high_path.begin())){
-				t = connection_time[*high_path.begin()][*std::next(high_path.begin())];
-			} else {
-				t = 0;
-			} 
-		} else {
-			t--;
-		}
-
-	} else {
-
-		if (high_path_prev != high_path){ // Check if any course change necessary
-			high_path_prev = high_path;
-
-
-			int memnext;
-			if (high_path.size()==1){
-				memnext = high_path.front();
-			} else {
-				memnext = *std::next(high_path.begin());
-			}
-			XY waypoint;
-			if (memnext==memend){
-				waypoint = end_loc;
-			} else {
-				waypoint = sectors->at(memnext).xy;
-			}
-
-			// TODO: VERIFY HERE THAT THE HIGH_PATH_BEGIN() IS THE NEXT MEMBER... NOT THE FIRST...
-			// target the center of the sector, or the goal if it is reachable
-			vector<XY> low_path = m2astar[memstart][memnext]->m.get_solution_path(loc,waypoint);
-
-			if (low_path.empty()) low_path.push_back(loc); // stay in place...
-
-			while (target_waypoints.size()) target_waypoints.pop(); // clear the queue;
-			for (int i=0; i<low_path.size(); i++) target_waypoints.push(low_path[i]); // adds waypoints to visit
-			target_waypoints.pop(); // remove CURRENT location from target	
-		}
-	}
-
-	/*
-	if(high_path_prev !=high_path){
-	high_path_prev = high_path;
-	AStar_easy* astar_low;
-	if (astar_lowlevel.count(high_path)){
-	astar_low = astar_lowlevel[high_path];
-	} else{
-	// MAKE A NEW LOW-LEVEL ASTAR
-	astar_low = new AStar_easy(high_path,obstacle_map,membership_map);
-	astar_lowlevel[high_path] = astar_low;
-	}
-	list<AStar_easy::vertex> low_path= astar_low->search(loc,end_loc);
-	while (target_waypoints.size()) target_waypoints.pop();
-	for (list<AStar_easy::vertex>::iterator it=low_path.begin(); it!=low_path.end(); it++){
-	int x, y;
-	astar_low->ind2sub(astar_low->YDIM,*it, x,y);
-	target_waypoints.push(XY(x,y)); // adds to list to visit
-	}
-	target_waypoints.pop(); // removes CURRENT location from target
-	}
-	*/
-}
-
-int UAV::getDirection(){
-	// Identifies whether traveling in one of four cardinal directions
-	return cardinalDirection(loc-end_loc);
-}
-
-Sector::Sector(XY xy, int sectorIDSet): xy(xy), sectorID(sectorIDSet)
-{
-}
-
-Fix::Fix(XY loc, int ID_set, bool deterministic): 
-	is_deterministic(deterministic), ID(ID_set), loc(loc), 
-	//p_gen(0.05) // change to 1.0 if traffic controlled elsewhere
-	p_gen(int(is_deterministic)*(1.0-0.05)+0.05), // modifies to depend on if deterministic
-	dist_thresh(2.0)
-{
-}
-
-bool Fix::atDestinationFix(const UAV &u){
-	return u.end_loc == loc;
-
-
-	/*
-	return u.target_waypoints.size()					// UAV has planned a trajectory
-	&& u.target_waypoints.front()==loc				// UAV wants to go there next
-	&& easymath::distance(u.loc,loc)<dist_thresh	// UAV is close enough
-	&& u.end_loc==loc;								// This is destination fix
-	*/
-}
-
-std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, barrier_grid* obstacle_map,std::vector<std::vector<XY> > *pathTraces){
-	static int calls = 0;
-	// Creates a new UAV in the world
-	std::list<UAV> newTraffic;
-	
-	// CONSTANT TRAFFIC FLOW METHOD
-	double coin = COIN_FLOOR0;
-	if (coin<p_gen){
-		XY end_loc;
-		if (ID==0){
-			end_loc = allFixes->back().loc;
-		} else {
-			end_loc = allFixes->at(ID-1).loc; // go to previous
-		}
-		UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES)); // EVEN TYPE NUMBER
-		newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set));
-	}
-
-
-
-	/* VARIABLE TRAFFIC METHOD
-	double coin = COIN_FLOOR0;
-	if (coin<p_gen){
-		XY end_loc;
-		do {
-			end_loc = allFixes->at(COIN_FLOOR0*allFixes->size()).loc;
-		} while (end_loc==loc);
-		UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES)); // EVEN TYPE NUMBER
-		newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set));
-	}*/
-
-	calls++;
-	return newTraffic;
-}
-
-void Fix::absorbTraffic(list<UAV>* UAVs){
-	// INEFFICIENT: MOVED OUT OF FIX FUNCTION
-
-	/*
-	list<UAV> cur_UAVs;
-	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-		if (atDestinationFix(*u)){
-			// don't copy over
-		} else {
-			if (u->target_waypoints.size() && u->target_waypoints.front()==loc){ // deleted if size==0; drop invalid plans
-				u->target_waypoints.pop();
-			}
-			cur_UAVs.push_back(*u);
-		}
-	}
-	(*UAVs) = cur_UAVs; // copy over
-	*/
-}
-
 ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	is_deterministic(deterministic), abstraction_mode(true) // hardcode for the abstraction...
 {
@@ -260,7 +70,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	for (int i=0; i<weights.size(); i++){
 		weights[i] = matrix1d(edges.size(),1.0);
 	}
-	
+
 	// initialize fixes
 	for (int i=0; i<fix_locs.size(); i++){
 		fixes->push_back(Fix(XY(fix_locs[i][0],fix_locs[i][1]),i,is_deterministic));
@@ -286,7 +96,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 		}
 	}
 
-	
+
 	conflict_count_map = new ID_grid(obstacle_map->dim1(), obstacle_map->dim2());
 
 
@@ -342,7 +152,7 @@ vector<double> ATFMSectorDomain::getPerformance(){
 /**
 * Loads and capacities are [sector][type]
 */
-double G(vector<vector<int> > loads, vector<vector<int> > capacities){
+double ATFMSectorDomain::G(vector<vector<int> > loads, vector<vector<int> > capacities){
 	double global=0;
 	for (int i=0; i<loads.size(); i++){
 		for (int j=0; j<loads[i].size(); j++){
@@ -387,16 +197,16 @@ vector<double> ATFMSectorDomain::getRewards(){
 			allloads[i] = oldLoads;
 			allloads[i][i] = Demographics(UAV::NTYPES,0); // traffic removed, added back in later
 		}
-			
-			
+
+
 		// Count the adjusted load
 		for(Sector s: *sectors){
-			
+
 			// Go through each UAV in the sector
 			// Get the 'toward' load, currently
 			//loads[s.sectorID] = oldLoads[s.sectorID]; // taken care of above
 
-			
+
 			// build the map with the blacked-out sector
 			matrix2d mod_weights = weights;
 			for (int i=0; i<mod_weights.size(); i++){
@@ -404,14 +214,14 @@ vector<double> ATFMSectorDomain::getRewards(){
 			}
 
 			resetGraphWeights(mod_weights);
-			
+
 			for (UAV* u: s.toward){
 				// Get the 'reroute' load, later
 				// plan a path using a generic A* with modified weights
 				int memstart = membership_map->at(u->loc.x,u->loc.y);
 				int memend = membership_map->at(u->end_loc.x,u->end_loc.y);
 				list<AStar_easy::vertex> plantemp = Astar_highlevel[u->type_ID]->search(memstart,memend);
-				
+
 				int newnextsector = plantemp.front();
 				allloads[s.sectorID][newnextsector][u->type_ID]++;
 			}
@@ -433,6 +243,59 @@ vector<double> ATFMSectorDomain::getRewards(){
 		// 
 
 		return D; // global reward
+	}
+}
+
+
+void ATFMSectorDomain::printMasks(){
+	for (grid_lookup::iterator it=m2astar.begin(); it!=m2astar.end(); it++){
+		for (map<int,AStar_grid*>::iterator inner = it->second.begin(); inner!=it->second.end(); inner++){
+			inner->second->m.printMap("masks/", it->first, inner->first);
+		}
+	}
+}
+
+void ATFMSectorDomain::load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator){
+	// must be above threshold to be counted as a boolean
+	string_matrix2d f = FileManip::read(filename, separator);
+	*var = std::vector<std::vector<bool> >(f.size());
+
+	for (int i=0; i<f.size(); i++){
+		var->at(i) = std::vector<bool>(f[i].size());
+		for (int j=0; j<f[i].size(); j++){
+			if (atof(f[i][j].c_str())<=thresh){
+				var->at(i)[j] = false;
+			} else {
+				var->at(i)[j] = true;
+			}
+		}
+	}
+}
+
+
+void ATFMSectorDomain::load_variable(Matrix<bool,2> &var, std::string filename, double thresh, std::string separator){
+	// must be above threshold to be counted as a boolean
+	string_matrix2d f = FileManip::read(filename, separator);
+
+	for (int i=0; i<f.size(); i++){
+		for (int j=0; j<f[i].size(); j++){
+			if (atof(f[i][j].c_str())<=thresh){
+				var(i,j) = false;
+			} else {
+				var(i,j) = true;
+			}
+		}
+	}
+}
+
+void ATFMSectorDomain::load_variable(Matrix<int,2> &var, std::string filename, std::string separator){
+	// must be above threshold to be counted as a boolean
+	string_matrix2d f = FileManip::read(filename, separator);
+
+	for (int i=0; i<f.size(); i++){
+		for (int j=0; j<f[i].size(); j++){
+			var(i,j) = atoi(f[i][j].c_str());
+		}
 	}
 }
 
@@ -480,14 +343,25 @@ unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
 void ATFMSectorDomain::getPathPlans(){
+	vector<XY> sectorLocations = vector<XY>(sectors->size());
+	for (int i=0; i<sectors->size(); i++){
+		sectorLocations[i] = sectors->at(i).xy;
+	}
+
 	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-		u->pathPlan(Astar_highlevel[u->type_ID],m2astar,obstacle_map,membership_map,sectors, abstraction_mode, connection_time); // sets own next waypoint
+		u->pathPlan(Astar_highlevel[u->type_ID],m2astar,obstacle_map,membership_map,sectorLocations, abstraction_mode, connection_time); // sets own next waypoint
 	}
 }
 
 void ATFMSectorDomain::getPathPlans(std::list<UAV> &new_UAVs){
+	
+	vector<XY> sectorLocations = vector<XY>(sectors->size());
+	for (int i=0; i<sectors->size(); i++){
+		sectorLocations[i] = sectors->at(i).xy;
+	}
+
 	for (list<UAV>::iterator u=new_UAVs.begin(); u!=new_UAVs.end(); u++){
-		u->pathPlan(Astar_highlevel[u->type_ID],m2astar,obstacle_map,membership_map,sectors, abstraction_mode, connection_time); // sets own next waypoint
+		u->pathPlan(Astar_highlevel[u->type_ID],m2astar,obstacle_map,membership_map,sectorLocations, abstraction_mode, connection_time); // sets own next waypoint
 	}
 }
 
@@ -574,7 +448,7 @@ void ATFMSectorDomain::absorbUAVTraffic(){
 
 			// invalid plans no longer created
 			/*if (u->target_waypoints.size() && u->target_waypoints.front()==loc){ // deleted if size==0; drop invalid plans
-				u->target_waypoints.pop();
+			u->target_waypoints.pop();
 			}*/
 			cur_UAVs.push_back(*u);
 		}
@@ -583,7 +457,7 @@ void ATFMSectorDomain::absorbUAVTraffic(){
 
 
 	/*for (int i=0; i<fixes->size(); i++){
-		fixes->at(i).absorbTraffic(UAVs);
+	fixes->at(i).absorbTraffic(UAVs);
 	}*/
 }
 
@@ -656,12 +530,12 @@ void ATFMSectorDomain::logStep(int step){
 	// no logging, for speed
 	/*
 	if (step==0){
-		pathSnapShot(0);
+	pathSnapShot(0);
 	}
 	if (step==50){
-		pathSnapShot(50);
-		pathTraceSnapshot();
-		//exit(1);
+	pathSnapShot(50);
+	pathTraceSnapshot();
+	//exit(1);
 	}*/
 }
 

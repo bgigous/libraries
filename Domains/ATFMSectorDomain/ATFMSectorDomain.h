@@ -10,7 +10,9 @@
 #include "../../Planning/AStar_easy.h"
 #include "../../Planning/AStar_grid.h"
 #include "../../Math/Matrix.h"
-
+#include "UAV.h"
+#include "Sector.h"
+#include "Fix.h"
 
 
 #define WORLD_SIZE 100.0
@@ -18,83 +20,6 @@
 
 using namespace std;
 using namespace easymath;
-
-typedef Matrix<bool,2> barrier_grid;
-typedef Matrix<int,2> ID_grid;
-typedef std::map<int,std::map<int,AStar_grid*> > grid_lookup;
-typedef std::vector<int> Demographics;
-
-
-class Sector;
-
-class UAV{
-	/*
-	This class is for moving UAVs in the airspace. They interact with the 
-	environment through planning. Planning is done through boost. 
-	*/
-public:
-	int time_left_on_edge;
-	const enum UAVType{SLOW, FAST, NTYPES=5};
-	//const enum UAVType{SLOW,NTYPES};
-
-	UAV(easymath::XY start_loc, easymath::XY end_loc,
-		std::vector<std::vector<XY> > *pathTraces, UAVType t);
-
-	~UAV(){};
-
-	int getDirection(); // gets the cardinal direction of the UAV
-	void moveTowardNextWaypoint(); // takes a time increment to move over
-	void pathPlan(AStar_easy* Astar_highlevel, grid_lookup &m2astar, barrier_grid*obstacle_map,
-		ID_grid* membership_map, vector<Sector>* sectors, bool abstraction_mode, int connection_time[15][15]);
-
-	int ID;
-	UAVType type_ID;
-	double speed; // connected to type_ID
-	easymath::XY loc;
-	easymath::XY end_loc;
-	std::queue<easymath::XY> target_waypoints; // target waypoints, low-level
-	std::vector<std::vector<XY> > *pathTraces; // takes a pointer to the pathtrace for logging
-	list<AStar_easy::vertex> high_path_prev; // saves the high level path
-
-	// ABSTRACTION MODE; TIME UNTIL SWITCH
-	int t;
-};
-
-class Fix{
-public:
-	Fix(XY loc, int ID, bool deterministic);
-	~Fix(){};
-
-	std::list<UAV> generateTraffic(std::vector<Fix>* fixes, barrier_grid* obstacle_map,std::vector<std::vector<XY> > *pathTraces);
-	void absorbTraffic(std::list<UAV>* UAVs);
-	bool atDestinationFix(const UAV &u);
-	int ID;
-	
-	bool is_deterministic;
-	XY loc;
-	const double p_gen;
-	const double dist_thresh;
-	static const int gen_frequency=10;
-};
-
-class Sector{
-public:
-	// An area of space that contains some fixes
-	int sectorID; // the identifier for this sector
-	Sector(XY xy, int sectorIDset);
-	Sector(){}; // default constructor
-	~Sector(){};
-	XY xy; // sector center
-	std::list<UAV*> toward; // the UAVs that are going toward the sector
-	Demographics getLoad(){
-		// Get demographic information about the UAVs traveling toward the sector
-		Demographics load(UAV::NTYPES,0);
-		for (UAV* u: toward){
-			load[u->type_ID]++;
-		}
-		return load;
-	}
-};
 
 class ATFMSectorDomain: public IDomainStateful
 {
@@ -110,6 +35,7 @@ public:
 	matrix2d getStates();
 	matrix3d getTypeStates();
 	vector<Demographics> getLoads();
+	double G(vector<vector<int> > loads, vector<vector<int> > capacities);
 
 	bool is_deterministic; // the simulation is deterministic (for testing learning)
 	bool abstraction_mode; // in this mode, there is no low-level planning, and a simple network is used
@@ -137,48 +63,9 @@ public:
 	void logStep(int step);
 	void exportLog(std::string fid, double G);
 
-	void load_variable(Matrix<int,2> &var, std::string filename, std::string separator = STRING_UNINITIALIZED){
-		// must be above threshold to be counted as a boolean
-		string_matrix2d f = FileManip::read(filename, separator);
-		
-		for (int i=0; i<f.size(); i++){
-			for (int j=0; j<f[i].size(); j++){
-				var(i,j) = atoi(f[i][j].c_str());
-			}
-		}
-	}
-
-	void load_variable(Matrix<bool,2> &var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED){
-		// must be above threshold to be counted as a boolean
-		string_matrix2d f = FileManip::read(filename, separator);
-		
-		for (int i=0; i<f.size(); i++){
-			for (int j=0; j<f[i].size(); j++){
-				if (atof(f[i][j].c_str())<=thresh){
-					var(i,j) = false;
-				} else {
-					var(i,j) = true;
-				}
-			}
-		}
-	}
-
-	void load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED){
-		// must be above threshold to be counted as a boolean
-		string_matrix2d f = FileManip::read(filename, separator);
-		*var = std::vector<std::vector<bool> >(f.size());
-
-		for (int i=0; i<f.size(); i++){
-			var->at(i) = std::vector<bool>(f[i].size());
-			for (int j=0; j<f[i].size(); j++){
-				if (atof(f[i][j].c_str())<=thresh){
-					var->at(i)[j] = false;
-				} else {
-					var->at(i)[j] = true;
-				}
-			}
-		}
-	}
+	void load_variable(Matrix<int,2> &var, std::string filename, std::string separator = STRING_UNINITIALIZED);
+	void load_variable(Matrix<bool,2> &var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED);
+	void load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED);
 
 
 	// PATH SNAPSHOT OUTPUT
@@ -207,18 +94,10 @@ public:
 
 	void resetGraphWeights(matrix2d); // resets the weights on the graph and re-initializes graph
 
-	//AStar_easy* Astar_highlevel; // old
-
 	//map<list<AStar_easy::vertex>, AStar_easy*> astar_lowlevel;
 	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)
 
 
-	void printMasks(){
-		for (grid_lookup::iterator it=m2astar.begin(); it!=m2astar.end(); it++){
-			for (map<int,AStar_grid*>::iterator inner = it->second.begin(); inner!=it->second.end(); inner++){
-				inner->second->m.printMap("masks/", it->first, inner->first);
-			}
-		}
-	}
+	void printMasks();
 };
 
