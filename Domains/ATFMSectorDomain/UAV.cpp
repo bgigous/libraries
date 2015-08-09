@@ -3,8 +3,8 @@
 
 using namespace easymath;
 
-UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAVType t):
-	loc(start_loc), end_loc(end_loc), ID(pathTraces->size()), pathTraces(pathTraces), type_ID(t)
+UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAVType t, AStarManager* planners):
+	planners(planners),loc(start_loc), end_loc(end_loc), ID(pathTraces->size()), pathTraces(pathTraces), type_ID(t)
 {
 	pathTraces->push_back(vector<XY>(1,loc)); // new path trace created for each UAV,starting at location
 
@@ -27,28 +27,26 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 
 };
 
-void UAV::pathPlan(AStar_easy* Astar_highlevel, grid_lookup &m2astar, barrier_grid*obstacle_map,
-				   ID_grid* membership_map, vector<XY> sectorLocations , bool abstraction_mode, int connection_time[15][15])
-{
-	int memstart = membership_map->at(loc.x,loc.y);
-	int memend = membership_map->at(end_loc.x,end_loc.y);
-	list<AStar_easy::vertex> high_path = Astar_highlevel->search(memstart,memend);
+void UAV::pathPlan(bool abstraction_mode, map<int,map<int,double> > connection_times){
+	list<int> high_path = planners->search(type_ID,loc,end_loc);
+	int memstart = planners->getMembership(loc);
+	int memend = planners->getMembership(end_loc);
 
 	if (abstraction_mode){
 		if (!high_path_prev.size()){ // new, put on time
 			if (memstart==memend){
 				t = 0;
 			} else {
-				t = connection_time[*high_path.begin()][*std::next(high_path.begin())];
+				t = connection_times[*high_path.begin()][*std::next(high_path.begin())];
 			}
 			high_path_prev = high_path;
 		} else if (t<=0 && memstart==memend){ // on final leg; get to goal
 			loc = end_loc;
 		} else if (t<=0){ // middle leg; plan rest of path
 			high_path.pop_front();
-			loc = sectorLocations[int(high_path.front())]; // now in a new sector!
+			loc = planners->agent_locs[int(high_path.front())]; // now in a new sector!
 			if (high_path.size()>1 && *high_path.begin()!=*std::next(high_path.begin())){
-				t = connection_time[*high_path.begin()][*std::next(high_path.begin())];
+				t = connection_times[*high_path.begin()][*std::next(high_path.begin())];
 			} else {
 				t = 0;
 			} 
@@ -72,12 +70,12 @@ void UAV::pathPlan(AStar_easy* Astar_highlevel, grid_lookup &m2astar, barrier_gr
 			if (memnext==memend){
 				waypoint = end_loc;
 			} else {
-				waypoint = sectorLocations[memnext];
+				waypoint = planners->agent_locs[memnext];
 			}
 
 			// TODO: VERIFY HERE THAT THE HIGH_PATH_BEGIN() IS THE NEXT MEMBER... NOT THE FIRST...
 			// target the center of the sector, or the goal if it is reachable
-			vector<XY> low_path = m2astar[memstart][memnext]->m.get_solution_path(loc,waypoint);
+			vector<XY> low_path = planners->m2astar[memstart][memnext]->m.get_solution_path(loc,waypoint);
 
 			if (low_path.empty()) low_path.push_back(loc); // stay in place...
 

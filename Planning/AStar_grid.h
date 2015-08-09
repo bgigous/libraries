@@ -15,7 +15,7 @@
 #include "../Math/easymath.h"
 #include <sstream>
 #include <fstream>
-#include "../../projects/Sandbox/Sandbox/Matrix.h"
+#include "../Math/Matrix.h"
 
 using namespace easymath;
 using namespace Numeric_lib;

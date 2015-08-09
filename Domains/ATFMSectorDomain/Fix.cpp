@@ -3,8 +3,8 @@
 
 
 
-Fix::Fix(XY loc, int ID_set, bool deterministic): 
-	is_deterministic(deterministic), ID(ID_set), loc(loc), 
+Fix::Fix(XY loc, int ID_set, bool deterministic, AStarManager* planners): 
+	planners(planners),is_deterministic(deterministic), ID(ID_set), loc(loc), 
 	//p_gen(0.05) // change to 1.0 if traffic controlled elsewhere
 	p_gen(int(is_deterministic)*(1.0-0.05)+0.05), // modifies to depend on if deterministic
 	dist_thresh(2.0)
@@ -23,7 +23,7 @@ bool Fix::atDestinationFix(const UAV &u){
 	*/
 }
 
-std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, barrier_grid* obstacle_map,std::vector<std::vector<XY> > *pathTraces){
+std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes,std::vector<std::vector<XY> > *pathTraces){
 	static int calls = 0;
 	// Creates a new UAV in the world
 	std::list<UAV> newTraffic;
@@ -38,7 +38,7 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes, barrier_grid* obstacl
 			end_loc = allFixes->at(ID-1).loc; // go to previous
 		}
 		UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES)); // EVEN TYPE NUMBER
-		newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set));
+		newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set,planners));
 	}
 
 

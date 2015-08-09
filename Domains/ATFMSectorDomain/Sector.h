@@ -8,10 +8,6 @@
 using namespace Numeric_lib;
 
 typedef std::vector<int> Demographics;
-typedef Matrix<bool,2> barrier_grid;
-typedef Matrix<int,2> ID_grid;
-typedef std::map<int,std::map<int,AStar_grid*> > grid_lookup;
-
 class Sector{
 public:
 	// An area of space that contains some fixes
