@@ -358,9 +358,8 @@ double G(vector<vector<int> > loads, vector<vector<int> > capacities){
 */
 vector<vector<int> > ATFMSectorDomain::getLoads(){
 	vector<vector<int> > allloads = vector<vector<int> >(sectors->size());
-	for (Sector s: *sectors){
-		vector<int> l= s.getLoad();
-		allloads.push_back(l);
+	for (int i=0; i<sectors->size(); i++){
+		allloads[i] = sectors->at(i).getLoad();
 	}
 	return allloads;
 }
@@ -404,7 +403,7 @@ vector<double> ATFMSectorDomain::getRewards(){
 				mod_weights[i][s.sectorID] = 9999999.99;
 			}
 
-			setCostMaps(mod_weights);
+			resetGraphWeights(mod_weights);
 			
 			for (UAV* u: s.toward){
 				// Get the 'reroute' load, later
@@ -416,14 +415,14 @@ vector<double> ATFMSectorDomain::getRewards(){
 				int newnextsector = plantemp.front();
 				allloads[s.sectorID][newnextsector][u->type_ID]++;
 			}
-			setCostMaps(weights); // reset the cost maps
+			resetGraphWeights(weights); // reset the cost maps
 
 		}
 
 		// Calculate D from counterfactual
 		vector<Demographics> C = vector<Demographics>(n_agents);// capacities[agent, type]
-		for (Demographics c:C){
-			c = Demographics(UAV::NTYPES,10);
+		for (int i=0; i<C.size(); i++){
+			C[i] = Demographics(UAV::NTYPES,10);
 		}
 		matrix1d D = matrix1d(n_agents);
 		for (int i=0; i<n_agents; i++){
@@ -503,6 +502,15 @@ void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
 	incrementUAVPath();
 	detectConflicts();
 	//printf("Conflicts %i\n",conflict_count);
+}
+
+void ATFMSectorDomain::resetGraphWeights(matrix2d weightset){
+	weights = weightset;
+
+	for (int i=0; i<Astar_highlevel.size(); i++){
+		delete Astar_highlevel[i];
+		Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]); // replace existing weights
+	}
 }
 
 void ATFMSectorDomain::setCostMaps(vector<vector<double> > agent_actions){

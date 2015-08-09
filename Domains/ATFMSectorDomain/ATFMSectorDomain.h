@@ -205,6 +205,7 @@ public:
 	std::vector<AStar_easy*> Astar_highlevel;
 	grid_lookup m2astar;
 
+	void resetGraphWeights(matrix2d); // resets the weights on the graph and re-initializes graph
 
 	//AStar_easy* Astar_highlevel; // old
 
