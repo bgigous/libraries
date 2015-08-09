@@ -342,7 +342,7 @@ vector<double> ATFMSectorDomain::getPerformance(){
 /**
 * Loads and capacities are [sector][type]
 */
-double G(matrix2d loads, matrix2d capacities){
+double G(vector<vector<int> > loads, vector<vector<int> > capacities){
 	double global=0;
 	for (int i=0; i<loads.size(); i++){
 		for (int j=0; j<loads[i].size(); j++){
@@ -357,9 +357,12 @@ double G(matrix2d loads, matrix2d capacities){
 * Go through all the sectors and return loads, format [sector][type]
 */
 vector<vector<int> > ATFMSectorDomain::getLoads(){
+	vector<vector<int> > allloads = vector<vector<int> >(sectors->size());
 	for (Sector s: *sectors){
-		vector<int> = s.getLoad();
+		vector<int> l= s.getLoad();
+		allloads.push_back(l);
 	}
+	return allloads;
 }
 
 vector<double> ATFMSectorDomain::getRewards(){
@@ -379,9 +382,12 @@ vector<double> ATFMSectorDomain::getRewards(){
 		return matrix1d(sectors->size(),-conflict_sum);*/
 	} else {
 		// Calculate loads
-		matrix3d loads = matrix3d(n_agents); // agent removed, agent for load, type
 		vector<Demographics> oldLoads = getLoads(); // get the current loads on all sectors
-		vector<Demographics> loads = oldLoads;
+		vector<vector<Demographics> > allloads = vector<vector<Demographics> >(n_agents); // agent removed, agent for load, type
+		for (int i=0; i< allloads.size(); i++){
+			allloads[i] = oldLoads;
+			allloads[i][i] = Demographics(UAV::NTYPES,0); // traffic removed, added back in later
+		}
 			
 			
 		// Count the adjusted load
@@ -393,26 +399,37 @@ vector<double> ATFMSectorDomain::getRewards(){
 
 			
 			// build the map with the blacked-out sector
-			matrix1d mod_weights = weights[
-			mod_weights[s.sectorID] = 9999999.99;
-			astar = astar_setup(mod_weights);
-			// Remove UAVs traveling toward this sector
-			loads[s.sectorID] = Demographics(UAV::NTYPES,0.0);
+			matrix2d mod_weights = weights;
+			for (int i=0; i<mod_weights.size(); i++){
+				mod_weights[i][s.sectorID] = 9999999.99;
+			}
+
+			setCostMaps(mod_weights);
 			
 			for (UAV* u: s.toward){
 				// Get the 'reroute' load, later
 				// plan a path using a generic A* with modified weights
-				plantemp = astar(u->loc,u->end_loc);
-				int newnextsector = plan.nextsector;
-				loads[s.sectorID][newnextsector][u->type_ID]++;
+				int memstart = membership_map->at(u->loc.x,u->loc.y);
+				int memend = membership_map->at(u->end_loc.x,u->end_loc.y);
+				list<AStar_easy::vertex> plantemp = Astar_highlevel[u->type_ID]->search(memstart,memend);
+				
+				int newnextsector = plantemp.front();
+				allloads[s.sectorID][newnextsector][u->type_ID]++;
 			}
+			setCostMaps(weights); // reset the cost maps
 
 		}
 
 		// Calculate D from counterfactual
+		vector<Demographics> C = vector<Demographics>(n_agents);// capacities[agent, type]
+		for (Demographics c:C){
+			c = Demographics(UAV::NTYPES,10);
+		}
 		matrix1d D = matrix1d(n_agents);
 		for (int i=0; i<n_agents; i++){
-			D[i] = G-Gc[i];
+			double G_reg = G(oldLoads,C);
+			double G_c = G(allloads[i],C);
+			D[i] = G_reg-G_c;
 		}
 		// 
 
@@ -649,7 +666,7 @@ void ATFMSectorDomain::exportLog(std::string fid, double G){
 void ATFMSectorDomain::detectConflicts(){
 
 	if (abstraction_mode){
-		count_overcap();
+		// CONFLICT COUNTING DONE IN REWARD... based on overcap
 	} else {
 		double conflict_thresh = 1.0;
 		for (list<UAV>::iterator u1=UAVs->begin(); u1!=UAVs->end(); u1++){
