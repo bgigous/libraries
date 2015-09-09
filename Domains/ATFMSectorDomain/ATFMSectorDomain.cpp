@@ -26,7 +26,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	load_variable(&membership_map,"agent_map/membership_map.csv");
 	matrix2d agent_coords = FileManip::readDouble("agent_map/agent_map.csv");
 	matrix2d connection_map = FileManip::readDouble("agent_map/connections.csv");
-
+	
 	matrix2d fix_locs = FileManip::readDouble("agent_map/fixes.csv");
 	if (abstraction_mode) fix_locs = agent_coords; // if using an abstraction, have only the centers phsyically located
 
@@ -151,7 +151,6 @@ vector<double> ATFMSectorDomain::getRewards(){
 			allloads[i] = oldLoads;
 			allloads[i][i] = Demographics(UAV::NTYPES,0); // traffic removed, added back in later
 		}
-
 
 		// Count the adjusted load
 		for(Sector s: *sectors){
