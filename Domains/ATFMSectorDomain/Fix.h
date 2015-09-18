@@ -11,7 +11,7 @@ public:
 	~Fix(){};
 	
 
-	std::list<UAV> generateTraffic(std::vector<Fix>* fixes,std::vector<std::vector<XY> > *pathTraces);
+	std::list<UAV*> generateTraffic(std::vector<Fix>* fixes,std::vector<std::vector<XY> > *pathTraces);
 	void absorbTraffic(std::list<UAV>* UAVs);
 	bool atDestinationFix(const UAV &u);
 	int ID;

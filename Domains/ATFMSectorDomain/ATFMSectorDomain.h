@@ -41,13 +41,11 @@ public:
 	std::map<int,std::map<int,double> > connection_time;
 	int connection_capacity[15][15][UAV::NTYPES]; // capacity for each type of UAV
 	Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later
-	
-
 
 	unsigned int getSector(easymath::XY p);
 
 	std::vector<Sector>* sectors;
-	std::list<UAV>* UAVs; // this is in a list because it has to be modified often. Never tie an ID/index to a UAV
+	std::list<UAV*> UAVs; // this is in a list because it has to be modified often. Never tie an ID/index to a UAV
 	std::vector<Fix>* fixes;
 
 	void simulateStep(matrix2d agent_actions);
@@ -56,7 +54,7 @@ public:
 	void getNewUAVTraffic();
 	void absorbUAVTraffic();
 	void getPathPlans(); // note: when is this event?
-	void getPathPlans(std::list<UAV> &new_UAVs);
+	void getPathPlans(std::list<UAV*> &new_UAVs);
 
 	void reset();
 	void logStep(int step);

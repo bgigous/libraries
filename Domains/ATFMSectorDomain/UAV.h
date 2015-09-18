@@ -39,6 +39,9 @@ public:
 	std::queue<easymath::XY> target_waypoints; // target waypoints, low-level
 	std::vector<std::vector<XY> > *pathTraces; // takes a pointer to the pathtrace for logging
 	list<int> high_path_prev; // saves the high level path
+	int nextSectorID(){
+		return high_path_prev.front();
+	}
 
 	// ABSTRACTION MODE; TIME UNTIL SWITCH
 	int t;

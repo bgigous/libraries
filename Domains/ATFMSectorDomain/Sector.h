@@ -20,7 +20,7 @@ public:
 	Demographics getLoad(){
 		// Get demographic information about the UAVs traveling toward the sector
 		Demographics load(UAV::NTYPES,0);
-		for (UAV* u: toward){
+		for (UAV *u: toward){
 			load[u->type_ID]++;
 		}
 		return load;

@@ -23,10 +23,10 @@ bool Fix::atDestinationFix(const UAV &u){
 	*/
 }
 
-std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes,std::vector<std::vector<XY> > *pathTraces){
+std::list<UAV*> Fix::generateTraffic(vector<Fix>* allFixes,std::vector<std::vector<XY> > *pathTraces){
 	static int calls = 0;
 	// Creates a new UAV in the world
-	std::list<UAV> newTraffic;
+	std::list<UAV*> newTraffic;
 	
 	// CONSTANT TRAFFIC FLOW METHOD
 	double coin = COIN_FLOOR0;
@@ -38,7 +38,7 @@ std::list<UAV> Fix::generateTraffic(vector<Fix>* allFixes,std::vector<std::vecto
 			end_loc = allFixes->at(ID-1).loc; // go to previous
 		}
 		UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES)); // EVEN TYPE NUMBER
-		newTraffic.push_back(UAV(loc,end_loc,pathTraces,type_id_set,planners));
+		newTraffic.push_back(new UAV(loc,end_loc,pathTraces,type_id_set,planners));
 	}
 
 

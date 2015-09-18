@@ -15,15 +15,16 @@ using namespace std;
 class AStarManager
 {
 public:
-	
-typedef std::map<int,std::map<int,AStar_grid*> > grid_lookup;
-typedef Matrix<bool,2> barrier_grid;
-typedef Matrix<int,2> ID_grid;
+
+	typedef std::map<int,std::map<int,AStar_grid*> > grid_lookup;
+	typedef Matrix<bool,2> barrier_grid;
+	typedef Matrix<int,2> ID_grid;
+	typedef pair<int,int> Edge;
 
 	AStarManager(void);
 	~AStarManager(void);
 	AStarManager(int n_types, vector<pair<int,int> > edges, Matrix<int,2>* membership_map, vector<XY> agent_locs):
-	membership_map(membership_map),edges(edges),agent_locs(agent_locs),n_types(n_types)
+		membership_map(membership_map),edges(edges),agent_locs(agent_locs),n_types(n_types)
 	{
 
 
@@ -37,7 +38,7 @@ typedef Matrix<int,2> ID_grid;
 		for (int i=0; i<n_types; i++){
 			Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]);
 		}
-		
+
 
 		// Read in files for sector management
 		obstacle_map = new barrier_grid(membership_map->dim1(),membership_map->dim2());
