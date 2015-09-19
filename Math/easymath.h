@@ -67,7 +67,7 @@ namespace easymath{
 		XY(){};
 		~XY(){};
 		double x,y;
-		XY & operator-(const XY &other){
+		XY operator-(const XY &other){
 			return XY(x-other.x, y-other.y);
 		}
 		friend bool operator<(const XY &lhs, const XY &rhs){

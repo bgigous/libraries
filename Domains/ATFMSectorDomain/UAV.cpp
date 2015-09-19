@@ -84,28 +84,6 @@ void UAV::pathPlan(bool abstraction_mode, map<int,map<int,double> > connection_t
 			target_waypoints.pop(); // remove CURRENT location from target	
 		}
 	}
-
-	/*
-	if(high_path_prev !=high_path){
-	high_path_prev = high_path;
-	AStar_easy* astar_low;
-	if (astar_lowlevel.count(high_path)){
-	astar_low = astar_lowlevel[high_path];
-	} else{
-	// MAKE A NEW LOW-LEVEL ASTAR
-	astar_low = new AStar_easy(high_path,obstacle_map,membership_map);
-	astar_lowlevel[high_path] = astar_low;
-	}
-	list<AStar_easy::vertex> low_path= astar_low->search(loc,end_loc);
-	while (target_waypoints.size()) target_waypoints.pop();
-	for (list<AStar_easy::vertex>::iterator it=low_path.begin(); it!=low_path.end(); it++){
-	int x, y;
-	astar_low->ind2sub(astar_low->YDIM,*it, x,y);
-	target_waypoints.push(XY(x,y)); // adds to list to visit
-	}
-	target_waypoints.pop(); // removes CURRENT location from target
-	}
-	*/
 }
 
 int UAV::getDirection(){

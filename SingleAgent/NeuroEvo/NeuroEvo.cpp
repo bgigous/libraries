@@ -26,8 +26,8 @@ matrix1d NeuroEvo::getAction(matrix2d state){
 	exit(10);
 	return matrix1d();*/
 	matrix1d stateSum(state[0].size(),0.0);
-	for (int i=0; i<state.size(); i++){ // state[type][state_element] -- specifies combination for state
-		for (int j=0; j<state[i].size(); j++){
+	for (unsigned int i=0; i<state.size(); i++){ // state[type][state_element] -- specifies combination for state
+		for (unsigned int j=0; j<state[i].size(); j++){
 			stateSum[j] += state[i][j];
 		}
 	}

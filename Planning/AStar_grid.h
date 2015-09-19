@@ -138,8 +138,8 @@ public:
 		// NOTE: V_INDEX COUNT ASSUMES YOU'RE GOING THROUGH THE OBSTACLES DIFFERENTLY...
 		//for (std::vector<std::vector<bool> >::iterator obs = obstacle_map->begin(); obs!=obstacle_map->end(); obs++){
 			//for (std::vector<bool>::iterator o = obs->begin(); o!=obs->end(); o++){
-		for (int y=0; y<obstacle_map->begin()->size(); y++){
-			for (int x=0; x<obstacle_map->size(); x++){
+		for (unsigned int y=0; y<obstacle_map->begin()->size(); y++){
+			for (unsigned int x=0; x<obstacle_map->size(); x++){
 				if (obstacle_map->at(x)[y]){ // there is an obstacle!
 					mt::vertex_descriptor u = vertex(v_index,m_grid);
 					m_barriers.insert(u); // insert a barrier!
@@ -156,8 +156,8 @@ public:
 		// This map will only show areas of membership. Others are seen as barriers.
 
 		int v_index = 0;
-		for (int x=0; x<obstacle_map->begin()->size(); x++){
-			for (int y=0; y<obstacle_map->size(); y++){
+		for (unsigned int x=0; x<obstacle_map->begin()->size(); x++){
+			for (unsigned int y=0; y<obstacle_map->size(); y++){
 				if (obstacle_map->at(x)[y] || (membership_map->at(x)[y]!=m1 && membership_map->at(x)[y]!=m2)){ // there is an obstacle, or wrong membership
 					mt::vertex_descriptor u = vertex(v_index,m_grid);
 					m_barriers.insert(u); // insert a barrier!
@@ -262,8 +262,8 @@ public:
 		ofstream output(ss.str());
 
 		
-		for (int i = 0; i<length(0); i++){
-			for (int j = 0; j < length(1); j++) {
+		for (unsigned int i = 0; i<length(0); i++){
+			for (unsigned int j = 0; j < length(1); j++) {
 				// Put the character representing this point in the maze grid.
 				mt::vertex_descriptor u = {{i, j}};
 				if (solution_contains(u))
@@ -307,14 +307,14 @@ static std::ostream& operator<<(std::ostream& output, const maze& m) {
 
 		//for (mt::vertices_size_type i = 0; i < m.length(0)+2; i++)
 
-		int START = 78;
-		int END = START+78;
+		unsigned int START = 78;
+		unsigned int END = START+78;
 
 		for (mt::vertices_size_type i = START; i < END+2; i++)
 			output << BARRIER;
 		output << std::endl;
 		// Body
-		for (int y = 0; y<m.length(1); y++){//m.length(1)-1; y >= 0; y--) {
+		for (unsigned int y = 0; y<m.length(1); y++){//m.length(1)-1; y >= 0; y--) {
 			// Enumerate rows in reverse order and columns in regular order so that
 			// (0,0) appears in the lower left-hand corner.  This requires that y be
 			// int and not the unsigned vertices_size_type because the loop exit

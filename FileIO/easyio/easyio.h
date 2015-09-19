@@ -70,8 +70,8 @@ public:
 	static std::map<std::string,double> readVariableFile(std::string fileName){
 		string_matrix2d rawData = FileManip::read(fileName);
 		std::map<std::string,double>  processedData;
-		for (int i=0; i<rawData.size(); i++){
-			processedData.insert(std::pair<std::string,double>(rawData[i][0],atof(rawData[i][1].c_str())));
+		for (string_matrix1d &r: rawData){
+			processedData.insert(std::pair<std::string,double>(r[0],atof(r[1].c_str())));
 		}
 		return processedData;
 	}

@@ -18,7 +18,6 @@ class UAV{
 	environment through planning. Planning is done through boost. 
 	*/
 public:
-	int time_left_on_edge;
 	const enum UAVType{SLOW, FAST, NTYPES=5};
 	//const enum UAVType{SLOW,NTYPES};
 
@@ -43,6 +42,7 @@ public:
 		return high_path_prev.front();
 	}
 
-	// ABSTRACTION MODE; TIME UNTIL SWITCH
+	// ABSTRACTION MODE
 	int t;
+	int time_left_on_edge;
 };

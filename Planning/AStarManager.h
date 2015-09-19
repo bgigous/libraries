@@ -2,7 +2,7 @@
 #include "AStar_easy.h"
 #include "AStar_grid.h"
 #include "../Math/Matrix.h"
-
+#include <memory>
 
 
 /**
@@ -29,8 +29,8 @@ public:
 
 
 		weights = matrix2d(n_types);
-		for (int i=0; i<weights.size(); i++){
-			weights[i] = matrix1d(edges.size(),1.0);
+		for (matrix1d &w : weights){
+			w = matrix1d(edges.size(),1.0);
 		}
 
 		// Initialize Astar object (must re-create this each time weight change
@@ -49,7 +49,7 @@ public:
 		}
 
 		// Add a different A* for each connection
-		for (pair<int,int> e:edges){
+		for (Edge e:edges){
 			m2astar[e.first][e.second] = new AStar_grid(obstacle_map, membership_map, e.first, e.second);
 			XY xyi = agent_locs[e.first];
 			XY xyj = agent_locs[e.second];
@@ -65,12 +65,11 @@ public:
 		return membership_map->at(pt.x,pt.y);
 	}
 
-	matrix2d saved_weights; // for blocking and unblocking sectors
 
 	void blockSector(int sectorID){
 		saved_weights = weights;
-		for (int i=0; i<weights.size(); i++){
-			weights[i][sectorID] = 9999999.99;
+		for (matrix1d &w: weights){
+			w[sectorID] = 9999999.99;
 		}
 
 		resetGraphWeights(weights);
@@ -95,24 +94,24 @@ public:
 
 	void reset(){
 		weights = matrix2d(n_types);
-		for (int i=0; i<weights.size(); i++){
-			weights[i] = matrix1d(edges.size(), 1.0);
+		for (matrix1d &w:weights){
+			w = matrix1d(edges.size(), 1.0);
 		}
 
 		// re-create high level a*
-		for (int i=0; i<Astar_highlevel.size(); i++){
+		for (unsigned int i=0; i<Astar_highlevel.size(); i++){
 			delete Astar_highlevel[i];
 			Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]);
 		}
 	}
-	int n_types;
+	unsigned int n_types;
 
 	void setCostMaps(vector<vector<double> > agent_actions){
 		// [next sector][direction of travel] -- current
 		// agent_actions  = agent, [type, dir<-- alternating]
 
-		for (int i=0; i<weights[0].size(); i++){
-			for (int j=0; j<n_types; j++){
+		for (unsigned int i=0; i<weights[0].size(); i++){
+			for (unsigned int j=0; j<n_types; j++){
 				int s = sector_dir_map[i].first;
 				//int d = j*UAV::NTYPES + sector_dir_map[i].second; // wrong
 
@@ -121,22 +120,20 @@ public:
 			}
 		}
 
-		for (int i=0; i<Astar_highlevel.size(); i++){
-			delete Astar_highlevel[i];
-			Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]); // replace existing weights
-		}
+		resetGraphWeights(weights);
 	}
 
 
 	void resetGraphWeights(matrix2d weightset){
 		weights = weightset;
 
-		for (int i=0; i<Astar_highlevel.size(); i++){
+		for (unsigned int i=0; i<Astar_highlevel.size(); i++){
 			delete Astar_highlevel[i];
 			Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]); // replace existing weights
 		}
 	}
-
+	
+	matrix2d saved_weights; // for blocking and unblocking sectors
 	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)
 	Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later
 	Matrix<bool,2> * obstacle_map; // pass these to uavs later to determine where the obstacles are
@@ -145,10 +142,11 @@ public:
 	matrix2d weights; // [type][connection]
 	std::vector<AStar_easy*> Astar_highlevel;
 	grid_lookup m2astar;
+
 	void printMasks(){
-		for (grid_lookup::iterator it=m2astar.begin(); it!=m2astar.end(); it++){
-			for (map<int,AStar_grid*>::iterator inner = it->second.begin(); inner!=it->second.end(); inner++){
-				inner->second->m.printMap("masks/", it->first, inner->first);
+		for (const auto& outer :m2astar){
+			for (const auto& inner: outer.second){
+				inner.second->m.printMap("masks/", outer.first, inner.first);
 			}
 		}
 	}

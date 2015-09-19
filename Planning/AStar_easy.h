@@ -38,28 +38,18 @@ public:
 	{};
 	CostType operator()(Vertex u)
 	{
-		//CostType dx = m_location[m_goal].x - m_location[u].x;
-		//CostType dy = m_location[m_goal].y - m_location[u].y;
-
 		int x1, y1, x2, y2;
 		AStar_easy::ind2sub(YDIM, u, x1, y1);
 		AStar_easy::ind2sub(YDIM, m_goal, x2, y2);
 		
 		double dx = x2-x1;
 		double dy = y2-y1;
-
-		return CostType(::sqrt(dx * dx + dy * dy));
+		return CostType(::sqrt(dx * dx + dy * dy)); // euclidean cost heuristic
 	}
 private:
 	LocMap m_location;
 	Vertex m_goal;
 	int XDIM, YDIM;
-	/*void ind2sub(int cols, int ind, int &r, int &c){
-		//0-indexed: ind-1 always called
-		// NOTE: REPLICA OF THE ONE IN ASTAR
-		r = (ind-1)%cols;
-		c = floor((ind-1)/cols);
-	}*/
 };
 
 
@@ -131,13 +121,7 @@ public:
 		}
 	}
 	~AStar_easy(void){};
-
-	// translating to real things...
-	//	map<XY,int> lookup;
-	//	map<AStar_easy::vertex,XY> rlookup;
-
-
-
+	
 	// A* fundamentals
 	vector<easymath::XY> locations; // physical locations of nodes
 	vector<edge> edge_array; // connections in map
@@ -151,14 +135,6 @@ public:
 		vector<mygraph_t::vertex_descriptor> p(num_vertices(g));
 		vector<cost> d(num_vertices(g));
 		try {
-			// call astar named parameter interface
-			/*astar_search
-				(g, start,
-				distance_heuristic<mygraph_t, cost, vector<easymath::XY> >
-				(locations, goal,XDIM,YDIM),
-				predecessor_map(&p[0]).distance_map(&d[0]).
-				visitor(astar_goal_visitor<vertex>(goal)));
-				*/
 			astar_search
 				(g, start,
 				zero_heuristic(),
@@ -207,9 +183,9 @@ public:
 			remove_boundaries(high_path); // REMOVE IMPACT OF HIGH-LEVEL PATH
 			vector<XY> path_output(path_output_vertices.size());
 			int i=0;
-			for (list<vertex>::iterator v=path_output_vertices.begin(); v!= path_output_vertices.end(); v++){
+			for (vertex  v : path_output_vertices){
 				int x,y;
-				ind2sub(YDIM,*v,x,y);
+				ind2sub(YDIM,v,x,y);
 				path_output[i++] = XY(x,y);
 			}
 			return path_output;
@@ -265,13 +241,13 @@ public:
 		//TODO: do other things here that influence graph creation
 		for (list<AStar_easy::vertex>::iterator i=high_path.begin(); i!=prev(high_path.end()); i++){
 			vector<edge> b = boundary_edges[pair<int,int>(*i,*std::next(i))];
-			for (vector<edge>::iterator e=b.begin(); e!=b.end(); e++){
-				edge_array.push_back(*e);
+			for (edge e : b){
+				edge_array.push_back(e);
 				
 				// add it into the graph!
 				edge_descriptor desc;
 				bool inserted;
-				boost::tuples::tie(desc, inserted) = add_edge(e->first, e->second, g);
+				boost::tuples::tie(desc, inserted) = add_edge(e.first, e.second, g);
 				weightmap[desc] = 1.0; // HARDCODING
 			}
 		}
@@ -281,8 +257,8 @@ public:
 	void remove_boundaries(list<AStar_easy::vertex> &high_path){
 		for (list<AStar_easy::vertex>::iterator i=high_path.begin(); i!=prev(high_path.end()); i++){
 			vector<edge> b = boundary_edges[pair<int,int>(*i,*std::next(i))];
-			for (int j=0; j<b.size(); j++){
-				remove_edge(b[j].first,b[j].second,g);
+			for (edge e: b){
+				remove_edge(e.first,e.second,g);
 			}
 		}
 	}
@@ -301,28 +277,30 @@ public:
 				if (!obstacle_map->at(x)[y]){
 					nodes.insert(XY(x,y)); // add to list of possible nodes, if not in an obstacle
 					vector<XY> neighbors = get8GridNeighbors(x,y, obstacle_map);
-					for (int i=0; i<neighbors.size(); i++){
+					
+					for (XY n: neighbors){
 						edge e;
 						e.first = sub2ind(x,y,YDIM,XDIM);
-						e.second = sub2ind(neighbors[i].x,neighbors[i].y,YDIM,XDIM);
+						e.second = sub2ind(n.x,n.y,YDIM,XDIM);
 
 						int m1 = membership_map->at(x)[y];
-						int m2 = membership_map->at(neighbors[i].x)[neighbors[i].y];
+						int m2 = membership_map->at(n.x)[n.y];
 
 						if (m1==m2){
 							edge_array.push_back(e);
 						} else {
-							boundary_edges[pair<int,int>(m1,m2)].push_back(e);
+							boundary_edges[edge(m1,m2)].push_back(e);
 						}
 					}
+
 				}
 			}
 		}
 
 		locations = vector<XY>(nodes.size());
 		int count=0;
-		for (set<XY>::iterator it=nodes.begin(); it!=nodes.end(); it++){
-			locations[count++] = *it;
+		for (XY n : nodes){
+			locations[count++] = n;
 		}
 	}
 };

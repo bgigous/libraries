@@ -5,28 +5,27 @@ MultiagentTypeNE::MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params, 
 {
 	// USING SWITCH STATEMENT FOR OBJECT CREATION. AFTER THIS POINT IN CODE, POLYMORPHISM USED.
 
-	for (int i=0; i<agents.size(); i++){
-		delete agents[i]; // delete the premade agents
+	for (IAgent* a: agents){
 
 		switch (type_mode){
 		case MULTIMIND:
 			{
-				agents[i] = new TypeNeuroEvo(NE_params, n_types);
+				*a = TypeNeuroEvo(NE_params, n_types);
 				break;
 			}
 		case WEIGHTED:
 			{
-				agents[i] = new NeuroEvoTypeWeighted(NE_params,n_types,NE_params->nInput); // each type plays a part simultaneously
+				*a = NeuroEvoTypeWeighted(NE_params,n_types,NE_params->nInput); // each type plays a part simultaneously
 				break;
 			}
 		case CROSSWEIGHTED:
 			{
-				agents[i] = new NeuroEvoTypeCrossweighted(NE_params, n_types,4); // each type plays a part simultaneously
+				*a = NeuroEvoTypeCrossweighted(NE_params, n_types,4); // each type plays a part simultaneously
 				break;
 			}
 		case BLIND:
 			{
-				agents[i] = new NeuroEvo(NE_params);
+				*a = NeuroEvo(NE_params);
 			}
 		}
 	}
@@ -38,7 +37,7 @@ MultiagentTypeNE::~MultiagentTypeNE(void){
 
 matrix2d MultiagentTypeNE::getActions(matrix3d state){
 	matrix2d actions(state.size()); // get an action vector for each agent
-	for (int i=0; i<agents.size(); i++){
+	for (unsigned int i=0; i<agents.size(); i++){
 		actions[i] = agents[i]->getAction(state[i]);
 	}
 	return actions;

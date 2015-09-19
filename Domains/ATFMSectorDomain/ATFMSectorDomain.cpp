@@ -32,18 +32,18 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 
 	// Add sectors
 	agent_locs = vector<XY>(agent_coords.size()); // save this for later Astar recreation
-	for (int i=0; i<agent_coords.size(); i++){
+	for (unsigned int i=0; i<agent_coords.size(); i++){
 		sectors->push_back(Sector(XY(agent_coords[i][0],agent_coords[i][1]),i));
 		agent_locs[i] = sectors->back().xy;
 	}
 
 	// Adjust the connection map to be the edges
 	// preprocess boolean connection map
-	vector<pair<int,int> > edges;
-	for (int i=0; i<connection_map.size(); i++){
-		for (int j=0; j<connection_map[i].size(); j++){
+	vector<AStarManager::Edge> edges;
+	for (unsigned int i=0; i<connection_map.size(); i++){
+		for (unsigned int j=0; j<connection_map[i].size(); j++){
 			if (connection_map[i][j] && i!=j){
-				edges.push_back(make_pair(i,j));
+				edges.push_back(AStarManager::Edge(i,j));
 			}
 		}
 	}
@@ -51,7 +51,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	planners = new AStarManager(UAV::NTYPES, edges, membership_map, agent_locs);
 
 	// initialize fixes
-	for (int i=0; i<fix_locs.size(); i++){
+	for (unsigned int i=0; i<fix_locs.size(); i++){
 		fixes->push_back(Fix(XY(fix_locs[i][0],fix_locs[i][1]),i,is_deterministic,planners));
 	}
 
@@ -85,9 +85,6 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 
 ATFMSectorDomain::~ATFMSectorDomain(void)
 {
-	for (UAV* u:UAVs){
-		delete u;
-	}
 	delete fixes;
 	delete sectors;
 	delete planners;
@@ -109,8 +106,8 @@ vector<double> ATFMSectorDomain::getPerformance(){
 */
 double ATFMSectorDomain::G(vector<vector<int> > loads, vector<vector<int> > capacities){
 	double global=0;
-	for (int i=0; i<loads.size(); i++){
-		for (int j=0; j<loads[i].size(); j++){
+	for (unsigned int i=0; i<loads.size(); i++){
+		for (unsigned int j=0; j<loads[i].size(); j++){
 			double overcap = loads[i][j] - capacities[i][j];
 			global -= overcap*overcap; // worse with higher concentration of planes!
 		}
@@ -123,7 +120,7 @@ double ATFMSectorDomain::G(vector<vector<int> > loads, vector<vector<int> > capa
 */
 vector<vector<int> > ATFMSectorDomain::getLoads(){
 	vector<vector<int> > allloads = vector<vector<int> >(sectors->size());
-	for (int i=0; i<sectors->size(); i++){
+	for (unsigned int i=0; i<sectors->size(); i++){
 		allloads[i] = sectors->at(i).getLoad();
 	}
 	return allloads;
@@ -148,7 +145,7 @@ vector<double> ATFMSectorDomain::getRewards(){
 		// Calculate loads
 		vector<Demographics> oldLoads = getLoads(); // get the current loads on all sectors
 		vector<vector<Demographics> > allloads = vector<vector<Demographics> >(n_agents); // agent removed, agent for load, type
-		for (int i=0; i< allloads.size(); i++){
+		for (unsigned int i=0; i< allloads.size(); i++){
 			allloads[i] = oldLoads;
 			allloads[i][i] = Demographics(UAV::NTYPES,0); // traffic removed, added back in later
 		}
@@ -158,7 +155,7 @@ vector<double> ATFMSectorDomain::getRewards(){
 			// build the map with the blacked-out sector
 			planners->blockSector(s.sectorID);
 
-			for (UAV* u: s.toward){
+			for (std::shared_ptr<UAV> &u: s.toward){
 				// Get the 'reroute' load, later
 				// plan a path using a generic A* with modified weights
 				list<int> plantemp = planners->search(u->type_ID, u->loc, u->end_loc);
@@ -171,8 +168,8 @@ vector<double> ATFMSectorDomain::getRewards(){
 
 		// Calculate D from counterfactual
 		vector<Demographics> C = vector<Demographics>(n_agents);// capacities[agent, type]
-		for (int i=0; i<C.size(); i++){
-			C[i] = Demographics(UAV::NTYPES,10);
+		for (Demographics &c: C){
+			c = Demographics(UAV::NTYPES,10);
 		}
 		matrix1d D = matrix1d(n_agents);
 		for (int i=0; i<n_agents; i++){
@@ -194,9 +191,9 @@ void ATFMSectorDomain::load_variable(std::vector<std::vector<bool> >* var, std::
 	string_matrix2d f = FileManip::read(filename, separator);
 	*var = std::vector<std::vector<bool> >(f.size());
 
-	for (int i=0; i<f.size(); i++){
+	for (unsigned int i=0; i<f.size(); i++){
 		var->at(i) = std::vector<bool>(f[i].size());
-		for (int j=0; j<f[i].size(); j++){
+		for (unsigned int j=0; j<f[i].size(); j++){
 			if (atof(f[i][j].c_str())<=thresh){
 				var->at(i)[j] = false;
 			} else {
@@ -212,8 +209,8 @@ void ATFMSectorDomain::load_variable(Matrix<bool,2> **var, std::string filename,
 	string_matrix2d f = FileManip::read(filename, separator);
 	Matrix<bool,2> * mat = new Matrix<bool,2>(f.size(),f[0].size());
 
-	for (int i=0; i<f.size(); i++){
-		for (int j=0; j<f[i].size(); j++){
+	for (unsigned int i=0; i<f.size(); i++){
+		for (unsigned int j=0; j<f[i].size(); j++){
 			if (atof(f[i][j].c_str())<=thresh){
 				mat->at(i,j) = false;
 			} else {
@@ -229,8 +226,8 @@ void ATFMSectorDomain::load_variable(Matrix<int,2> **var, std::string filename, 
 	string_matrix2d f = FileManip::read(filename, separator);
 	Matrix<int,2> *mat = new Matrix<int,2>(f.size(),f[0].size());
 
-	for (int i=0; i<f.size(); i++){
-		for (int j=0; j<f[i].size(); j++){
+	for (unsigned int i=0; i<f.size(); i++){
+		for (unsigned int j=0; j<f[i].size(); j++){
 			mat->at(i,j) = atoi(f[i][j].c_str());
 		}
 	}
@@ -244,7 +241,7 @@ matrix2d ATFMSectorDomain::getStates(){
 		allStates[i] = matrix1d(n_state_elements,0.0); // reserves space
 	}
 
-	for (UAV* u : UAVs){
+	for (std::shared_ptr<UAV> &u : UAVs){
 		allStates[getSector(u->loc)][u->getDirection()]+=1.0; // Adds the UAV impact on the state
 	}
 
@@ -260,7 +257,7 @@ matrix3d ATFMSectorDomain::getTypeStates(){
 		}
 	}
 
-	for (UAV* u: UAVs){
+	for (std::shared_ptr<UAV> &u: UAVs){
 		int a = getSector(u->loc);
 		int id = u->type_ID;
 		int dir = u->getDirection();
@@ -281,16 +278,16 @@ unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
 void ATFMSectorDomain::getPathPlans(){
-	for (UAV* u : UAVs){
+	for (std::shared_ptr<UAV> &u : UAVs){
 		u->pathPlan(abstraction_mode, connection_time); // sets own next waypoint
 	}
 }
 
-void ATFMSectorDomain::getPathPlans(std::list<UAV*> &new_UAVs){
-	for (Sector s: *sectors){
+void ATFMSectorDomain::getPathPlans(std::list<std::shared_ptr<UAV> > &new_UAVs){
+	for (Sector &s: *sectors){
 		s.toward.clear();
 	}
-	for (UAV* u : new_UAVs){
+	for (std::shared_ptr<UAV> &u : new_UAVs){
 		u->pathPlan(abstraction_mode,connection_time); // sets own next waypoint
 		int nextSectorID = u->nextSectorID();
 		sectors->at(nextSectorID).toward.push_back(u);
@@ -312,12 +309,12 @@ void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
 
 void ATFMSectorDomain::incrementUAVPath(){
 	if (!abstraction_mode){
-		for (UAV* u: UAVs){
+		for (std::shared_ptr<UAV> &u: UAVs){
 			u->moveTowardNextWaypoint(); // moves toward next waypoint (next in low-level plan)
 		}
 	} else {
 		// in abstraction mode, move to next center of target
-		for (UAV* u: UAVs){
+		for (std::shared_ptr<UAV> &u: UAVs){
 			if (u->time_left_on_edge <=0){
 				u->loc = sectors->at(*u->high_path_prev.begin()).xy;
 				u->high_path_prev.pop_front();
@@ -340,15 +337,23 @@ void UAV::moveTowardNextWaypoint(){
 
 void ATFMSectorDomain::absorbUAVTraffic(){
 	// moved here for efficiency
-	list<UAV*> cur_UAVs;
-	for (UAV* u : UAVs){
+	list<std::shared_ptr<UAV> > cur_UAVs;
+	for (std::shared_ptr<UAV> &u : UAVs){
 		if (u->loc==u->end_loc){
-			delete u;
+			u.reset();
 		} else {
 			cur_UAVs.push_back(u);
 		}
 	}
 	UAVs = cur_UAVs; // copy over
+
+	// remove null values from 'sector::toward'
+	for (Sector &s: *sectors){
+		// TODO: remove extra pointers that don't exist
+
+		//s.toward.erase(std::remove(s.toward.begin(), s.toward.end(),false),s.toward.end());
+	}
+
 }
 
 
@@ -357,9 +362,9 @@ void ATFMSectorDomain::getNewUAVTraffic(){
 	//static vector<XY> UAV_targets; // making static targets
 
 	// Generates (with some probability) plane traffic for each sector
-	list<UAV*> all_new_UAVs;
+	list<std::shared_ptr<UAV> > all_new_UAVs;
 	for (Fix f: *fixes){
-		list<UAV*> new_UAVs = f.generateTraffic(fixes,pathTraces);
+		list<std::shared_ptr<UAV> > new_UAVs = f.generateTraffic(fixes,pathTraces);
 		all_new_UAVs.splice(all_new_UAVs.end(),new_UAVs);
 
 		// obstacle check
@@ -379,9 +384,6 @@ void ATFMSectorDomain::reset(){
 	static int calls=0;
 
 	// Drop all UAVs
-	for (UAV* u:UAVs){
-		delete u;
-	}
 	UAVs.clear();
 
 	conflict_count = 0;
@@ -422,8 +424,8 @@ void ATFMSectorDomain::detectConflicts(){
 		// CONFLICT COUNTING DONE IN REWARD... based on overcap
 	} else {
 		double conflict_thresh = 1.0;
-		for (list<UAV*>::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
-			for (list<UAV*>::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
+		for (list<std::shared_ptr<UAV> >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
+			for (list<std::shared_ptr<UAV> >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
 				double d = easymath::distance((*u1)->loc,(*u2)->loc);
 
 				if (u1!=u2){
@@ -448,7 +450,7 @@ void ATFMSectorDomain::detectConflicts(){
 void ATFMSectorDomain::pathSnapShot(int snapnum){
 	matrix2d pathsnaps = matrix2d(2*UAVs.size());
 	int ind = 0; // index of path given
-	for (UAV* u:UAVs){
+	for (std::shared_ptr<UAV> &u:UAVs){
 		// pop through queue
 		std::queue<XY> wpt_save = u->target_waypoints;
 		while (u->target_waypoints.size()){
@@ -465,8 +467,8 @@ void ATFMSectorDomain::pathSnapShot(int snapnum){
 void ATFMSectorDomain::pathTraceSnapshot(){
 	// Exports all path traces
 	matrix2d pathsnaps =matrix2d(2*pathTraces->size());
-	for (int i=0, ind=0; i<pathTraces->size(); i++, ind+=2){
-		for (int j=0; j<pathTraces->at(i).size(); j++){
+	for (unsigned int i=0, ind=0; i<pathTraces->size(); i++, ind+=2){
+		for (unsigned int j=0; j<pathTraces->at(i).size(); j++){
 			pathsnaps[ind].push_back(pathTraces->at(i)[j].x);
 			pathsnaps[ind+1].push_back(pathTraces->at(i)[j].y);
 		}

@@ -13,8 +13,8 @@ public:
 		NETypes(std::vector<NeuroEvo*>(nTypes)),
 		xi(matrix1d(nTypes,0.0))
 	{
-		for (int i=0; i<NETypes.size(); i++){
-			NETypes[i] = new NeuroEvo(NEParams);
+		for (NeuroEvo* ne: NETypes){
+			ne = new NeuroEvo(NEParams);
 		}
 	};
 	void deepCopyNETypes(std::vector<NeuroEvo*> &NETypesSet){
@@ -22,12 +22,12 @@ public:
 		// Calls functions inside neuro evo to create new neural net pointers
 		// deletes original pointers
 
-		for (int i=0; i<NETypes.size(); i++){
-			delete NETypes[i];
+		for (NeuroEvo* ne: NETypes){
+			delete ne;
 		}
 
 		NETypes = std::vector<NeuroEvo*>(NETypesSet.size());
-		for (int i=0; i<NETypesSet.size(); i++){
+		for (unsigned int i=0; i<NETypesSet.size(); i++){
 			NETypes[i] = new NeuroEvo();
 			NETypes[i]->deepCopy(*NETypesSet[i]);
 			NETypes[i]->pop_member_active = NETypes[i]->population.begin();
@@ -41,35 +41,35 @@ public:
 
 
 	virtual void generateNewMembers(){
-		for (int i=0; i<NETypes.size(); i++){
-			NETypes[i]->generateNewMembers();
+		for (NeuroEvo* ne : NETypes){
+			ne->generateNewMembers();
 		}
 	}
 	bool selectNewMemberAll(){
 		// note; only checks the last
 		bool selected = false;
-		for (int i=0; i<NETypes.size(); i++){
-			selected = NETypes[i]->selectNewMember();
+		for (NeuroEvo* ne: NETypes){
+			selected = ne->selectNewMember();
 		}
 		return selected;
 	}
 
 	matrix1d getBestMemberValAll(){
 		matrix1d memberVals = matrix1d(NETypes.size());
-		for (int i=0; i<NETypes.size(); i++){
+		for (unsigned int i=0; i<NETypes.size(); i++){
 			memberVals[i] = NETypes[i]->getBestMemberVal();
 		}
 		return memberVals;
 	}
 
 	void setNNToBestMemberAll(){
-		for (int i=0; i<NETypes.size(); i++){
-			NETypes[i]->setNNToBestMember();
+		for (NeuroEvo* ne: NETypes){
+			ne->setNNToBestMember();
 		}
 	}
 	void selectSurvivorsAll(){
-		for (int i=0; i<NETypes.size(); i++){
-			NETypes[i]->selectSurvivors();
+		for (NeuroEvo* ne: NETypes){
+			ne->selectSurvivors();
 		}
 	}
 
@@ -90,14 +90,14 @@ public:
 	matrix1d getAction(matrix2d state){
 		// vote among all TYPES for an action
 		matrix1d action_sum = getAction(state[0],0);
-		for (int j=1; j<state.size(); j++){ // starts at 1: initialized by 0
+		for (unsigned int j=1; j<state.size(); j++){ // starts at 1: initialized by 0
 			matrix1d action_sum_temp = getAction(state[j],j); // specifies which NN to use
-			for (int k=0; k<action_sum.size(); k++){
+			for (unsigned int k=0; k<action_sum.size(); k++){
 				action_sum[k] += action_sum_temp[k];
 			}
 		}
-		for (int j=0; j<action_sum.size(); j++){
-			action_sum[j] /= double(state.size()); // normalize (magnitude unbounded for voting)
+		for (double &a: action_sum){
+			a /= double(state.size()); // normalize (magnitude unbounded for voting)
 		}
 		return action_sum;
 	}
@@ -116,7 +116,7 @@ public:
 	void updatePolicyValues(double R){
 		// Add together xi values, for averaging
 		double sumXi = easymath::sum(xi);
-		for (int i=0; i<NETypes.size(); i++){
+		for (unsigned int i=0; i<NETypes.size(); i++){
 			double xi_i = xi[i]/sumXi; // scaled proportional to other member values
 			double V = (*NETypes[i]->pop_member_active)->evaluation; // get evaluation of active member
 			V = xi_i*(R -V) + V;

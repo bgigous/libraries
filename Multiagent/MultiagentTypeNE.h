@@ -26,12 +26,12 @@ public:
 		// Specific to Evo
 
 		std::vector<bool> is_another_member(agents.size(),false);
-		for (int i=0; i<agents.size(); i++){
+		for (unsigned int i=0; i<agents.size(); i++){
 			if (type_mode==MULTIMIND) is_another_member[i] = ((TypeNeuroEvo*)agents[i])->selectNewMemberAll();
 			else if (type_mode==WEIGHTED || type_mode==CROSSWEIGHTED || type_mode==BLIND) is_another_member[i] = ((NeuroEvo*)agents[i])->selectNewMember();
 		}
-		for (int i=0; i<is_another_member.size(); i++){
-			if (!is_another_member[i]){
+		for (bool a: is_another_member){
+			if (!a){
 				return false;
 			}
 		}
@@ -41,11 +41,11 @@ public:
 
 	virtual void selectSurvivors(){
 	// Specific to Evo: select survivors
-	for (int i=0; i<agents.size(); i++){
+	for (IAgent* a: agents){
 		if (type_mode==MULTIMIND){
-		((TypeNeuroEvo*)agents[i])->selectSurvivorsAll();
+		((TypeNeuroEvo*)a)->selectSurvivorsAll();
 		} else if (type_mode==WEIGHTED || type_mode==CROSSWEIGHTED|| type_mode==BLIND){
-			((NeuroEvo*)agents[i])->selectSurvivors();
+			((NeuroEvo*)a)->selectSurvivors();
 		}
 	}
 }

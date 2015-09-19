@@ -2,6 +2,7 @@
 
 #include <list>
 #include <vector>
+#include <memory>
 #include "UAV.h"
 #include "../../Planning/AStarManager.h"
 
@@ -11,7 +12,7 @@ public:
 	~Fix(){};
 	
 
-	std::list<UAV*> generateTraffic(std::vector<Fix>* fixes,std::vector<std::vector<XY> > *pathTraces);
+	std::list<std::shared_ptr<UAV> > generateTraffic(std::vector<Fix>* fixes,std::vector<std::vector<XY> > *pathTraces);
 	void absorbTraffic(std::list<UAV>* UAVs);
 	bool atDestinationFix(const UAV &u);
 	int ID;

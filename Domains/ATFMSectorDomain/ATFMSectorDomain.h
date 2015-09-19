@@ -12,6 +12,7 @@
 #include "UAV.h"
 #include "Sector.h"
 #include "Fix.h"
+#include <memory>
 
 #define WORLD_SIZE 100.0
 
@@ -45,7 +46,7 @@ public:
 	unsigned int getSector(easymath::XY p);
 
 	std::vector<Sector>* sectors;
-	std::list<UAV*> UAVs; // this is in a list because it has to be modified often. Never tie an ID/index to a UAV
+	std::list<std::shared_ptr<UAV> > UAVs; // this is in a list because it has to be modified often. Never tie an ID/index to a UAV
 	std::vector<Fix>* fixes;
 
 	void simulateStep(matrix2d agent_actions);
@@ -54,7 +55,7 @@ public:
 	void getNewUAVTraffic();
 	void absorbUAVTraffic();
 	void getPathPlans(); // note: when is this event?
-	void getPathPlans(std::list<UAV*> &new_UAVs);
+	void getPathPlans(std::list<std::shared_ptr<UAV> > &new_UAVs);
 
 	void reset();
 	void logStep(int step);
