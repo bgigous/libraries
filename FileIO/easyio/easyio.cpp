@@ -6,9 +6,9 @@ using namespace std;
 
 matrix2d FileManip::str2double(string_matrix2d mystring){
 	matrix2d mymatrix = matrix2d(mystring.size());
-	for (int i=0; i<mystring.size(); i++){
+	for (unsigned int i=0; i<mystring.size(); i++){
 		mymatrix[i] = matrix1d(mystring[i].size());
-		for (int j=0; j<mystring[i].size(); j++){
+		for (unsigned int j=0; j<mystring[i].size(); j++){
 			mymatrix[i][j] = stod(mystring[i][j]);
 		}
 	}
@@ -32,7 +32,7 @@ vector<string> FileManip::divide(string myString, string separator){
 }
 
 void PrintOut::screen(vector<string> myVector, string separator){
-	for (int i=0; i<myVector.size(); i++){
+	for (unsigned int i=0; i<myVector.size(); i++){
 		printf("%s%s",myVector[i].c_str(),separator.c_str());
 	}
 }
@@ -86,18 +86,18 @@ double DataManip::stringToDouble(string s){
 
 matrix2d DataManip::stringToDouble(vector<vector<string> > stringVector){
 	matrix2d doubleVector;
-	for (int i=0; i<stringVector.size(); i++){
+	for (unsigned int i=0; i<stringVector.size(); i++){
 		doubleVector.push_back(vector<double>(stringVector[i].size(),0.0));
-		for (int j=0; j<stringVector[i].size(); j++){
+		for (unsigned int j=0; j<stringVector[i].size(); j++){
 			doubleVector[i][j] = stringToDouble(stringVector[i][j]);
 		}
 	}
 	return doubleVector;
 }
 
-vector<double> DataManip::getColumn(matrix2d doubleVector, int col){
+vector<double> DataManip::getColumn(matrix2d doubleVector, unsigned int col){
 	vector<double> colVector = vector<double>(doubleVector.size(),0.0);
-	for (int i=0; i<doubleVector.size(); i++){
+	for (unsigned int i=0; i<doubleVector.size(); i++){
 		if (doubleVector[i].size()<=col){
 			printf("Cannot access column %i. Aborting",col);
 			system("pause");
@@ -111,10 +111,10 @@ vector<double> DataManip::getColumn(matrix2d doubleVector, int col){
 
 matrix2d DataManip::getColumns(matrix2d doubleVector, vector<int> cols){
 	matrix2d colVector;
-	for (int i=0; i<doubleVector.size(); i++){
+	for (unsigned int i=0; i<doubleVector.size(); i++){
 		colVector.push_back(vector<double>(cols.size(),0.0));
-		for (int j=0; j<cols.size(); j++){
-			int col = cols[j];
+		for (unsigned int j=0; j<cols.size(); j++){
+			unsigned int col = cols[j];
 			if (doubleVector[i].size()<=col){
 				printf("Cannot access column %i. Aborting",col);
 				system("pause");

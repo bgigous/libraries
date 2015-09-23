@@ -25,11 +25,16 @@ public:
 		std::vector<std::vector<XY> > *pathTraces, UAVType t, AStarManager* planners);
 
 	~UAV(){};
-
+	
 	int getDirection(); // gets the cardinal direction of the UAV
 	void moveTowardNextWaypoint(); // takes a time increment to move over
-	void pathPlan(bool abstraction_mode, map<int,map<int,double> > connection_times);
+	void pathPlan(bool abstraction_mode, matrix2d connection_times);
+	void planAbstractPath(matrix2d &connection_times);
+	void planDetailPath();
+
 	AStarManager* planners; // shared with the simulator (for now);
+	std::list<int> getBestPath(); // does not set anything within the UAV
+
 	int ID;
 	UAVType type_ID;
 	double speed; // connected to type_ID
@@ -45,4 +50,13 @@ public:
 	// ABSTRACTION MODE
 	int t;
 	int time_left_on_edge;
+
+	// Predicates...
+	static bool at_destination(const std::shared_ptr<UAV> &u){
+		if (u->loc==u->end_loc){
+			printf("UAV %i at dest\n",u->ID);
+			return true;
+		}
+		return false;
+	}
 };

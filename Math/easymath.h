@@ -35,7 +35,7 @@ void clear_all(T &ptrs){
 template <class T>
 void clear_all(std::vector<T*> &ptrs){
 	// Deletes all pointers in a container
-	for (int i=0; i<ptrs.size(); i++){
+	for (unsigned int i=0; i<ptrs.size(); i++){
 		delete ptrs[i];
 	}
 }
@@ -79,6 +79,8 @@ namespace easymath{
 		}
 	};
 
+	double manhattan_dist(XY &p1, XY &p2);
+
 	typedef std::pair<double,int> P;
 	//typedef std::vector<P> DistIDPairVector; 
 	typedef std::list<P> DistIDPairList;
@@ -91,7 +93,7 @@ namespace easymath{
 	double scaleValue01(double val, double min, double max);
 	double boundedRand(double min, double max);
 	int getMaxIndex(matrix1d myvector);
-	std::set<XY> getNUniquePositions(int N, double xbound, double ybound=-1);
+	std::set<XY> getNUniquePositions(unsigned int N, double xbound, double ybound=-1);
 	double distance(XY p1, XY p2);
 	void discretizeSegment(std::vector<XY>::iterator iter_begin, std::vector<XY> myvec, int n_even_segments);
 	int cardinalDirection(XY dx_dy);

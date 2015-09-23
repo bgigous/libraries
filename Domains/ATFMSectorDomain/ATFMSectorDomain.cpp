@@ -14,21 +14,24 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	sectors = new vector<Sector>();
 	fixes = new vector<Fix>();
 
-	// inherritance elements: constant
+	// inheritance elements: constant
 	//n_control_elements=4; // 4 outputs for sectors (cost in cardinal directions) (no types)
+	
 	n_control_elements=4*UAV::NTYPES;
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	n_steps=100; // steps of simulation time
 	n_types=UAV::NTYPES;
 
 	// Read in files for sector management
-	load_variable(&membership_map,"agent_map/membership_map.csv");
+	Load::load_variable(&membership_map,"agent_map/membership_map.csv");
 	matrix2d agent_coords = FileManip::readDouble("agent_map/agent_map.csv");
 	matrix2d connection_map = FileManip::readDouble("agent_map/connections.csv");
-	
 	matrix2d fix_locs = FileManip::readDouble("agent_map/fixes.csv");
-	if (abstraction_mode) fix_locs = agent_coords; // if using an abstraction, have only the centers phsyically located
-
+	
+	if (abstraction_mode)
+		fix_locs = agent_coords; // if using an abstraction, have only the centers phsyically located
+	
+	
 
 	// Add sectors
 	agent_locs = vector<XY>(agent_coords.size()); // save this for later Astar recreation
@@ -59,28 +62,15 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	fixed_types=vector<int>(n_agents,0);
 
 	conflict_count = 0; // initialize with no conflicts
-
 	conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
 
-
 	if (abstraction_mode){
-		if (n_agents!=15){
-			printf("WRONG CONNECTION SIZE!");
-			system("pause");
-		}
-		for (int i=0; i<n_agents; i++){
-			for (int j=0; j<n_agents; j++){
-				XY diff = agent_locs[i]-agent_locs[j];
-				connection_time[i][j] = abs(diff.x)+abs(diff.y);
-				for (int k=0; k<UAV::NTYPES; k++){
-					connection_capacity[i][j][k] = 10; // flat capacity across all types on the connection
-				}
-			}
-		}
-	}
 
-	edge_time = vector<vector<int> >(n_agents);
-	for (int i=0; i<n_agents; i++) edge_time[i] = vector<int>(n_agents,10); // time cost to be on an edge
+		connection_capacity = vector<vector<vector<int> > > (n_agents, vector<vector<int> >(n_agents, vector<int> (UAV::NTYPES,10)));
+		edge_time = vector<vector<int> >(n_agents,vector<int>(n_agents,10));
+
+		for_each_pairing(agent_locs, agent_locs, connection_time, manhattan_dist);
+	}
 }
 
 ATFMSectorDomain::~ATFMSectorDomain(void)
@@ -156,10 +146,8 @@ vector<double> ATFMSectorDomain::getRewards(){
 			planners->blockSector(s.sectorID);
 
 			for (std::shared_ptr<UAV> &u: s.toward){
-				// Get the 'reroute' load, later
 				// plan a path using a generic A* with modified weights
-				list<int> plantemp = planners->search(u->type_ID, u->loc, u->end_loc);
-				int newnextsector = plantemp.front();
+				int newnextsector = u->getBestPath().front();
 				allloads[s.sectorID][newnextsector][u->type_ID]++;
 			}
 			planners->unblockSector(); // reset the cost maps
@@ -186,7 +174,7 @@ vector<double> ATFMSectorDomain::getRewards(){
 
 
 
-void ATFMSectorDomain::load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator){
+void Load::load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator){
 	// must be above threshold to be counted as a boolean
 	string_matrix2d f = FileManip::read(filename, separator);
 	*var = std::vector<std::vector<bool> >(f.size());
@@ -204,7 +192,7 @@ void ATFMSectorDomain::load_variable(std::vector<std::vector<bool> >* var, std::
 }
 
 
-void ATFMSectorDomain::load_variable(Matrix<bool,2> **var, std::string filename, double thresh, std::string separator){
+void Load::load_variable(Matrix<bool,2> **var, std::string filename, double thresh, std::string separator){
 	// must be above threshold to be counted as a boolean
 	string_matrix2d f = FileManip::read(filename, separator);
 	Matrix<bool,2> * mat = new Matrix<bool,2>(f.size(),f[0].size());
@@ -221,7 +209,7 @@ void ATFMSectorDomain::load_variable(Matrix<bool,2> **var, std::string filename,
 	(*var) = mat;
 }
 
-void ATFMSectorDomain::load_variable(Matrix<int,2> **var, std::string filename, std::string separator){
+void Load::load_variable(Matrix<int,2> **var, std::string filename, std::string separator){
 	// must be above threshold to be counted as a boolean
 	string_matrix2d f = FileManip::read(filename, separator);
 	Matrix<int,2> *mat = new Matrix<int,2>(f.size(),f[0].size());
@@ -336,22 +324,9 @@ void UAV::moveTowardNextWaypoint(){
 }
 
 void ATFMSectorDomain::absorbUAVTraffic(){
-	// moved here for efficiency
-	list<std::shared_ptr<UAV> > cur_UAVs;
-	for (std::shared_ptr<UAV> &u : UAVs){
-		if (u->loc==u->end_loc){
-			u.reset();
-		} else {
-			cur_UAVs.push_back(u);
-		}
-	}
-	UAVs = cur_UAVs; // copy over
-
-	// remove null values from 'sector::toward'
+	UAVs.remove_if(UAV::at_destination);
 	for (Sector &s: *sectors){
-		// TODO: remove extra pointers that don't exist
-
-		//s.toward.erase(std::remove(s.toward.begin(), s.toward.end(),false),s.toward.end());
+		remove_if(s.toward.begin(), s.toward.end(), UAV::at_destination);
 	}
 
 }
@@ -381,21 +356,10 @@ void ATFMSectorDomain::getNewUAVTraffic(){
 }
 
 void ATFMSectorDomain::reset(){
-	static int calls=0;
-
-	// Drop all UAVs
 	UAVs.clear();
-
-	conflict_count = 0;
-
 	planners->reset();
-
-	// clear conflict count map
-	for (int i=0; i<conflict_count_map->dim1(); i++){
-		for (int j=0; j<conflict_count_map->dim2(); j++){
-			conflict_count_map->at(i,j) = 0; // set all 0
-		}
-	}
+	conflict_count = 0;
+	(*conflict_count_map) = ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
 }
 
 void ATFMSectorDomain::logStep(int step){
@@ -426,21 +390,20 @@ void ATFMSectorDomain::detectConflicts(){
 		double conflict_thresh = 1.0;
 		for (list<std::shared_ptr<UAV> >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
 			for (list<std::shared_ptr<UAV> >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
+								
 				double d = easymath::distance((*u1)->loc,(*u2)->loc);
 
-				if (u1!=u2){
-					if (d<conflict_thresh){
-						conflict_count++;
+				if (d>conflict_thresh) continue; // No conflict!
 
-						int avgx = ((*u1)->loc.x+(*u2)->loc.x)/2;
-						int avgy = ((*u1)->loc.y+(*u2)->loc.y)/2;
-						conflict_count_map->at(avgx,avgy)++;
-						if ((*u1)->type_ID==UAV::FAST || (*u2)->type_ID==UAV::FAST){
-							conflict_count+=10; // big penalty for high priority ('fast' here)
-						}
-					}
+				conflict_count++;
+
+				int midx = ((int)(*u1)->loc.x+(int)(*u2)->loc.x)/2;
+				int midy = ((int)(*u1)->loc.y+(int)(*u2)->loc.y)/2;
+				conflict_count_map->at(midx,midy)++;
+
+				if ((*u1)->type_ID==UAV::FAST || (*u2)->type_ID==UAV::FAST){
+					conflict_count+=10; // big penalty for high priority ('fast' here)
 				}
-
 			}
 		}
 	}

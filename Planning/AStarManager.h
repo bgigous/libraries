@@ -23,15 +23,12 @@ public:
 
 	AStarManager(void);
 	~AStarManager(void);
-	AStarManager(int n_types, vector<pair<int,int> > edges, Matrix<int,2>* membership_map, vector<XY> agent_locs):
+	AStarManager(int n_types, vector<Edge> edges, Matrix<int,2>* membership_map, vector<XY> agent_locs):
 		membership_map(membership_map),edges(edges),agent_locs(agent_locs),n_types(n_types)
 	{
 
 
-		weights = matrix2d(n_types);
-		for (matrix1d &w : weights){
-			w = matrix1d(edges.size(),1.0);
-		}
+		weights = matrix2d(n_types, matrix1d(edges.size(), 1.0) );
 
 		// Initialize Astar object (must re-create this each time weight change
 		Astar_highlevel = std::vector<AStar_easy*>(n_types);
@@ -62,12 +59,13 @@ public:
 
 	int getMembership(easymath::XY pt){
 		// Returns the membership of the particular point
-		return membership_map->at(pt.x,pt.y);
+		return (int)membership_map->at((Numeric_lib::Index)pt.x,(Numeric_lib::Index)pt.y);
 	}
 
 
 	void blockSector(int sectorID){
 		saved_weights = weights;
+
 		for (matrix1d &w: weights){
 			w[sectorID] = 9999999.99;
 		}
@@ -81,10 +79,11 @@ public:
 	}
 
 	list<int> search(int type_ID, easymath::XY start_loc, easymath::XY end_loc){
-		int memstart = membership_map->at(start_loc.x,start_loc.y);
-		int memend = membership_map->at(end_loc.x,end_loc.y);
+		int memstart = (int)membership_map->at((Numeric_lib::Index)start_loc.x,(Numeric_lib::Index)start_loc.y);
+		int memend = (int)membership_map->at((Numeric_lib::Index)end_loc.x,(Numeric_lib::Index)end_loc.y);
 		list<AStar_easy::vertex> path = Astar_highlevel[type_ID]->search(memstart,memend);
 		list<int> intpath;
+		// NOTE; MAKE VERTICES INTS FOR HIGH LEVEL
 		while (path.size()){
 			intpath.push_back(path.front());
 			path.pop_front();
@@ -93,10 +92,7 @@ public:
 	}
 
 	void reset(){
-		weights = matrix2d(n_types);
-		for (matrix1d &w:weights){
-			w = matrix1d(edges.size(), 1.0);
-		}
+		weights = matrix2d(n_types, matrix1d(edges.size(),1.0) );
 
 		// re-create high level a*
 		for (unsigned int i=0; i<Astar_highlevel.size(); i++){

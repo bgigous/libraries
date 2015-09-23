@@ -23,6 +23,12 @@ matrix3d zeros(int dim1, int dim2, int dim3){
 
 
 namespace easymath{
+
+	double manhattan_dist(XY &p1, XY &p2){
+		XY diff = p1-p2;
+		return abs(diff.x)+abs(diff.y);
+	}
+
 	int cardinalDirection(XY dx_dy){
 		if (dx_dy.y>=0){ // Going up
 			if (dx_dy.x>=0) return 0; // up-right
@@ -66,7 +72,7 @@ namespace easymath{
 		return distance(myvector.begin(),std::max_element(myvector.begin(),myvector.end()));
 	}
 
-	std::set<XY> getNUniquePositions(int N, double xbound, double ybound){
+	std::set<XY> getNUniquePositions(unsigned int N, double xbound, double ybound){
 		if (ybound==-1) ybound=xbound;
 		std::set<XY> unique_positions;
 		while (unique_positions.size()<N){
@@ -78,8 +84,8 @@ namespace easymath{
 	matrix1d mean2(matrix2d myVector){
 		matrix1d myMean(myVector[0].size(),0.0);
 
-		for (int i=0; i<myVector.size(); i++){
-			for (int j=0; j<myVector[i].size(); j++){
+		for (unsigned int i=0; i<myVector.size(); i++){
+			for (unsigned int j=0; j<myVector[i].size(); j++){
 				myMean[j]+=myVector[i][j]/double(myVector.size());
 			}
 		}
@@ -90,8 +96,8 @@ namespace easymath{
 	matrix1d mean1(matrix2d myVector){
 		matrix1d myMean(myVector.size(),0.0);
 
-		for (int i=0; i<myVector.size(); i++){
-			for (int j=0; j<myVector[i].size(); j++){
+		for (unsigned int i=0; i<myVector.size(); i++){
+			for (unsigned int j=0; j<myVector[i].size(); j++){
 				myMean[i]+=myVector[i][j];
 			}
 			myMean[i]/=double(myVector[i].size());
@@ -106,8 +112,8 @@ namespace easymath{
 	matrix1d sum(matrix2d myVector){
 		matrix1d mySum(myVector.size(),0.0);
 
-		for (int i=0; i<myVector.size(); i++){
-			for (int j=0; j<myVector[i].size(); j++){
+		for (unsigned int i=0; i<myVector.size(); i++){
+			for (unsigned int j=0; j<myVector[i].size(); j++){
 				mySum[i]+=myVector[i][j];
 			}
 		}
@@ -116,7 +122,7 @@ namespace easymath{
 
 	double sum(matrix1d myVector){
 		double mySum = 0.0;
-		for (int i=0; i<myVector.size(); i++){
+		for (unsigned int i=0; i<myVector.size(); i++){
 			mySum+=myVector[i];
 		}
 		return mySum;
@@ -124,7 +130,7 @@ namespace easymath{
 
 	int sum(std::vector<bool> myVector){
 		int mySum = 0;
-		for (int i=0; i<myVector.size(); i++){
+		for (unsigned int i=0; i<myVector.size(); i++){
 			mySum+=myVector[i]?1:0;
 		}
 		return mySum;

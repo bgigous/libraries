@@ -11,21 +11,21 @@ MultiagentNE::MultiagentNE(int n_agents, NeuroEvoParameters* NE_params):
 }
 
 MultiagentNE::~MultiagentNE(void){
-	for (int i=0; i<agents.size(); i++){
+	for (unsigned int i=0; i<agents.size(); i++){
 		delete agents[i];
 	}
 };
 
 void MultiagentNE::generateNewMembers(){
 	// Generate new population members
-	for (int i=0; i<agents.size(); i++){
+	for (unsigned int i=0; i<agents.size(); i++){
 		((NeuroEvo*)agents[i])->generateNewMembers();
 	}
 }
 
 void MultiagentNE::selectSurvivors(){
 	// Specific to Evo: select survivors
-	for (int i=0; i<agents.size(); i++){
+	for (unsigned int i=0; i<agents.size(); i++){
 		((NeuroEvo*)agents[i])->selectSurvivors();
 	}
 }
@@ -35,10 +35,10 @@ bool MultiagentNE::setNextPopMembers(){
 	// Specific to Evo
 
 	std::vector<bool> is_another_member(agents.size(),false);
-	for (int i=0; i<agents.size(); i++){
+	for (unsigned int i=0; i<agents.size(); i++){
 		is_another_member[i] = ((NeuroEvo*)agents[i])->selectNewMember();
 	}
-	for (int i=0; i<is_another_member.size(); i++){
+	for (unsigned int i=0; i<is_another_member.size(); i++){
 		if (!is_another_member[i]){
 			return false;
 		}

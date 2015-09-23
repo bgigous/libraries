@@ -64,7 +64,7 @@ public:
 
 	static matrix2d stringToDouble(string_matrix2d stringVector);
 	static double stringToDouble(std::string s);
-	static matrix1d getColumn(matrix2d doubleVector, int col);
+	static matrix1d getColumn(matrix2d doubleVector, unsigned int col);
 	static matrix2d getColumns(matrix2d doubleVector, std::vector<int> cols);
 
 	static std::map<std::string,double> readVariableFile(std::string fileName){

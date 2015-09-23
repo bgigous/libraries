@@ -219,6 +219,7 @@ public:
 				distance_map(dist_pmap).
 				visitor(visitor) );
 		} catch(found_goal fg) {
+			(void)fg;
 			// Walk backwards from the goal through the predecessor chain adding
 			// vertices to the solution path.
 			for (mt::vertex_descriptor u = g; u != s; u = predecessor[u])
@@ -233,7 +234,7 @@ public:
 	}
 
 	std::vector<XY> get_solution_path(XY source, XY goal){
-		solve(source.x,source.y, goal.x, goal.y);
+		solve((int)source.x,(int)source.y, (int)goal.x, (int)goal.y);
 
 //		printf("size = %i\n",m_solution.size());
 

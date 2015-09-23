@@ -101,7 +101,7 @@ public:
 			edge_descriptor e;
 			bool inserted;
 			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
-			weightmap[e] = weights[j];
+			weightmap[e] = float(weights[j]);
 		}
 	}
 
@@ -117,7 +117,7 @@ public:
 			edge_descriptor e;
 			bool inserted;
 			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
-			weightmap[e] = weights[j];
+			weightmap[e] = float(weights[j]);
 		}
 	}
 	~AStar_easy(void){};
@@ -142,6 +142,7 @@ public:
 				visitor(astar_goal_visitor<vertex>(goal)));
 
 		} catch(found_goal fg) { // found a path to the goal
+			(void)fg;
 			list<vertex> shortest_path;
 			for(vertex v = goal;; v = p[v]) {
 				shortest_path.push_front(v);
@@ -156,8 +157,8 @@ public:
 	list<vertex> search(easymath::XY loc,easymath::XY goal){
 		// Takes specific start and end points in space
 		
-		int v1 = sub2ind(loc.x,loc.y,XDIM,YDIM);
-		int v2 = sub2ind(goal.x,goal.y,XDIM,YDIM);
+		int v1 = sub2ind((int)loc.x,(int)loc.y,XDIM,YDIM);
+		int v2 = sub2ind((int)goal.x,(int)goal.y,XDIM,YDIM);
 
 		if (nodes.count(loc) && nodes.count(goal))
 			return search(vertex(v1),vertex(v2));
@@ -174,8 +175,8 @@ public:
 		
 		add_boundaries(high_path); // ADD IMPACT OF HIGH-LEVEL PATH
 		
-		int v1 = sub2ind(loc.x,loc.y,XDIM,YDIM);
-		int v2 = sub2ind(goal.x,goal.y,XDIM,YDIM);
+		int v1 = sub2ind(int(loc.x),int(loc.y),XDIM,YDIM);
+		int v2 = sub2ind(int(goal.x),int(goal.y),XDIM,YDIM);
 		list<vertex> path_output_vertices;
 
 		if (nodes.count(loc) && nodes.count(goal)){
@@ -281,10 +282,10 @@ public:
 					for (XY n: neighbors){
 						edge e;
 						e.first = sub2ind(x,y,YDIM,XDIM);
-						e.second = sub2ind(n.x,n.y,YDIM,XDIM);
+						e.second = sub2ind((int)n.x,(int)n.y,YDIM,XDIM);
 
-						int m1 = membership_map->at(x)[y];
-						int m2 = membership_map->at(n.x)[n.y];
+						int m1 = (int)membership_map->at((unsigned int)x)[(unsigned int)y];
+						int m2 = (int)membership_map->at((unsigned int)n.x)[(unsigned int)n.y];
 
 						if (m1==m2){
 							edge_array.push_back(e);
