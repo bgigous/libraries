@@ -15,6 +15,20 @@ typedef std::vector<double> matrix1d;
 typedef std::vector<std::vector<double> > matrix2d;
 typedef std::vector<std::vector<std::vector<double> > > matrix3d;
 
+// Applies a given function to every comparison between container_1 and container_2
+	// Note, ContainerOut should be a 2d version of ContainerIn (should be indexable, like vector), 2d list currently unsupported
+	template <class ContainerIn, class ContainerOut, class StaticFunction>
+		 void for_each_pairing(ContainerIn container_1, ContainerIn container_2, ContainerOut &output, StaticFunction func){
+			 output = ContainerOut(container_1.size());
+			 int ind = 0;
+			for (ContainerIn::iterator c1=container_1.begin(); c1!=container_1.end(); c1++){
+				for (ContainerIn::iterator c2=container_2.begin(); c2!=container_2.end(); c2++){
+					output[ind].push_back(func(*c1,*c2));
+				}
+				ind++;
+			}
+		}
+
 template <class T>
 std::vector<std::vector<T> > vector_init(int XDIM, int YDIM, T INITVAL){
 	std::vector<std::vector<T> > retval(XDIM);

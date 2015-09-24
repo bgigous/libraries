@@ -4,7 +4,7 @@ using namespace std;
 using namespace easymath;
 
 ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
-	is_deterministic(deterministic), abstraction_mode(true) // hardcode for the abstraction...
+	is_deterministic(deterministic), conflict_thresh(1.0)
 {
 
 
@@ -27,10 +27,6 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	matrix2d agent_coords = FileManip::readDouble("agent_map/agent_map.csv");
 	matrix2d connection_map = FileManip::readDouble("agent_map/connections.csv");
 	matrix2d fix_locs = FileManip::readDouble("agent_map/fixes.csv");
-	
-	if (abstraction_mode)
-		fix_locs = agent_coords; // if using an abstraction, have only the centers phsyically located
-	
 	
 
 	// Add sectors
@@ -64,13 +60,6 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 	conflict_count = 0; // initialize with no conflicts
 	conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
 
-	if (abstraction_mode){
-
-		connection_capacity = vector<vector<vector<int> > > (n_agents, vector<vector<int> >(n_agents, vector<int> (UAV::NTYPES,10)));
-		edge_time = vector<vector<int> >(n_agents,vector<int>(n_agents,10));
-
-		for_each_pairing(agent_locs, agent_locs, connection_time, manhattan_dist);
-	}
 }
 
 ATFMSectorDomain::~ATFMSectorDomain(void)
@@ -84,11 +73,7 @@ ATFMSectorDomain::~ATFMSectorDomain(void)
 
 
 vector<double> ATFMSectorDomain::getPerformance(){
-	if (abstraction_mode){
-		return getRewards();
-	} else {
-		return matrix1d(sectors->size(),-conflict_count);
-	}
+	return matrix1d(sectors->size(),-conflict_count);
 }
 
 /**
@@ -118,109 +103,22 @@ vector<vector<int> > ATFMSectorDomain::getLoads(){
 
 vector<double> ATFMSectorDomain::getRewards(){
 	// LINEAR REWARD
-	if (!abstraction_mode){
-		return matrix1d(sectors->size(),-conflict_count); // linear reward
+	return matrix1d(sectors->size(),-conflict_count); // linear reward
 
 
-		// QUADRATIC REWARD
-		/*int conflict_sum = 0;
-		for (int i=0; i<conflict_count_map->size(); i++){
-		for (int j=0; j<conflict_count_map->at(i).size(); j++){
-		int c = conflict_count_map->at(i)[j];
-		conflict_sum += c*c;
-		}
-		}
-		return matrix1d(sectors->size(),-conflict_sum);*/
-	} else {
-		// Calculate loads
-		vector<Demographics> oldLoads = getLoads(); // get the current loads on all sectors
-		vector<vector<Demographics> > allloads = vector<vector<Demographics> >(n_agents); // agent removed, agent for load, type
-		for (unsigned int i=0; i< allloads.size(); i++){
-			allloads[i] = oldLoads;
-			allloads[i][i] = Demographics(UAV::NTYPES,0); // traffic removed, added back in later
-		}
-
-		// Count the adjusted load
-		for(Sector s: *sectors){
-			// build the map with the blacked-out sector
-			planners->blockSector(s.sectorID);
-
-			for (std::shared_ptr<UAV> &u: s.toward){
-				// plan a path using a generic A* with modified weights
-				int newnextsector = u->getBestPath().front();
-				allloads[s.sectorID][newnextsector][u->type_ID]++;
-			}
-			planners->unblockSector(); // reset the cost maps
-
-		}
-
-		// Calculate D from counterfactual
-		vector<Demographics> C = vector<Demographics>(n_agents);// capacities[agent, type]
-		for (Demographics &c: C){
-			c = Demographics(UAV::NTYPES,10);
-		}
-		matrix1d D = matrix1d(n_agents);
-		for (int i=0; i<n_agents; i++){
-			double G_reg = G(oldLoads,C);
-			double G_c = G(allloads[i],C);
-			D[i] = G_reg-G_c;
-		}
-		// 
-
-		return D; // global reward
+	// QUADRATIC REWARD
+	/*int conflict_sum = 0;
+	for (int i=0; i<conflict_count_map->size(); i++){
+	for (int j=0; j<conflict_count_map->at(i).size(); j++){
+	int c = conflict_count_map->at(i)[j];
+	conflict_sum += c*c;
 	}
+	}
+	return matrix1d(sectors->size(),-conflict_sum);*/
 }
 
 
 
-
-void Load::load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator){
-	// must be above threshold to be counted as a boolean
-	string_matrix2d f = FileManip::read(filename, separator);
-	*var = std::vector<std::vector<bool> >(f.size());
-
-	for (unsigned int i=0; i<f.size(); i++){
-		var->at(i) = std::vector<bool>(f[i].size());
-		for (unsigned int j=0; j<f[i].size(); j++){
-			if (atof(f[i][j].c_str())<=thresh){
-				var->at(i)[j] = false;
-			} else {
-				var->at(i)[j] = true;
-			}
-		}
-	}
-}
-
-
-void Load::load_variable(Matrix<bool,2> **var, std::string filename, double thresh, std::string separator){
-	// must be above threshold to be counted as a boolean
-	string_matrix2d f = FileManip::read(filename, separator);
-	Matrix<bool,2> * mat = new Matrix<bool,2>(f.size(),f[0].size());
-
-	for (unsigned int i=0; i<f.size(); i++){
-		for (unsigned int j=0; j<f[i].size(); j++){
-			if (atof(f[i][j].c_str())<=thresh){
-				mat->at(i,j) = false;
-			} else {
-				mat->at(i,j) = true;
-			}
-		}
-	}
-	(*var) = mat;
-}
-
-void Load::load_variable(Matrix<int,2> **var, std::string filename, std::string separator){
-	// must be above threshold to be counted as a boolean
-	string_matrix2d f = FileManip::read(filename, separator);
-	Matrix<int,2> *mat = new Matrix<int,2>(f.size(),f[0].size());
-
-	for (unsigned int i=0; i<f.size(); i++){
-		for (unsigned int j=0; j<f[i].size(); j++){
-			mat->at(i,j) = atoi(f[i][j].c_str());
-		}
-	}
-	(*var)=mat;
-}
 
 matrix2d ATFMSectorDomain::getStates(){
 	// States: delay assignments for UAVs that need routing
@@ -267,7 +165,7 @@ unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
 void ATFMSectorDomain::getPathPlans(){
 	for (std::shared_ptr<UAV> &u : UAVs){
-		u->pathPlan(abstraction_mode, connection_time); // sets own next waypoint
+		u->planDetailPath(); // sets own next waypoint
 	}
 }
 
@@ -276,7 +174,7 @@ void ATFMSectorDomain::getPathPlans(std::list<std::shared_ptr<UAV> > &new_UAVs){
 		s.toward.clear();
 	}
 	for (std::shared_ptr<UAV> &u : new_UAVs){
-		u->pathPlan(abstraction_mode,connection_time); // sets own next waypoint
+		u->planDetailPath(); // sets own next waypoint
 		int nextSectorID = u->nextSectorID();
 		sectors->at(nextSectorID).toward.push_back(u);
 	}
@@ -296,32 +194,10 @@ void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
 }
 
 void ATFMSectorDomain::incrementUAVPath(){
-	if (!abstraction_mode){
-		for (std::shared_ptr<UAV> &u: UAVs){
-			u->moveTowardNextWaypoint(); // moves toward next waypoint (next in low-level plan)
-		}
-	} else {
-		// in abstraction mode, move to next center of target
-		for (std::shared_ptr<UAV> &u: UAVs){
-			if (u->time_left_on_edge <=0){
-				u->loc = sectors->at(*u->high_path_prev.begin()).xy;
-				u->high_path_prev.pop_front();
-			} else {
-				u->time_left_on_edge--;
-			}
-		}
-	}
+	for (std::shared_ptr<UAV> &u: UAVs) u->moveTowardNextWaypoint(); // moves toward next waypoint (next in low-level plan)
 	// IMPORTANT! At this point in the code, agent states may have changed
 }
 
-void UAV::moveTowardNextWaypoint(){
-	for (int i=0; i<speed; i++){
-		if (!target_waypoints.size()) return; // return if no waypoints
-		loc = target_waypoints.front();
-		pathTraces->at(ID).push_back(loc);
-		target_waypoints.pop();
-	}
-}
 
 void ATFMSectorDomain::absorbUAVTraffic(){
 	UAVs.remove_if(UAV::at_destination);
@@ -383,30 +259,25 @@ void ATFMSectorDomain::exportLog(std::string fid, double G){
 }
 
 void ATFMSectorDomain::detectConflicts(){
+	for (list<std::shared_ptr<UAV> >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
+		for (list<std::shared_ptr<UAV> >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
 
-	if (abstraction_mode){
-		// CONFLICT COUNTING DONE IN REWARD... based on overcap
-	} else {
-		double conflict_thresh = 1.0;
-		for (list<std::shared_ptr<UAV> >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
-			for (list<std::shared_ptr<UAV> >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
-								
-				double d = easymath::distance((*u1)->loc,(*u2)->loc);
+			double d = easymath::distance((*u1)->loc,(*u2)->loc);
 
-				if (d>conflict_thresh) continue; // No conflict!
+			if (d>conflict_thresh) continue; // No conflict!
 
-				conflict_count++;
+			conflict_count++;
 
-				int midx = ((int)(*u1)->loc.x+(int)(*u2)->loc.x)/2;
-				int midy = ((int)(*u1)->loc.y+(int)(*u2)->loc.y)/2;
-				conflict_count_map->at(midx,midy)++;
+			int midx = ((int)(*u1)->loc.x+(int)(*u2)->loc.x)/2;
+			int midy = ((int)(*u1)->loc.y+(int)(*u2)->loc.y)/2;
+			conflict_count_map->at(midx,midy)++;
 
-				if ((*u1)->type_ID==UAV::FAST || (*u2)->type_ID==UAV::FAST){
-					conflict_count+=10; // big penalty for high priority ('fast' here)
-				}
+			if ((*u1)->type_ID==UAV::FAST || (*u2)->type_ID==UAV::FAST){
+				conflict_count+=10; // big penalty for high priority ('fast' here)
 			}
 		}
 	}
+
 }
 
 // PATH SNAPSHOT OUTPUT

@@ -28,7 +28,8 @@ public:
 	
 	int getDirection(); // gets the cardinal direction of the UAV
 	void moveTowardNextWaypoint(); // takes a time increment to move over
-	void pathPlan(bool abstraction_mode, matrix2d connection_times);
+
+
 	void planAbstractPath(matrix2d &connection_times);
 	void planDetailPath();
 

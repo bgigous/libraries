@@ -21,31 +21,9 @@
 using namespace std;
 using namespace easymath;
 
-class Load{
-public:
-	// This class loads data from files into variables. Static only class.
-	static void load_variable(Matrix<int,2> **var, std::string filename, std::string separator = STRING_UNINITIALIZED);
-	static void load_variable(Matrix<bool,2> **var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED);
-	static void load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED);
-};
-
 class ATFMSectorDomain: public IDomainStateful
 {
 public:
-
-	// Applies a given function to every comparison between container_1 and container_2
-	// Note, ContainerOut should be a 2d version of ContainerIn (should be indexable, like vector), 2d list currently unsupported
-	template <class ContainerIn, class ContainerOut, class StaticFunction>
-		 void for_each_pairing(ContainerIn container_1, ContainerIn container_2, ContainerOut &output, StaticFunction func){
-			 output = ContainerOut(container_1.size());
-			 int ind = 0;
-			for (ContainerIn::iterator c1=container_1.begin(); c1!=container_1.end(); c1++){
-				for (ContainerIn::iterator c2=container_2.begin(); c2!=container_2.end(); c2++){
-					output[ind].push_back(func(*c1,*c2));
-				}
-				ind++;
-			}
-		}
 
 	ATFMSectorDomain(bool deterministic=false);
 	~ATFMSectorDomain(void);
@@ -56,16 +34,19 @@ public:
 	matrix2d getStates();
 	matrix3d getTypeStates();
 	
+	// SIM STATE VARIABLES
+	bool is_deterministic; // the simulation is deterministic (for testing learning)
+	
+
+	// REWARD THINGS
 	vector<Demographics> getLoads(); //SECTOR STUFF
 	double G(vector<vector<int> > loads, vector<vector<int> > capacities); // SECTOR STUFF
-	vector<vector<int> > edge_time; // time that you need to be on an edge
-
 	
-	bool is_deterministic; // the simulation is deterministic (for testing learning)
-	bool abstraction_mode; // in this mode, there is no low-level planning, and a simple network is used
-	matrix2d connection_time;
-	std::vector<std::vector<std::vector<int> > > connection_capacity; // capacity for each type of UAV [connection][connection][type]
+	double conflict_thresh;
+	
+	// CORE DYNAMICS OBJECTS
 	Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later
+
 
 	unsigned int getSector(easymath::XY p);
 

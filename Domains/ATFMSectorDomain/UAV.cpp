@@ -31,15 +31,6 @@ std::list<int> UAV::getBestPath(){
 	return planners->search(type_ID, loc, end_loc);
 }
 
-void UAV::pathPlan(bool abstraction_mode, matrix2d connection_times){
-
-	if (abstraction_mode){
-		planAbstractPath(connection_times);
-	} else {
-		planDetailPath();
-	}
-}
-
 void UAV::planAbstractPath(matrix2d &connection_times){
 
 	list<int> high_path = getBestPath();
@@ -71,10 +62,9 @@ void UAV::planAbstractPath(matrix2d &connection_times){
 void UAV::planDetailPath(){
 
 	list<int> high_path = getBestPath();
+	high_path_prev = high_path;
 	if (high_path_prev == high_path || high_path.size()==1) return; // no course change necessary
 	
-	high_path_prev = high_path;
-
 	int memstart = planners->getMembership(loc);
 	int memend = planners->getMembership(end_loc);
 
@@ -108,4 +98,14 @@ void UAV::planDetailPath(){
 int UAV::getDirection(){
 	// Identifies whether traveling in one of four cardinal directions
 	return cardinalDirection(loc-end_loc);
+}
+
+
+void UAV::moveTowardNextWaypoint(){
+	if (!target_waypoints.size()) return; // return if no waypoints
+	for (int i=0; i<speed; i++){
+		loc = target_waypoints.front();
+		pathTraces->at(ID).push_back(loc);
+		target_waypoints.pop();
+	}
 }

@@ -3,6 +3,57 @@
 #include "easyio.h"
 
 using namespace std;
+using namespace Numeric_lib;
+
+void Load::load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator){
+	// must be above threshold to be counted as a boolean
+	string_matrix2d f = FileManip::read(filename, separator);
+	*var = std::vector<std::vector<bool> >(f.size());
+
+	for (unsigned int i=0; i<f.size(); i++){
+		var->at(i) = std::vector<bool>(f[i].size());
+		for (unsigned int j=0; j<f[i].size(); j++){
+			if (atof(f[i][j].c_str())<=thresh){
+				var->at(i)[j] = false;
+			} else {
+				var->at(i)[j] = true;
+			}
+		}
+	}
+}
+
+
+void Load::load_variable(Matrix<bool,2> **var, std::string filename, double thresh, std::string separator){
+	// must be above threshold to be counted as a boolean
+	string_matrix2d f = FileManip::read(filename, separator);
+	Matrix<bool,2> * mat = new Matrix<bool,2>(f.size(),f[0].size());
+
+	for (unsigned int i=0; i<f.size(); i++){
+		for (unsigned int j=0; j<f[i].size(); j++){
+			if (atof(f[i][j].c_str())<=thresh){
+				mat->at(i,j) = false;
+			} else {
+				mat->at(i,j) = true;
+			}
+		}
+	}
+	(*var) = mat;
+}
+
+void Load::load_variable(Matrix<int,2> **var, std::string filename, std::string separator){
+	// must be above threshold to be counted as a boolean
+	string_matrix2d f = FileManip::read(filename, separator);
+	Matrix<int,2> *mat = new Matrix<int,2>(f.size(),f[0].size());
+
+	for (unsigned int i=0; i<f.size(); i++){
+		for (unsigned int j=0; j<f[i].size(); j++){
+			mat->at(i,j) = atoi(f[i][j].c_str());
+		}
+	}
+	(*var)=mat;
+}
+
+
 
 matrix2d FileManip::str2double(string_matrix2d mystring){
 	matrix2d mymatrix = matrix2d(mystring.size());
