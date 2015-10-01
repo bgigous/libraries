@@ -56,7 +56,7 @@ void SimNE::epoch(int ep){
 			double avg_perf = mean(perf);
 
 			// note: things here get specific to the utm domain
-			if (avg_G>best_run) {
+			if (avg_G>best_run) { // NOTE: STILL SORTED BY BEST RUN, NOT BEST PERFORMANCE!
 				best_run = avg_G;
 				best_run_performance = avg_perf; // average of the performance metrics
 				if (ep==0){
