@@ -46,14 +46,15 @@ public:
 		}
 
 		// Add a different A* for each connection
-		for (Edge e:edges){
+		for (int i=0; i<edges.size(); i++){
+			Edge e = edges[i];
 			m2astar[e.first][e.second] = new AStar_grid(obstacle_map, membership_map, e.first, e.second);
 			XY xyi = agent_locs[e.first];
 			XY xyj = agent_locs[e.second];
 			XY dx_dy = xyj-xyi;
 			int xydir = cardinalDirection(dx_dy);
 			int memj = membership_map->at(xyj); // only care about cost INTO sector
-			sector_dir_map[edges.size()] = make_pair(memj,xydir); // add at new index
+			sector_dir_map[i] = make_pair(memj,xydir); // add at new index
 		}
 	}
 

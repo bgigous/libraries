@@ -266,7 +266,7 @@ void ATFMSectorDomain::detectConflicts(){
 
 			if (d>conflict_thresh) continue; // No conflict!
 
-			conflict_count++;
+ 			conflict_count++;
 
 			int midx = ((int)(*u1)->loc.x+(int)(*u2)->loc.x)/2;
 			int midy = ((int)(*u1)->loc.y+(int)(*u2)->loc.y)/2;
