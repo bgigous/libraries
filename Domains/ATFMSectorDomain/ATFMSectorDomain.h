@@ -24,7 +24,6 @@ using namespace easymath;
 class ATFMSectorDomain: public IDomainStateful
 {
 public:
-
 	ATFMSectorDomain(bool deterministic=false);
 	~ATFMSectorDomain(void);
 
@@ -44,8 +43,16 @@ public:
 	
 	double conflict_thresh;
 	
-	// CORE DYNAMICS OBJECTS
-	Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later
+	// maps/planners
+	void loadMaps();
+	Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later	//backend
+	std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
+	vector<XY> agent_locs;
+	vector<XY> fix_locs;
+	//matrix2d connection_map;
+	std::vector<std::pair<int,int> > edges;
+
+	AStarManager* planners;
 
 
 	unsigned int getSector(easymath::XY p);
@@ -77,11 +84,7 @@ public:
 	int conflict_count;
 	Matrix<int,2> *conflict_count_map; // this counts the number of conflicts in each grid (reset() clears this)
 
-	//backend
-	std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
-	vector<XY> agent_locs;
-	
-	AStarManager* planners;
+
 	// for A* (boost) -- REPLACE THIS WITH ASTARMANAGER
 	/*
 	void setCostMaps(matrix2d agent_actions);

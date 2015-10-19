@@ -62,12 +62,15 @@ void UAV::planAbstractPath(matrix2d &connection_times){
 void UAV::planDetailPath(){
 
 	list<int> high_path = getBestPath();
+	if (high_path.size()==0){
+		printf("no path found!");
+		system("pause");
+	}
+	//if (high_path_prev == high_path || (high_path.size()<=1 && target_waypoints.size())) return; // no course change necessary
 	high_path_prev = high_path;
-	if (high_path_prev == high_path || high_path.size()==1) return; // no course change necessary
 	
 	int memstart = planners->getMembership(loc);
 	int memend = planners->getMembership(end_loc);
-
 
 
 	int memnext;
@@ -90,7 +93,7 @@ void UAV::planDetailPath(){
 	if (low_path.empty()) low_path.push_back(loc); // stay in place...
 
 	while (target_waypoints.size()) target_waypoints.pop(); // clear the queue;
-	for (unsigned int i=0; i<low_path.size(); i++) target_waypoints.push(low_path[i]); // adds waypoints to visit
+	for (std::vector<XY>::reverse_iterator i=low_path.rbegin(); i!=low_path.rend(); i++) target_waypoints.push(*i); // adds waypoints to visit
 	target_waypoints.pop(); // remove CURRENT location from target	
 
 }

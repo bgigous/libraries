@@ -53,7 +53,48 @@ void Load::load_variable(Matrix<int,2> **var, std::string filename, std::string 
 	(*var)=mat;
 }
 
+void Load::load_variable(std::vector<easymath::XY> &var, std::string filename, std::string separator){
+	string_matrix2d f = FileManip::read(filename, separator);
+	var.clear();
+	for (string_matrix1d i:f){
+		if (i.size()!=2){
+			printf("Error! %s does not contain xy values.",filename.c_str());
+			exit(100);
+		} else {
+			double x = atof(i[0].c_str());
+			double y = atof(i[1].c_str());
+			var.push_back(easymath::XY(x,y));
+		}
+	}
+}
 
+void Load::load_variable(std::vector<std::pair<int,int> > &var, std::string filename, std::string separator){
+	string_matrix2d f = FileManip::read(filename, separator);
+	var.clear();
+	for (string_matrix1d i:f){
+		if (i.size()!=2){
+			printf("Error! %s does not contain pair values.",filename.c_str());
+			exit(100);
+		} else {
+			int x = atoi(i[0].c_str());
+			int y = atoi(i[1].c_str());
+			var.push_back(pair<int,int>(x,y));
+		}
+	}
+}
+
+void Load::load_variable(matrix2d &var, std::string filename, std::string separator){
+	string_matrix2d f = FileManip::read(filename, separator);
+	var.clear();
+	
+	for (string_matrix1d i:f){
+		matrix1d m;
+		for (string j:i){
+			m.push_back(atof(j.c_str()));
+		}
+		var.push_back(m);
+	}
+}
 
 matrix2d FileManip::str2double(string_matrix2d mystring){
 	matrix2d mymatrix = matrix2d(mystring.size());

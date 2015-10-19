@@ -4,54 +4,39 @@ using namespace std;
 using namespace easymath;
 
 ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
-	is_deterministic(deterministic), conflict_thresh(1.0)
+	is_deterministic(deterministic),
+	conflict_thresh(10.0)
 {
-
-
-	pathTraces = new vector<vector<XY> >(); // traces the path (reset each epoch)
-
-	// Object creation
-	sectors = new vector<Sector>();
-	fixes = new vector<Fix>();
-
-	// inheritance elements: constant
-	//n_control_elements=4; // 4 outputs for sectors (cost in cardinal directions) (no types)
-	
-	n_control_elements=4*UAV::NTYPES;
+	// Hardcoding of base constants
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
+	n_control_elements=n_state_elements*UAV::NTYPES;
 	n_steps=100; // steps of simulation time
 	n_types=UAV::NTYPES;
 
+	// Object creation
+	pathTraces = new vector<vector<XY> >(); // traces the path (reset each epoch)
+	sectors = new vector<Sector>();
+	fixes = new vector<Fix>();
+
+
 	// Read in files for sector management
 	Load::load_variable(&membership_map,"agent_map/membership_map.csv");
-	matrix2d agent_coords = FileManip::readDouble("agent_map/agent_map.csv");
-	matrix2d connection_map = FileManip::readDouble("agent_map/connections.csv");
-	matrix2d fix_locs = FileManip::readDouble("agent_map/fixes.csv");
-	
+	Load::load_variable(agent_locs, "agent_map/agent_map.csv");
+	Load::load_variable(fix_locs,"agent_map/fixes.csv");
+	//Load::load_variable(connection_map,"agent_map/connections.csv");
+	Load::load_variable(edges, "agent_map/edges.csv");
+
+	// Planning
+	planners = new AStarManager(UAV::NTYPES, edges, membership_map, agent_locs);
 
 	// Add sectors
-	agent_locs = vector<XY>(agent_coords.size()); // save this for later Astar recreation
-	for (unsigned int i=0; i<agent_coords.size(); i++){
-		sectors->push_back(Sector(XY(agent_coords[i][0],agent_coords[i][1]),i));
-		agent_locs[i] = sectors->back().xy;
+	for (unsigned int i=0; i<agent_locs.size(); i++){
+		sectors->push_back(Sector(agent_locs[i],i));
 	}
-
-	// Adjust the connection map to be the edges
-	// preprocess boolean connection map
-	vector<AStarManager::Edge> edges;
-	for (unsigned int i=0; i<connection_map.size(); i++){
-		for (unsigned int j=0; j<connection_map[i].size(); j++){
-			if (connection_map[i][j] && i!=j){
-				edges.push_back(AStarManager::Edge(i,j));
-			}
-		}
-	}
-
-	planners = new AStarManager(UAV::NTYPES, edges, membership_map, agent_locs);
 
 	// initialize fixes
 	for (unsigned int i=0; i<fix_locs.size(); i++){
-		fixes->push_back(Fix(XY(fix_locs[i][0],fix_locs[i][1]),i,is_deterministic,planners));
+		fixes->push_back(Fix(fix_locs[i],i,is_deterministic,planners));
 	}
 
 	n_agents = sectors->size(); // number of agents dictated by read in file
@@ -59,6 +44,41 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 
 	conflict_count = 0; // initialize with no conflicts
 	conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
+
+
+	XY loc = XY(0,0);
+	XY end_loc = XY(1,1);
+	UAV::UAVType type_id_set = UAV::UAVType(0);
+	UAV u = UAV(loc,end_loc,pathTraces,type_id_set,planners);
+
+	for (int i=0; i<planners->obstacle_map->dim1(); i++){
+		for (int j=0; j<planners->obstacle_map->dim2(); j++){
+			if (planners->obstacle_map->at(i,j)) continue; // skip obstacles
+			u.loc = XY(i,j);
+			for (int k=0; k<planners->obstacle_map->dim1(); k++){
+				for (int l=0; l<planners->obstacle_map->dim2(); l++){
+					if (planners->obstacle_map->at(k,l)) continue; // skip obstacles
+					if (i==k && j==l) continue; // skip self point
+					u.end_loc = XY(k,l);
+
+					u.planDetailPath();
+					
+					printf("(%i,%i)->(%i,%i): high path %i, low path %i\n",i,j,k,l,u.high_path_prev.size(),u.target_waypoints.size());
+					// PLAN ACROSS ENTIRE SPACE HERE
+					if (u.high_path_prev.size()==0){
+						system("pause");
+					}
+					if (u.target_waypoints.size()==0){
+						system("pause");
+					}
+
+				}
+			}
+		}
+	}
+}
+
+void ATFMSectorDomain::loadMaps(){
 
 }
 
@@ -184,7 +204,7 @@ void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
 	static int calls=0;
 	planners->setCostMaps(agent_actions);
 	absorbUAVTraffic();
-	if (calls%10==0)
+	//if (calls%10==0) // fakes deterministic?
 		getNewUAVTraffic();
 	calls++;
 	getPathPlans();

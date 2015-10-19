@@ -45,7 +45,10 @@ public:
 	std::vector<std::vector<XY> > *pathTraces; // takes a pointer to the pathtrace for logging
 	list<int> high_path_prev; // saves the high level path
 	int nextSectorID(){
-		return high_path_prev.front();
+		// PROTECTED AGAINST BAD PATH CREATION
+		if (high_path_prev.size())
+			return high_path_prev.front();
+		else return planners->getMembership(loc);
 	}
 
 	// ABSTRACTION MODE

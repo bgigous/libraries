@@ -57,7 +57,8 @@ void NeuralNet::setRandomWeights(){
 	};
 }
 
-NeuralNet::NeuralNet(int nInputs, int nHidden, int nOutputs, double gamma):nodes_(vector<int>(3)),gamma_(gamma),
+NeuralNet::NeuralNet(int nInputs, int nHidden, int nOutputs, double 
+					 gamma):nodes_(vector<int>(3)),gamma_(gamma),
 	evaluation(0),mutationRate(0.5),mutStd(1.0){
 	nodes_[0] = nInputs;
 	nodes_[1] = nHidden;

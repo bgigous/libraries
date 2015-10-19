@@ -5,8 +5,8 @@
 
 Fix::Fix(XY loc, int ID_set, bool deterministic, AStarManager* planners): 
 	planners(planners),is_deterministic(deterministic), ID(ID_set), loc(loc), 
-	//p_gen(0.05) // change to 1.0 if traffic controlled elsewhere
-	p_gen(int(is_deterministic)*(1.0-0.05)+0.05), // modifies to depend on if deterministic
+	p_gen(0.05), // change to 1.0 if traffic controlled elsewhere
+//	p_gen(int(is_deterministic)*(1.0-0.05)+0.05), // modifies to depend on if deterministic
 	dist_thresh(2.0)
 {
 }

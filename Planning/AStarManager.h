@@ -23,10 +23,20 @@ public:
 
 	AStarManager(void);
 	~AStarManager(void);
-	AStarManager(int n_types, vector<Edge> edges, Matrix<int,2>* membership_map, vector<XY> agent_locs):
-		membership_map(membership_map),edges(edges),agent_locs(agent_locs),n_types(n_types)
+	AStarManager(int n_types, std::vector<Edge> edges_set, Matrix<int,2>* membership_map, vector<XY> agent_locs):
+		membership_map(membership_map),agent_locs(agent_locs),n_types(n_types), edges(edges_set)
 	{
 
+		// Adjust the connection map to be the edges
+		// preprocess boolean connection map
+		//edges.clear();
+		//for (unsigned int i=0; i<connection_map.size(); i++){
+		//	for (unsigned int j=0; j<connection_map[i].size(); j++){
+		//		if (connection_map[i][j] && i!=j){
+		//			edges.push_back(AStarManager::Edge(i,j));
+		//		}
+		//	}
+		//}
 
 		weights = matrix2d(n_types, matrix1d(edges.size(), 1.0) );
 
