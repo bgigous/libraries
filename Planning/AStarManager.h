@@ -23,21 +23,12 @@ public:
 
 	AStarManager(void);
 	~AStarManager(void);
-	AStarManager(int n_types, std::vector<Edge> edges_set, Matrix<int,2>* membership_map, vector<XY> agent_locs):
+
+
+	AStarManager(int n_types, std::vector<Edge> edges_set, Matrix<int,2>* membership_map, vector<XY> agent_locs, bool abstraction=false):
 		membership_map(membership_map),agent_locs(agent_locs),n_types(n_types), edges(edges_set)
 	{
-
-		// Adjust the connection map to be the edges
-		// preprocess boolean connection map
-		//edges.clear();
-		//for (unsigned int i=0; i<connection_map.size(); i++){
-		//	for (unsigned int j=0; j<connection_map[i].size(); j++){
-		//		if (connection_map[i][j] && i!=j){
-		//			edges.push_back(AStarManager::Edge(i,j));
-		//		}
-		//	}
-		//}
-
+		// HIGH LEVEL
 		weights = matrix2d(n_types, matrix1d(edges.size(), 1.0) );
 
 		// Initialize Astar object (must re-create this each time weight change
@@ -47,7 +38,12 @@ public:
 		}
 
 
-		// Read in files for sector management
+		/// GRID LEVEL 
+		if (!abstraction)
+			createGridAstars(membership_map);
+	}
+
+	void createGridAstars(Matrix<int,2>* membership_map){
 		obstacle_map = new barrier_grid(membership_map->dim1(),membership_map->dim2());
 		for (int i=0; i<membership_map->dim1(); i++){
 			for (int j=0; j<membership_map->dim2(); j++){
@@ -87,6 +83,17 @@ public:
 	void unblockSector(){
 		weights = saved_weights;
 		resetGraphWeights(weights);
+	}
+
+	list<int> search(int type_ID, int memstart, int memend){
+		list<AStar_easy::vertex> path = Astar_highlevel[type_ID]->search(memstart,memend);
+		list<int> intpath;
+		// NOTE; MAKE VERTICES INTS FOR HIGH LEVEL
+		while (path.size()){
+			intpath.push_back(path.front());
+			path.pop_front();
+		}
+		return intpath;
 	}
 
 	list<int> search(int type_ID, easymath::XY start_loc, easymath::XY end_loc){

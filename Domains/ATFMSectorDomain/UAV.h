@@ -30,11 +30,11 @@ public:
 	void moveTowardNextWaypoint(); // takes a time increment to move over
 
 
-	void planAbstractPath(matrix2d &connection_times);
+	void planAbstractPath(matrix2d &connection_times, int memstart, int memend);
 	void planDetailPath();
 
 	AStarManager* planners; // shared with the simulator (for now);
-	std::list<int> getBestPath(); // does not set anything within the UAV
+	std::list<int> getBestPath(int memstart, int memene); // does not set anything within the UAV
 
 	int ID;
 	UAVType type_ID;
@@ -45,10 +45,11 @@ public:
 	std::vector<std::vector<XY> > *pathTraces; // takes a pointer to the pathtrace for logging
 	list<int> high_path_prev; // saves the high level path
 	int nextSectorID(){
-		// PROTECTED AGAINST BAD PATH CREATION
-		if (high_path_prev.size())
-			return high_path_prev.front();
-		else return planners->getMembership(loc);
+		if (high_path_prev.size()>1){
+			return *std::next(high_path_prev.begin()); // return second element (towards) of path
+		} else {
+			return planners->getMembership(loc); // return current sector
+		}
 	}
 
 	// ABSTRACTION MODE
@@ -58,7 +59,7 @@ public:
 	// Predicates...
 	static bool at_destination(const std::shared_ptr<UAV> &u){
 		if (u->loc==u->end_loc){
-			printf("UAV %i at dest\n",u->ID);
+			//printf("UAV %i at dest\n",u->ID);
 			return true;
 		}
 		return false;

@@ -24,12 +24,12 @@ using namespace easymath;
 class ATFMSectorDomain: public IDomainStateful
 {
 public:
-	ATFMSectorDomain(bool deterministic=false);
+	ATFMSectorDomain(bool deterministic=false,bool abstraction=false);
 	~ATFMSectorDomain(void);
 
 	// Base function overloads
-	matrix1d getRewards();
-	matrix1d getPerformance();
+	virtual matrix1d getRewards();
+	virtual matrix1d getPerformance();
 	matrix2d getStates();
 	matrix3d getTypeStates();
 	
@@ -40,7 +40,7 @@ public:
 	// REWARD THINGS
 	vector<Demographics> getLoads(); //SECTOR STUFF
 	double G(vector<vector<int> > loads, vector<vector<int> > capacities); // SECTOR STUFF
-	
+
 	double conflict_thresh;
 	
 	// maps/planners
@@ -62,16 +62,16 @@ public:
 	std::vector<Fix>* fixes;
 
 	void simulateStep(matrix2d agent_actions);
-	void incrementUAVPath();
+	virtual void incrementUAVPath();
 
 	void getNewUAVTraffic();
 	void absorbUAVTraffic();
-	void getPathPlans(); // note: when is this event?
-	void getPathPlans(std::list<std::shared_ptr<UAV> > &new_UAVs);
+	virtual void getPathPlans(); // note: when is this event?
+	virtual void getPathPlans(std::list<std::shared_ptr<UAV> > &new_UAVs);
 
-	void reset();
+	virtual void reset();
 	void logStep(int step);
-	void exportLog(std::string fid, double G);
+	virtual void exportLog(std::string fid, double G);
 
 
 	// PATH SNAPSHOT OUTPUT
@@ -80,7 +80,7 @@ public:
 	vector<vector<XY> > *pathTraces; // [UAV_ID][step]
 
 	// Conflict detection/logging
-	void detectConflicts();
+	virtual void detectConflicts();
 	int conflict_count;
 	Matrix<int,2> *conflict_count_map; // this counts the number of conflicts in each grid (reset() clears this)
 

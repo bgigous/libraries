@@ -27,16 +27,17 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 
 };
 
-std::list<int> UAV::getBestPath(){
-	return planners->search(type_ID, loc, end_loc);
+std::list<int> UAV::getBestPath(int memstart, int memend){
+	return planners->search(type_ID, memstart, memend);
 }
 
-void UAV::planAbstractPath(matrix2d &connection_times){
+void UAV::planAbstractPath(matrix2d &connection_times, int memstart, int memend){
+	list<int> high_path = planners->search(type_ID, memstart, memend);
 
-	list<int> high_path = getBestPath();
-	int memstart = planners->getMembership(loc);
-	int memend = planners->getMembership(end_loc);
-	
+	if (high_path.front()!=planners->getMembership(loc)){
+		system("pause");
+	}
+
 	if (!high_path_prev.size()){ // new, put on time
 		if (memstart==memend){
 			t = 0;
@@ -46,6 +47,7 @@ void UAV::planAbstractPath(matrix2d &connection_times){
 		high_path_prev = high_path;
 	} else if (t<=0 && memstart==memend){ // on final leg; get to goal
 		loc = end_loc;
+		//high_path_prev = high_path; //added
 	} else if (t<=0){ // middle leg; plan rest of path
 		high_path.pop_front();
 		loc = planners->agent_locs[int(high_path.front())]; // now in a new sector!
@@ -53,15 +55,17 @@ void UAV::planAbstractPath(matrix2d &connection_times){
 			t = (int)connection_times[*high_path.begin()][*std::next(high_path.begin())];
 		} else {
 			t = 0;
-		} 
+		}
+		//high_path_prev = high_path; //added
 	} else {
 		t--;
 	}
 }
 
 void UAV::planDetailPath(){
-
-	list<int> high_path = getBestPath();
+	int memstart = planners->getMembership(loc);
+	int memend = planners->getMembership(end_loc);
+	list<int> high_path = getBestPath(memstart, memend);
 	if (high_path.size()==0){
 		printf("no path found!");
 		system("pause");
@@ -69,16 +73,9 @@ void UAV::planDetailPath(){
 	//if (high_path_prev == high_path || (high_path.size()<=1 && target_waypoints.size())) return; // no course change necessary
 	high_path_prev = high_path;
 	
-	int memstart = planners->getMembership(loc);
-	int memend = planners->getMembership(end_loc);
 
+	int memnext = nextSectorID();
 
-	int memnext;
-	if (high_path.size()==1){
-		memnext = high_path.front(); 
-	} else {
-		memnext = *std::next(high_path.begin());
-	}
 	XY waypoint;
 	if (memnext==memend){
 		waypoint = end_loc;

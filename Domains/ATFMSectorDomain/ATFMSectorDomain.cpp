@@ -3,14 +3,14 @@
 using namespace std;
 using namespace easymath;
 
-ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
+ATFMSectorDomain::ATFMSectorDomain(bool deterministic, bool abstraction):
 	is_deterministic(deterministic),
 	conflict_thresh(10.0)
 {
 	// Hardcoding of base constants
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	n_control_elements=n_state_elements*UAV::NTYPES;
-	n_steps=100; // steps of simulation time
+	n_steps=2; // steps of simulation time
 	n_types=UAV::NTYPES;
 
 	// Object creation
@@ -20,31 +20,38 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic):
 
 
 	// Read in files for sector management
-	Load::load_variable(&membership_map,"agent_map/membership_map.csv");
 	Load::load_variable(agent_locs, "agent_map/agent_map.csv");
-	Load::load_variable(fix_locs,"agent_map/fixes.csv");
 	//Load::load_variable(connection_map,"agent_map/connections.csv");
 	Load::load_variable(edges, "agent_map/edges.csv");
-
-	// Planning
-	planners = new AStarManager(UAV::NTYPES, edges, membership_map, agent_locs);
+	Load::load_variable(&membership_map,"agent_map/membership_map.csv");
 
 	// Add sectors
 	for (unsigned int i=0; i<agent_locs.size(); i++){
 		sectors->push_back(Sector(agent_locs[i],i));
 	}
 
-	// initialize fixes
-	for (unsigned int i=0; i<fix_locs.size(); i++){
-		fixes->push_back(Fix(fix_locs[i],i,is_deterministic,planners));
-	}
-
-	n_agents = sectors->size(); // number of agents dictated by read in file
+	n_agents = agent_locs.size(); // number of agents dictated by read in file
 	fixed_types=vector<int>(n_agents,0);
 
 	conflict_count = 0; // initialize with no conflicts
-	conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
+	
 
+	if (!abstraction){
+		Load::load_variable(fix_locs,"agent_map/fixes.csv");
+
+		// initialize fixes
+		for (unsigned int i=0; i<fix_locs.size(); i++){
+			fixes->push_back(Fix(fix_locs[i],i,is_deterministic,planners));
+		}
+	
+		// Planning
+		planners = new AStarManager(UAV::NTYPES, edges, membership_map, agent_locs);
+		conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
+	}
+
+	return;
+
+//	UNIT testing of A*/grid A* below this point!!
 
 	XY loc = XY(0,0);
 	XY end_loc = XY(1,1);
@@ -184,8 +191,15 @@ unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
 void ATFMSectorDomain::getPathPlans(){
+	for (Sector &s: *sectors){
+		s.toward.clear();
+	}
+
+
 	for (std::shared_ptr<UAV> &u : UAVs){
 		u->planDetailPath(); // sets own next waypoint
+		int nextSectorID = u->nextSectorID();
+		sectors->at(nextSectorID).toward.push_back(u);
 	}
 }
 
