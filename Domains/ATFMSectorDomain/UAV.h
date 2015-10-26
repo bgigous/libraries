@@ -59,6 +59,9 @@ public:
 	int time_left_on_edge;
 
 	// Predicates...
+
+};
+
 	static bool at_destination(const std::shared_ptr<UAV> &u){
 		if (u->loc==u->end_loc){
 			//printf("UAV %i at dest\n",u->ID);
@@ -66,4 +69,3 @@ public:
 		}
 		return false;
 	}
-};

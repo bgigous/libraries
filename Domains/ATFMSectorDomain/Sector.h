@@ -23,7 +23,29 @@ public:
 		Demographics load(UAV::NTYPES,0);
 		for (std::shared_ptr<UAV> &u: toward){
 			load[u->type_ID]++;
+
+			total_loads[u->type_ID]++;
 		}
+		nCallsToGetLoad++;
 		return load;
 	}
+
+	void tallyLoad(){
+		// Adds in current load for reward calc
+		Demographics load(UAV::NTYPES,0);
+		for (std::shared_ptr<UAV> &u: toward){
+			total_loads[u->type_ID]++;
+		}
+		nCallsToGetLoad++;
+	}
+
+	matrix1d average_load(){
+		matrix1d avg(UAV::NTYPES,0.0);
+		for (int i=0; i<total_loads.size(); i++){
+			avg[i] = double(total_loads[i])/double(nCallsToGetLoad);
+		}
+		return avg;
+	}
+	Demographics total_loads;
+	int nCallsToGetLoad;
 };

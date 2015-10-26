@@ -239,9 +239,10 @@ void ATFMSectorDomain::incrementUAVPath(){
 
 
 void ATFMSectorDomain::absorbUAVTraffic(){
-	UAVs.remove_if(UAV::at_destination);
+	UAVs.remove_if(at_destination);
 	for (Sector &s: *sectors){
-		remove_if(s.toward.begin(), s.toward.end(), UAV::at_destination);
+		auto to_erase = remove_if(s.toward.begin(), s.toward.end(), at_destination);
+		s.toward.erase(to_erase,s.toward.end());
 	}
 }
 
