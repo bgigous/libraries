@@ -35,7 +35,7 @@ public:
 	
 	// SIM STATE VARIABLES
 	bool is_deterministic; // the simulation is deterministic (for testing learning)
-	
+	double delay_sum;
 
 	// REWARD THINGS
 	vector<Demographics> getLoads(); //SECTOR STUFF

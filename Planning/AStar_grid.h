@@ -58,7 +58,7 @@ class euclidean_heuristic:
 public:
   //euclidean_heuristic(mt::vertex_descriptor goal):m_goal(goal) {};
 	euclidean_heuristic(){};
-
+	
   double operator()(mt::vertex_descriptor v) {
 	  return sqrt(pow(double(m_goal[0]) - double(v[0]), 2) + pow(double(m_goal[1]) - double(v[1]), 2));
   }

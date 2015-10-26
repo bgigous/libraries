@@ -5,12 +5,13 @@ using namespace easymath;
 
 ATFMSectorDomain::ATFMSectorDomain(bool deterministic, bool abstraction):
 	is_deterministic(deterministic),
-	conflict_thresh(10.0)
+	conflict_thresh(10.0),
+	delay_sum(0.0)
 {
 	// Hardcoding of base constants
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	n_control_elements=n_state_elements*UAV::NTYPES;
-	n_steps=2; // steps of simulation time
+	n_steps=100; // steps of simulation time
 	n_types=UAV::NTYPES;
 
 	// Object creation
@@ -38,14 +39,14 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic, bool abstraction):
 
 	if (!abstraction){
 		Load::load_variable(fix_locs,"agent_map/fixes.csv");
-
+	
+		// Planning
+		planners = new AStarManager(UAV::NTYPES, edges, membership_map, agent_locs);
+		
 		// initialize fixes
 		for (unsigned int i=0; i<fix_locs.size(); i++){
 			fixes->push_back(Fix(fix_locs[i],i,is_deterministic,planners));
 		}
-	
-		// Planning
-		planners = new AStarManager(UAV::NTYPES, edges, membership_map, agent_locs);
 		conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
 	}
 
@@ -111,7 +112,7 @@ double ATFMSectorDomain::G(vector<vector<int> > loads, vector<vector<int> > capa
 	for (unsigned int i=0; i<loads.size(); i++){
 		for (unsigned int j=0; j<loads[i].size(); j++){
 			double overcap = loads[i][j] - capacities[i][j];
-			global -= overcap*overcap; // worse with higher concentration of planes!
+			global -= overcap*overcap; // worse with higher concentration of UAVs!
 		}
 	}
 	return global;
@@ -129,8 +130,11 @@ vector<vector<int> > ATFMSectorDomain::getLoads(){
 }
 
 vector<double> ATFMSectorDomain::getRewards(){
+	// DELAY REWARD
+	return matrix1d(sectors->size(), -delay_sum);
+	
 	// LINEAR REWARD
-	return matrix1d(sectors->size(),-conflict_count); // linear reward
+	//return matrix1d(sectors->size(),-conflict_count); // linear reward
 
 
 	// QUADRATIC REWARD
@@ -228,7 +232,8 @@ void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
 }
 
 void ATFMSectorDomain::incrementUAVPath(){
-	for (std::shared_ptr<UAV> &u: UAVs) u->moveTowardNextWaypoint(); // moves toward next waypoint (next in low-level plan)
+	for (std::shared_ptr<UAV> &u: UAVs)
+		u->moveTowardNextWaypoint(); // moves toward next waypoint (next in low-level plan)
 	// IMPORTANT! At this point in the code, agent states may have changed
 }
 
@@ -238,7 +243,6 @@ void ATFMSectorDomain::absorbUAVTraffic(){
 	for (Sector &s: *sectors){
 		remove_if(s.toward.begin(), s.toward.end(), UAV::at_destination);
 	}
-
 }
 
 
@@ -308,6 +312,21 @@ void ATFMSectorDomain::detectConflicts(){
 
 			if ((*u1)->type_ID==UAV::FAST || (*u2)->type_ID==UAV::FAST){
 				conflict_count+=10; // big penalty for high priority ('fast' here)
+			}
+
+
+			// DELAY ADDITION
+			int delay_add = 5; // add 5 seconds of delay
+			if ((*u1)->t_delay>0 || (*u2)->t_delay>0){
+				// one is stopped, continue
+				continue;
+			} else if (rand()%2==0){
+				// Select the first one to stop
+				(*u1)->t_delay = delay_add;
+				delay_sum+=delay_add;
+			} else {
+				(*u2)->t_delay = delay_add;
+				delay_sum+= delay_add;
 			}
 		}
 	}

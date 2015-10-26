@@ -52,6 +52,8 @@ public:
 		}
 	}
 
+	int t_delay; // steps to delay until next move can be taken
+
 	// ABSTRACTION MODE
 	int t;
 	int time_left_on_edge;

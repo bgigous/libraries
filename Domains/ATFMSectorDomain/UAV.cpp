@@ -4,10 +4,11 @@
 using namespace easymath;
 
 UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAVType t, AStarManager* planners):
-	planners(planners),loc(start_loc), end_loc(end_loc), ID(pathTraces->size()), pathTraces(pathTraces), type_ID(t)
+	planners(planners),loc(start_loc), end_loc(end_loc), ID(pathTraces->size()), pathTraces(pathTraces), type_ID(t),
+	t_delay(0)
 {
 	pathTraces->push_back(vector<XY>(1,loc)); // new path trace created for each UAV,starting at location
-
+	
 	switch(t){
 	case SLOW:
 		speed = 1;
@@ -63,8 +64,8 @@ void UAV::planAbstractPath(matrix2d &connection_times, int memstart, int memend)
 }
 
 void UAV::planDetailPath(){
-	int memstart = planners->getMembership(loc);
-	int memend = planners->getMembership(end_loc);
+	int memstart =planners->getMembership(loc);
+	int memend =  planners->getMembership(end_loc);
 	list<int> high_path = getBestPath(memstart, memend);
 	if (high_path.size()==0){
 		printf("no path found!");
@@ -103,6 +104,11 @@ int UAV::getDirection(){
 
 void UAV::moveTowardNextWaypoint(){
 	if (!target_waypoints.size()) return; // return if no waypoints
+	if (t_delay>0){
+		// reduce delay instead of moving
+		t_delay--;
+		return;
+	}
 	for (int i=0; i<speed; i++){
 		loc = target_waypoints.front();
 		pathTraces->at(ID).push_back(loc);
