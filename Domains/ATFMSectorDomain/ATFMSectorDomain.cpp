@@ -107,24 +107,31 @@ vector<double> ATFMSectorDomain::getPerformance(){
 /**
 * Loads and capacities are [sector][type]
 */
-double ATFMSectorDomain::G(vector<vector<int> > loads, vector<vector<int> > capacities){
-	double global=0;
-	for (unsigned int i=0; i<loads.size(); i++){
-		for (unsigned int j=0; j<loads[i].size(); j++){
-			double overcap = loads[i][j] - capacities[i][j];
-			global -= overcap*overcap; // worse with higher concentration of UAVs!
+
+double ATFMSectorDomain::G(matrix3d &loads, matrix3d &connection_capacities){
+	double global_sum=0.0;
+	for (int a=0; a<n_agents; a++){
+		for (int b=0; b<n_agents; b++){
+			for (int t=0; t<UAV::NTYPES; t++){
+				double overcap = loads[a][b][t] - connection_capacities[a][b][t];
+				if (overcap>0)
+					global_sum += overcap*overcap;
+			}
 		}
 	}
-	return global;
+
+	return -global_sum;
 }
 
 /**
 * Go through all the sectors and return loads, format [sector][type]
 */
-vector<vector<int> > ATFMSectorDomain::getLoads(){
-	vector<vector<int> > allloads = vector<vector<int> >(sectors->size());
-	for (unsigned int i=0; i<sectors->size(); i++){
-		allloads[i] = sectors->at(i).getLoad();
+matrix3d ATFMSectorDomain::getLoads(){
+	//[sectorfrom][sectorto][type]
+
+	matrix3d allloads = matrix3d(sectors->size(), matrix2d(sectors->size(), matrix1d(UAV::NTYPES,0.0)));
+	for (std::shared_ptr<UAV> &u : UAVs){
+		allloads[u->curSectorID()][u->nextSectorID()][u->type_ID]++;
 	}
 	return allloads;
 }

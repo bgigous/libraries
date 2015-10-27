@@ -18,7 +18,7 @@ class UAV{
 	environment through planning. Planning is done through boost. 
 	*/
 public:
-	const enum UAVType{SLOW, FAST, NTYPES=5};
+	const enum UAVType{SLOW, FAST, NTYPES=1};
 	//const enum UAVType{SLOW,NTYPES};
 
 	UAV(easymath::XY start_loc, easymath::XY end_loc,
@@ -52,12 +52,14 @@ public:
 		}
 	}
 
+	int curSectorID(){
+		return planners->getMembership(loc); // return current sector
+	}
+
 	int t_delay; // steps to delay until next move can be taken
 
 	// ABSTRACTION MODE
 	int t;
-	int time_left_on_edge;
-
 	// Predicates...
 
 };

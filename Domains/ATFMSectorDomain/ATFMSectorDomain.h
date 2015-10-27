@@ -38,8 +38,8 @@ public:
 	double delay_sum;
 
 	// REWARD THINGS
-	vector<Demographics> getLoads(); //SECTOR STUFF
-	double G(vector<vector<int> > loads, vector<vector<int> > capacities); // SECTOR STUFF
+	matrix3d getLoads(); //SECTOR STUFF
+	double G(matrix3d &loads, matrix3d &connection_capacities); // FOR ABSTRACTION, MAY MOVE LATER
 
 	double conflict_thresh;
 	
