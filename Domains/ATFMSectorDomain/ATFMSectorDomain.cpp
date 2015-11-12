@@ -51,39 +51,6 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic, bool abstraction):
 	}
 
 	return;
-
-//	UNIT testing of A*/grid A* below this point!!
-
-	XY loc = XY(0,0);
-	XY end_loc = XY(1,1);
-	UAV::UAVType type_id_set = UAV::UAVType(0);
-	UAV u = UAV(loc,end_loc,pathTraces,type_id_set,planners);
-
-	for (int i=0; i<planners->obstacle_map->dim1(); i++){
-		for (int j=0; j<planners->obstacle_map->dim2(); j++){
-			if (planners->obstacle_map->at(i,j)) continue; // skip obstacles
-			u.loc = XY(i,j);
-			for (int k=0; k<planners->obstacle_map->dim1(); k++){
-				for (int l=0; l<planners->obstacle_map->dim2(); l++){
-					if (planners->obstacle_map->at(k,l)) continue; // skip obstacles
-					if (i==k && j==l) continue; // skip self point
-					u.end_loc = XY(k,l);
-
-					u.planDetailPath();
-					
-					printf("(%i,%i)->(%i,%i): high path %i, low path %i\n",i,j,k,l,u.high_path_prev.size(),u.target_waypoints.size());
-					// PLAN ACROSS ENTIRE SPACE HERE
-					if (u.high_path_prev.size()==0){
-						system("pause");
-					}
-					if (u.target_waypoints.size()==0){
-						system("pause");
-					}
-
-				}
-			}
-		}
-	}
 }
 
 void ATFMSectorDomain::loadMaps(){
@@ -202,26 +169,14 @@ unsigned int ATFMSectorDomain::getSector(easymath::XY p){
 
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
 void ATFMSectorDomain::getPathPlans(){
-	for (Sector &s: *sectors){
-		s.toward.clear();
-	}
-
-
 	for (std::shared_ptr<UAV> &u : UAVs){
 		u->planDetailPath(); // sets own next waypoint
-		int nextSectorID = u->nextSectorID();
-		sectors->at(nextSectorID).toward.push_back(u);
 	}
 }
 
 void ATFMSectorDomain::getPathPlans(std::list<std::shared_ptr<UAV> > &new_UAVs){
-	for (Sector &s: *sectors){
-		s.toward.clear();
-	}
 	for (std::shared_ptr<UAV> &u : new_UAVs){
 		u->planDetailPath(); // sets own next waypoint
-		int nextSectorID = u->nextSectorID();
-		sectors->at(nextSectorID).toward.push_back(u);
 	}
 }
 
@@ -246,11 +201,7 @@ void ATFMSectorDomain::incrementUAVPath(){
 
 
 void ATFMSectorDomain::absorbUAVTraffic(){
-	UAVs.remove_if(at_destination);
-	for (Sector &s: *sectors){
-		auto to_erase = remove_if(s.toward.begin(), s.toward.end(), at_destination);
-		s.toward.erase(to_erase,s.toward.end());
-	}
+	UAVs.remove_if(at_destination); // NOTE HERE: remove_if may not be removing UAVs!
 }
 
 
