@@ -13,7 +13,8 @@ class Sector{
 public:
 	// An area of space that contains some fixes
 	int sectorID; // the identifier for this sector
-	Sector(XY xy, int sectorIDset);
+	Sector(XY xy, int sectorIDset, int n_agents);
+	int n_agents;
 	Sector(){}; // default constructor
 	~Sector(){};
 	XY xy; // sector center
@@ -32,7 +33,7 @@ public:
 
 	void tallyLoad(){
 		// Adds in current load for reward calc
-		matrix2d med_loads(15,matrix1d(UAV::NTYPES,0.0)); // HARDCODING
+		matrix2d med_loads(n_agents,matrix1d(UAV::NTYPES,0.0));
 		for (std::shared_ptr<UAV> &u: toward){
 			med_loads[u->curSectorID()][u->type_ID]++;
 		}

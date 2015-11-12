@@ -28,7 +28,7 @@ ATFMSectorDomain::ATFMSectorDomain(bool deterministic, bool abstraction):
 
 	// Add sectors
 	for (unsigned int i=0; i<agent_locs.size(); i++){
-		sectors->push_back(Sector(agent_locs[i],i));
+		sectors->push_back(Sector(agent_locs[i],i, agent_locs.size()));
 	}
 
 	n_agents = agent_locs.size(); // number of agents dictated by read in file
@@ -115,7 +115,7 @@ double ATFMSectorDomain::G(matrix3d &loads, matrix3d &connection_capacities){
 			for (int t=0; t<UAV::NTYPES; t++){
 				double overcap = loads[a][b][t] - connection_capacities[a][b][t];
 				if (overcap>0)
-					global_sum += overcap*overcap;
+					global_sum += overcap; //overcap*overcap;
 			}
 		}
 	}

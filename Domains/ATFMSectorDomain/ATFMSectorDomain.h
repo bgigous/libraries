@@ -54,6 +54,11 @@ public:
 
 	AStarManager* planners;
 
+	void createNAgentMap(){
+		// Uses obstacle map lower level, then recalculates minimum A* distances to the higher level
+
+	}
+
 
 	unsigned int getSector(easymath::XY p);
 

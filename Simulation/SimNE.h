@@ -12,7 +12,7 @@ class ISimNEParameters{
 public:
 	ISimNEParameters(void){};
 	~ISimNEParameters(void){};
-	static const int n_epochs = 100;
+	static const int n_epochs = 1000;
 	static const int n_runs = 1;
 	static const int n_trials = 1;
 };
