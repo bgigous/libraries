@@ -3,25 +3,22 @@
 SimNE::SimNE(IDomainStateful* domain):
 	ISimulator(domain, new MultiagentNE(domain->n_agents, new NeuroEvoParameters(domain->n_state_elements,domain->n_control_elements)))
 {
-	sim_params = new ISimNEParameters();
 }
 
 // FOR DEBUGGING
 SimNE::SimNE(IDomainStateful* domain, MultiagentNE* MAS):
 	ISimulator(domain, MAS)
 {
-	sim_params = new ISimNEParameters();
 }
 
 SimNE::~SimNE(void)
 {
-	delete sim_params;
 	delete ((MultiagentNE*)MAS)->NE_params;
 	delete MAS;
 }
 
 void SimNE::runExperiment(){
-	for (int ep=0; ep<sim_params->n_epochs; ep++){
+	for (int ep=0; ep<n_epochs; ep++){
 		printf("Epoch %i\n",ep);
 		//printf(".");
 		this->epoch(ep);
@@ -37,7 +34,7 @@ void SimNE::epoch(int ep){
 
 	do{
 		matrix2d Rtrials; // Trial average reward
-		for (int t=0; t<sim_params->n_trials; t++){
+		for (int t=0; t<n_trials; t++){
 			clock_t tref = clock();
 			for (int s=0; s<domain->n_steps; s++){
 				//printf("Step %i\n",s);

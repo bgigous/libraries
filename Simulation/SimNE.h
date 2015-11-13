@@ -8,22 +8,17 @@
 using namespace std;
 using namespace easymath;
 
-class ISimNEParameters{
-public:
-	ISimNEParameters(void){};
-	~ISimNEParameters(void){};
-	static const int n_epochs = 1000;
-	static const int n_runs = 1;
-	static const int n_trials = 1;
-};
-
 class SimNE: public ISimulator{
 public:
 	SimNE(IDomainStateful* domain);
 	SimNE(IDomainStateful* domain, MultiagentNE* MAS);
 	~SimNE(void);
+
+	static const int n_epochs=200;
+	static const int n_runs=1;
+	static const int n_trials=1;
+
 	virtual void runExperiment();
 	virtual void epoch(int ep);
-	ISimNEParameters* sim_params;
 	virtual matrix2d getActions(); // Gets actions based on current state: OVERLOAD FOR TYPES
 };
