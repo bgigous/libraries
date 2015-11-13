@@ -37,6 +37,17 @@ public:
 			Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]);
 		}
 
+		// Get the directions
+		for (int i=0; i<edges.size(); i++){
+			Edge e = edges[i];
+			XY xyi = agent_locs[e.first];
+			XY xyj = agent_locs[e.second];
+			XY dx_dy = xyj-xyi;
+			int xydir = cardinalDirection(dx_dy);
+			int memj = membership_map->at(xyj); // only care about cost INTO sector
+			sector_dir_map[i] = make_pair(memj,xydir); // add at new index
+		}
+
 
 		/// GRID LEVEL 
 		if (!abstraction)
@@ -55,12 +66,6 @@ public:
 		for (int i=0; i<edges.size(); i++){
 			Edge e = edges[i];
 			m2astar[e.first][e.second] = new AStar_grid(obstacle_map, membership_map, e.first, e.second);
-			XY xyi = agent_locs[e.first];
-			XY xyj = agent_locs[e.second];
-			XY dx_dy = xyj-xyi;
-			int xydir = cardinalDirection(dx_dy);
-			int memj = membership_map->at(xyj); // only care about cost INTO sector
-			sector_dir_map[i] = make_pair(memj,xydir); // add at new index
 		}
 	}
 
@@ -124,12 +129,24 @@ public:
 		// [next sector][direction of travel] -- current
 		// agent_actions  = agent, [type, dir<-- alternating]
 
+
 		for (unsigned int i=0; i<weights[0].size(); i++){
 			for (unsigned int j=0; j<n_types; j++){
+				/*
+				
 				int s = sector_dir_map[i].first;
 				//int d = j*UAV::NTYPES + sector_dir_map[i].second; // wrong
 
 				int d = j + sector_dir_map[i].second*n_types;
+				weights[j][i] = agent_actions[s][d];
+
+				*/
+
+				// Jen mod
+
+				int s = sector_dir_map[i].first;
+				int d = j*(n_types-1) + sector_dir_map[i].second;
+
 				weights[j][i] = agent_actions[s][d];
 			}
 		}

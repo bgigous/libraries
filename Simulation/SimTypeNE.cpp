@@ -5,6 +5,24 @@ using namespace std;
 
 matrix2d SimTypeNE::getActions(){
 	matrix3d S = domain->getTypeStates(); // [agent id][type id][state element
+	
+	/*
+		int nnz = 0;
+	double sum = 0.0;
+	for (int i=0; i<S.size(); i++){
+		for (int j=0; j<S[i].size(); j++){
+			for (int k=0; k<S[i][j].size(); k++){
+				if (S[i][j][k]>0.0){
+					nnz++;
+				}
+				sum += S[i][j][k];
+			}
+		}
+	}
+
+	printf("%i, %f\n",nnz,sum);
+	*/
+
 	return ((MultiagentTypeNE*)MAS)->getActions(S);
 }
 

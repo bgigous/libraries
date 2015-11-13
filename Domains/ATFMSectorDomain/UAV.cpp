@@ -7,6 +7,9 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 	planners(planners),loc(start_loc), end_loc(end_loc), ID(pathTraces->size()), pathTraces(pathTraces), type_ID(t),
 	t_delay(0)
 {
+	static int calls=0;
+	calls++;
+
 	pathTraces->push_back(vector<XY>(1,loc)); // new path trace created for each UAV,starting at location
 	
 	switch(t){
@@ -25,6 +28,8 @@ UAV::UAV(XY start_loc, XY end_loc,std::vector<std::vector<XY> > *pathTraces, UAV
 		break;
 			}
 	}
+
+	//printf("Calls=%i\n", calls);
 
 };
 
