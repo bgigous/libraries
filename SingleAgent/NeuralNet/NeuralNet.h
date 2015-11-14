@@ -4,6 +4,8 @@
 #include <chrono>
 #include <random>
 
+#include "../../FileIO/easyio/easyio.h"
+
 typedef std::vector<std::vector<std::vector<double> > > matrix3d;
 typedef std::vector<std::vector<double> > matrix2d;
 typedef std::vector<double> matrix1d;
@@ -15,7 +17,7 @@ public:
 	~NeuralNet(){};
 	double evaluation;
 	void mutate(); // different if child class
-
+	
 	void addInputs(int nToAdd);
 
 	NeuralNet(int nInput, int nHidden, int nOutput, double gamma=0.9);
@@ -52,7 +54,15 @@ private:
 	void sigmoid(matrix1d &myVector);
 	void cmp_int_fatal(int a, int b);
 
+
+
 protected:
 	double randAddFanIn(double fan_in);
 	double randSetFanIn(double fan_in);
+	
+public:
+	void save(std::string fileout);
+	void load(std::string filein);
+	void load(matrix1d node_info, matrix1d wt_info);
+	void save(matrix1d &node_info, matrix1d &wt_info);
 };

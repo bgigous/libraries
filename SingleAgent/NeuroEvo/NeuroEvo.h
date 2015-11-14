@@ -44,5 +44,29 @@ public:
 
 	matrix1d getAction(matrix1d state);
 	matrix1d getAction(matrix2d state);
+
+
+	void save(std::string fileout){
+		matrix2d nets;
+		for (NeuralNet* p: population){
+			matrix1d node_info;
+			matrix1d wt_info;
+			p->save(node_info,wt_info);
+			nets.push_back(node_info);
+			nets.push_back(wt_info);
+		}
+
+		PrintOut::toFile2D(nets,fileout);
+	}
+
+	void load(std::string filein){
+		matrix2d netinfo;
+		DataManip::load_variable(&netinfo,filein);
+
+		for (int i=0; i<netinfo.size(); i+=2){
+			NeuralNet nn = NeuralNet(1,1,1);
+			nn.load(netinfo[i],netinfo[i+1]);
+		}
+	}
 };
 

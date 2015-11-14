@@ -68,6 +68,114 @@ NeuralNet::NeuralNet(int nInputs, int nHidden, int nOutputs, double
 	setMatrixMultiplicationStorage();
 }
 
+void NeuralNet::load(string filein){
+	// loads neural net specs
+	matrix2d wts;
+	DataManip::load_variable(&wts,filein);
+
+	// CURRENTLY HARDCODED TO ONLY ALLOW A SINGLE LAYER
+	
+	/// TOP CONTAINS TOPOLOGY INFORMATION
+	nodes_ = vector<int>(3);
+	nodes_[0] = wts[0][0];
+	nodes_[1] = wts[0][1];
+	nodes_[2] = wts[0][2];
+
+	Wbar = matrix3d(connections());
+	W = matrix3d(connections());
+	int index = 0; // index for accessing NN elements
+	for (int connection=0; connection<connections(); connection++){ // number of layers
+		int above = connection;
+		int below = connection+1;
+
+		// Populate Wbar with loaded weights, including bias
+		Wbar[connection] = (matrix2d(nodes_[above]+1));
+		for (int i=0; i<nodes_[above]+1; i++){ // above+1 include bias;
+			Wbar[connection][i] = matrix1d(nodes_[below]); // reserve memory for the connections below
+			for (int j=0; j<nodes_[below]; j++){
+				Wbar[connection][i][j] = wts[1][index++];
+			}
+		}
+
+		W[connection] = Wbar[connection];
+		W[connection].pop_back(); // remove extra bias weights
+	};
+	setMatrixMultiplicationStorage();
+
+}
+
+void NeuralNet::save(string fileout){
+
+	matrix2d outmatrix(2);
+	for (int i=0; i<nodes_.size(); i++){
+		outmatrix[0].push_back(double(nodes_[i]));
+	}
+
+	for (int connection=0; connection<connections(); connection++){ // number of layers
+		int above = connection;
+		int below = connection+1;
+
+		for (int i=0; i<nodes_[above]+1; i++){ // above+1 include bias;
+			for (int j=0; j<nodes_[below]; j++){
+				outmatrix[1].push_back(Wbar[connection][i][j]);
+			}
+		}
+	}
+	PrintOut::toFile2D(outmatrix,fileout);
+}
+
+void NeuralNet::load(matrix1d node_info, matrix1d wt_info){
+	// CURRENTLY HARDCODED TO ONLY ALLOW A SINGLE LAYER
+	
+	/// TOP CONTAINS TOPOLOGY INFORMATION
+	nodes_ = vector<int>(3);
+	nodes_[0] = node_info[0];
+	nodes_[1] = node_info[1];
+	nodes_[2] = node_info[2];
+
+	Wbar = matrix3d(connections());
+	W = matrix3d(connections());
+	int index = 0; // index for accessing NN elements
+	for (int connection=0; connection<connections(); connection++){ // number of layers
+		int above = connection;
+		int below = connection+1;
+
+		// Populate Wbar with loaded weights, including bias
+		Wbar[connection] = (matrix2d(nodes_[above]+1));
+		for (int i=0; i<nodes_[above]+1; i++){ // above+1 include bias;
+			Wbar[connection][i] = matrix1d(nodes_[below]); // reserve memory for the connections below
+			for (int j=0; j<nodes_[below]; j++){
+				Wbar[connection][i][j] = wt_info[index++];
+			}
+		}
+
+		W[connection] = Wbar[connection];
+		W[connection].pop_back(); // remove extra bias weights
+	};
+	setMatrixMultiplicationStorage();
+
+}
+
+
+
+void NeuralNet::save(matrix1d &node_info, matrix1d &wt_info){
+	node_info = matrix1d(nodes_.size());
+	for (int i=0; i<nodes_.size(); i++){
+		node_info[i] = double(nodes_[i]);
+	}
+
+	for (int connection=0; connection<connections(); connection++){ // number of layers
+		int above = connection;
+		int below = connection+1;
+
+		for (int i=0; i<nodes_[above]+1; i++){ // above+1 include bias;
+			for (int j=0; j<nodes_[below]; j++){
+				wt_info.push_back(Wbar[connection][i][j]);
+			}
+		}
+	}
+}
+
 void NeuralNet::setMatrixMultiplicationStorage(){
 	// Allocates space for the matrix multiplication storage container, based on current Wbar/connections()
 	matrix_multiplication_storage = matrix2d(connections());
