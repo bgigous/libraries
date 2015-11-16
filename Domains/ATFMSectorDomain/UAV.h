@@ -24,7 +24,10 @@ public:
 	UAV(easymath::XY start_loc, easymath::XY end_loc,
 		std::vector<std::vector<XY> > *pathTraces, UAVType t, AStarManager* planners);
 
-	~UAV(){};
+	~UAV(){
+		//printf("UAV %i dying.\n", ID);
+		//system("pause");
+	}
 	
 	int getDirection(); // gets the cardinal direction of the UAV
 	void moveTowardNextWaypoint(); // takes a time increment to move over

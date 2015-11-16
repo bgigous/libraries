@@ -184,7 +184,7 @@ void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
 	static int calls=0;
 	planners->setCostMaps(agent_actions);
 	absorbUAVTraffic();
-	if (calls%10==0) // fakes deterministic?
+	if (calls%20==0) // fakes deterministic?
 		getNewUAVTraffic();
 	calls++;
 	getPathPlans();
@@ -201,7 +201,7 @@ void ATFMSectorDomain::incrementUAVPath(){
 
 
 void ATFMSectorDomain::absorbUAVTraffic(){
-	UAVs.remove_if(at_destination); // NOTE HERE: remove_if may not be removing UAVs!
+	UAVs.remove_if(at_destination);
 }
 
 

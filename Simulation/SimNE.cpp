@@ -42,6 +42,7 @@ void SimNE::epoch(int ep){
 				domain->simulateStep(A);
 				domain->logStep(s);
 			}
+			domain->exportLog("",0.0);
 			t= clock();
 			printf("t=%f\n",float(t-tref)/CLOCKS_PER_SEC);
 			tref=t;
@@ -75,6 +76,8 @@ void SimNE::epoch(int ep){
 			ti << t;
 			
 			Rtrials.push_back(R);
+			//system("pause");
+			
 
 			domain->reset();
 		}

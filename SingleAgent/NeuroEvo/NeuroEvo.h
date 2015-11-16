@@ -63,9 +63,11 @@ public:
 		matrix2d netinfo;
 		DataManip::load_variable(&netinfo,filein);
 
-		for (int i=0; i<netinfo.size(); i+=2){
-			NeuralNet nn = NeuralNet(1,1,1);
-			nn.load(netinfo[i],netinfo[i+1]);
+		int i=0;
+		for (NeuralNet* p: population){
+			// assume that population already has the correct size
+			p->load(netinfo[i],netinfo[i+1]);
+			i+=2;
 		}
 	}
 };
