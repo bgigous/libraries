@@ -18,4 +18,6 @@ public:
 	Sector(){}; // default constructor
 	~Sector(){};
 	XY xy; // sector center
+
+	vector<int> conflicts; // conflict count, [DIRECTIONS]
 };

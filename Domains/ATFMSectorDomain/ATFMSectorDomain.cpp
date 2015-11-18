@@ -132,17 +132,26 @@ matrix2d ATFMSectorDomain::getStates(){
 		allStates[i] = matrix1d(n_state_elements,0.0); // reserves space
 	}
 
-	/* HACK: "REVERSE THE POLARITY"
+	/* "NORMAL POLARITY" state
 	for (std::shared_ptr<UAV> &u : UAVs){
 		allStates[getSector(u->loc)][u->getDirection()]+=1.0; // Adds the UAV impact on the state
 	}
 	*/
 
+	// REVERSED POLARITY STATE
 	for (std::shared_ptr<UAV> &u : UAVs){
 		// COUNT THE UAV ONLY IF IT HAS A NEXT SECTOR IT'S GOING TO
 		if (u->nextSectorID()==u->curSectorID()) continue;
 		else allStates[u->nextSectorID()][u->getDirection()] += 1.0;
 	}
+
+	// CONGESTION STATE
+	/*vector<int> sector_congestion_count(n_agents,0);
+	for (std::shared_ptr<UAV> &u : UAVs){
+		sector_congestion_count[u->curSectorID()]++;
+	}
+	TODO: use the sector congestion and connection map to get state info from neighbor cells.
+	*/
 
 	return allStates;
 }
