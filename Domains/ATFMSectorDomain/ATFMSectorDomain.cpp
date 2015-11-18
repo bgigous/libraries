@@ -132,8 +132,16 @@ matrix2d ATFMSectorDomain::getStates(){
 		allStates[i] = matrix1d(n_state_elements,0.0); // reserves space
 	}
 
+	/* HACK: "REVERSE THE POLARITY"
 	for (std::shared_ptr<UAV> &u : UAVs){
 		allStates[getSector(u->loc)][u->getDirection()]+=1.0; // Adds the UAV impact on the state
+	}
+	*/
+
+	for (std::shared_ptr<UAV> &u : UAVs){
+		// COUNT THE UAV ONLY IF IT HAS A NEXT SECTOR IT'S GOING TO
+		if (u->nextSectorID()==u->curSectorID()) continue;
+		else allStates[u->nextSectorID()][u->getDirection()] += 1.0;
 	}
 
 	return allStates;
@@ -184,7 +192,7 @@ void ATFMSectorDomain::simulateStep(matrix2d agent_actions){
 	static int calls=0;
 	planners->setCostMaps(agent_actions);
 	absorbUAVTraffic();
-	if (calls%20==0) // fakes deterministic?
+	if (calls%10==0) // fakes deterministic?
 		getNewUAVTraffic();
 	calls++;
 	getPathPlans();
