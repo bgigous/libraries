@@ -21,8 +21,7 @@ public:
 	const enum UAVType{SLOW, FAST, NTYPES=1};
 	//const enum UAVType{SLOW,NTYPES};
 
-	UAV(easymath::XY start_loc, easymath::XY end_loc,
-		std::vector<std::vector<XY> > *pathTraces, UAVType t, AStarManager* planners);
+	UAV(easymath::XY start_loc, easymath::XY end_loc, UAVType t, AStarManager* planners);
 
 	~UAV(){
 		//printf("UAV %i dying.\n", ID);
@@ -33,19 +32,18 @@ public:
 	void moveTowardNextWaypoint(); // takes a time increment to move over
 
 
-	void planAbstractPath(matrix2d &connection_times, int memstart, int memend);
+	void planAbstractPath();
 	void planDetailPath();
 
-	AStarManager* planners; // shared with the simulator (for now);
 	std::list<int> getBestPath(int memstart, int memene); // does not set anything within the UAV
 
 	int ID;
 	UAVType type_ID;
 	double speed; // connected to type_ID
 	easymath::XY loc;
+	bool pathChanged;
 	easymath::XY end_loc;
 	std::queue<easymath::XY> target_waypoints; // target waypoints, low-level
-	std::vector<std::vector<XY> > *pathTraces; // takes a pointer to the pathtrace for logging
 	list<int> high_path_prev; // saves the high level path
 	int nextSectorID(){
 		if (high_path_prev.size()>1){
@@ -58,13 +56,15 @@ public:
 	int curSectorID(){
 		return planners->getMembership(loc); // return current sector
 	}
-
-	int t_delay; // steps to delay until next move can be taken
+	int endSectorID(){
+		return planners->getMembership(end_loc);
+	}
 
 	// ABSTRACTION MODE
 	int t;
-	// Predicates...
-
+	set<int> sectors_touched; // the sectors that the UAV has touched...
+private:
+	AStarManager* planners; // shared with the simulator (for now);
 };
 
 	static bool at_destination(const std::shared_ptr<UAV> &u){

@@ -25,9 +25,15 @@ public:
 	~AStarManager(void);
 
 
-	AStarManager(int n_types, std::vector<Edge> edges_set, Matrix<int,2>* membership_map, vector<XY> agent_locs, bool abstraction=false):
-		membership_map(membership_map),agent_locs(agent_locs),n_types(n_types), edges(edges_set)
+	AStarManager(int n_types, std::vector<Edge> edges_set, vector<XY> agent_locs):
+		agent_locs(agent_locs),n_types(n_types), edges(edges_set)
 	{
+		initializeHighLevel();
+	}
+
+	map<XY, int> loc2mem;
+
+	void initializeHighLevel(){
 		// HIGH LEVEL
 		weights = matrix2d(n_types, matrix1d(edges.size(), 1.0) );
 
@@ -36,25 +42,26 @@ public:
 		for (int i=0; i<n_types; i++){
 			Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]);
 		}
+		for (int i=0; i<agent_locs.size(); i++){
+			loc2mem[agent_locs[i]]=i; // add in reverse lookup
+		}
 
 		// Get the directions
 		for (int i=0; i<edges.size(); i++){
 			Edge e = edges[i];
-			XY xyi = agent_locs[e.first];
-			XY xyj = agent_locs[e.second];
+			int memi = e.first; // membership of origin of edge
+			int memj = e.second; // membership of connected node
+			XY xyi = agent_locs[memi];
+			XY xyj = agent_locs[memj];
 			XY dx_dy = xyj-xyi;
 			int xydir = cardinalDirection(dx_dy);
-			int memj = membership_map->at(xyj); // only care about cost INTO sector
 			sector_dir_map[i] = make_pair(memj,xydir); // add at new index
 		}
-
-
-		/// GRID LEVEL 
-		if (!abstraction)
-			createGridAstars(membership_map);
 	}
 
-	void createGridAstars(Matrix<int,2>* membership_map){
+
+	void initializeLowLevel(Matrix<int,2>* membership_map_set){
+		membership_map = membership_map_set;
 		obstacle_map = new barrier_grid(membership_map->dim1(),membership_map->dim2());
 		for (int i=0; i<membership_map->dim1(); i++){
 			for (int j=0; j<membership_map->dim2(); j++){
@@ -67,11 +74,6 @@ public:
 			Edge e = edges[i];
 			m2astar[e.first][e.second] = new AStar_grid(obstacle_map, membership_map, e.first, e.second);
 		}
-	}
-
-	int getMembership(easymath::XY pt){
-		// Returns the membership of the particular point
-		return (int)membership_map->at((Numeric_lib::Index)pt.x,(Numeric_lib::Index)pt.y);
 	}
 
 
@@ -133,7 +135,7 @@ public:
 		for (unsigned int i=0; i<weights[0].size(); i++){
 			for (unsigned int j=0; j<n_types; j++){
 				/*
-				
+
 				int s = sector_dir_map[i].first;
 				//int d = j*UAV::NTYPES + sector_dir_map[i].second; // wrong
 
@@ -163,7 +165,7 @@ public:
 			Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]); // replace existing weights
 		}
 	}
-	
+
 	matrix2d saved_weights; // for blocking and unblocking sectors
 	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)
 	Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later
@@ -181,5 +183,18 @@ public:
 			}
 		}
 	}
+
+	int getMembership(easymath::XY pt){
+		// Returns the membership of the particular point
+		if (membership_map!=NULL){
+			return (int)membership_map->at((Numeric_lib::Index)pt.x,(Numeric_lib::Index)pt.y);
+		} else if (loc2mem.find(pt)!=loc2mem.end()) {
+			return loc2mem[pt];
+		} else {
+			printf("Point not found in membership lookup.\n");
+			system("pause");
+		}
+	}
+
 };
 

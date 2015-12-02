@@ -19,5 +19,6 @@ public:
 	~Sector(){};
 	XY xy; // sector center
 
-	vector<int> conflicts; // conflict count, [DIRECTIONS]
+	vector<int> conflicts;
+	int steps;
 };
