@@ -111,7 +111,15 @@ void UTMDomainDetail::detectConflicts(){
 			int midx = ((int)(*u1)->loc.x+(int)(*u2)->loc.x)/2;
 			int midy = ((int)(*u1)->loc.y+(int)(*u2)->loc.y)/2;
 			conflict_count_map->at(midx,midy)++;
+
+			// each contributes half to conflict
+			sectors->at(getSector((*u1)->loc)).conflicts[(*u1)->type_ID]+=0.5;
+			sectors->at(getSector((*u2)->loc)).conflicts[(*u2)->type_ID]+=0.5;
 		}
+	}
+
+	for (int i=0; i<sectors->size(); i++){
+		sectors->at(i).steps++;
 	}
 
 	printf("UAVs=%i\n",UAVs.size());

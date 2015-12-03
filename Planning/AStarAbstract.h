@@ -46,7 +46,7 @@ public:
 		return CostType(::sqrt(dx * dx + dy * dy)); // euclidean cost heuristic
 	}
 private:
-//	LocMap m_location;
+//	LocMap m_location // OPTION; STORE LOCATION LOOKUP IN HEURISTIC
 	Vertex m_goal;
 	double XDIM, YDIM;
 };
@@ -69,71 +69,49 @@ private:
 	Vertex m_goal;
 };
 
-
-/*class zero_heuristic {
-public:
-	zero_heuristic(){};
-		typedef adjacency_list<listS, vecS, undirectedS, no_property,
-		property<edge_weight_t, cost> > mygraph_t;
-  double operator()( mygraph_t::vertex_descriptor v) {
-	  return 0.0;
-  }
-};*/
-
 class AStarAbstract
 {
 public:
 	typedef adjacency_list
 		<listS, // edge container
 		vecS,	// vertex container
-		undirectedS,	// graph type is undirected -- SHOULD CHANGE THIS?
+		directedS,	// graph type is directed: edge (u,v) can have a different weight than (v,u)
 		no_property,
 		property<edge_weight_t, cost> > mygraph_t;
-	typedef property_map<mygraph_t, edge_weight_t>::type WeightMap;
+	//typedef property_map<mygraph_t, edge_weight_t>::type WeightMap;
 	typedef mygraph_t::vertex_descriptor vertex;
 	typedef mygraph_t::edge_descriptor edge_descriptor;
 	typedef mygraph_t::vertex_iterator vertex_iterator;
 	typedef std::pair<int, int> edge;
 	AStarAbstract(vector<easymath::XY> &locations, vector<edge> &edge_array):
-		locations(locations),edge_array(edge_array)
+		locations(locations)
 	{
-		weights = matrix1d(edge_array.size(),1.0); // initialize all weights to 1
 		// create graph
 		g = mygraph_t(locations.size());
-		weightmap = get(edge_weight, g);
 		for(std::size_t j = 0; j < edge_array.size(); ++j) {
 			edge_descriptor e;
 			bool inserted;
 			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
-			weightmap[e] = float(weights[j]);
+		}
+		setWeights(matrix1d(edge_array.size(),1.0));
+	}
+
+	void setWeights(matrix1d weights){
+		// iterate over all edge descriptors...
+		typedef graph_traits<mygraph_t>::edge_iterator edge_iter;
+		std::pair<edge_iter, edge_iter> ep;
+		edge_iter ei, ei_end;
+		int i=0;
+		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
+			put(edge_weight,g,*ei,weights[i++]);
 		}
 	}
 
-	// create connections on map
-	/*AStarAbstract(vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
-		// Get 8-connected grid
-		get8GridEdges(obstacle_map,membership_map); // populate reachable_locs, lookup, edge_array
-
-		weights = vector<double>(edge_array.size(),1.0);
-		g = mygraph_t(locations.size());
-		weightmap = get(edge_weight, g);
-		for(std::size_t j = 0; j < edge_array.size(); ++j) {
-			edge_descriptor e;
-			bool inserted;
-			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
-			weightmap[e] = float(weights[j]);
-		}
-	}*/
 	~AStarAbstract(void){};
 	
 	// A* fundamentals
 	vector<easymath::XY> locations; // physical locations of nodes
-	vector<edge> edge_array; // connections in map
-	vector<cost> weights;
 	mygraph_t g;
-
-	// to delete
-	WeightMap weightmap;
 
 	list<vertex> search(vertex start, vertex goal){
 		vector<mygraph_t::vertex_descriptor> p(num_vertices(g));
@@ -173,58 +151,6 @@ public:
 		}
 	}
 
-	/*
-	vector<XY> search(list<AStarAbstract::vertex> high_path, easymath::XY loc,easymath::XY goal){
-		// Assumes mask already on high-level path: graph created externally: order enforced here
-		// takes specific start and end points in space
-		
-		add_boundaries(high_path); // ADD IMPACT OF HIGH-LEVEL PATH
-		
-		int v1 = sub2ind(int(loc.x),int(loc.y),XDIM,YDIM);
-		int v2 = sub2ind(int(goal.x),int(goal.y),XDIM,YDIM);
-		list<vertex> path_output_vertices;
-
-		if (nodes.count(loc) && nodes.count(goal)){
-			path_output_vertices = search(vertex(v1),vertex(v2));
-			remove_boundaries(high_path); // REMOVE IMPACT OF HIGH-LEVEL PATH
-			vector<XY> path_output(path_output_vertices.size());
-			int i=0;
-			for (vertex  v : path_output_vertices){
-				int x,y;
-				ind2sub(YDIM,v,x,y);
-				path_output[i++] = XY(x,y);
-			}
-			return path_output;
-		}
-		else {
-			printf("Goal not in mask. Aborting.");
-			system("pause");
-			exit(2);
-		}
-	}*/
-
-
-	/*
-	static 	vector<XY> get8GridNeighbors(int x, int y, vector<vector<bool> >* obstacle_map){
-		int XDIM = obstacle_map->size();
-		int YDIM = obstacle_map->at(0).size();
-		vector<XY> neighbors(8);
-		int n = 0;
-
-		if (x>0	&& y>0 && !obstacle_map->at(x-1)[y-1])				neighbors[n++] = XY(x-1,y-1);
-		if (x>0	&& !obstacle_map->at(x-1)[y])						neighbors[n++] = XY(x-1,y);
-		if (x>0	&& y<YDIM-1	&&	!obstacle_map->at(x-1)[y+1])		neighbors[n++] = XY(x-1,y+1);
-		if (y>0	&& !obstacle_map->at(x)[y-1])						neighbors[n++] = XY(x,y-1);
-		if (y<YDIM-1 &&	!obstacle_map->at(x)[y+1])					neighbors[n++] = XY(x,y+1);
-		if (x<XDIM-1 &&	y>0	&&	!obstacle_map->at(x+1)[y-1])		neighbors[n++] = XY(x+1,y-1);
-		if (x<XDIM-1 &&	!obstacle_map->at(x+1)[y])					neighbors[n++] = XY(x+1,y);
-		if (x<XDIM-1 &&	y<YDIM-1 &&	!obstacle_map->at(x+1)[y+1])	neighbors[n++] = XY(x+1,y+1);
-
-		neighbors.resize(n);
-
-		return neighbors;
-	}*/
-
 	static int sub2ind(int r, int c, int m, int n){ 
 		// 1-index!
 		r++;
@@ -239,79 +165,5 @@ public:
 	int XDIM, YDIM; // dimensions of the map
 	set<XY> nodes; // set of nodes already found
 
-	// better to add back in the boundaries?
-
-	/*
-	map<pair<int,int>,vector<edge> > boundary_edges; // lists boundary connections between different sectors
-
-	void add_boundaries(list<AStarAbstract::vertex> &high_path){
-		
-		//TODO: do other things here that influence graph creation
-		for (list<AStarAbstract::vertex>::iterator i=high_path.begin(); i!=prev(high_path.end()); i++){
-			vector<edge> b = boundary_edges[pair<int,int>(*i,*std::next(i))];
-			for (edge e : b){
-				edge_array.push_back(e);
-				
-				// add it into the graph!
-				edge_descriptor desc;
-				bool inserted;
-				boost::tuples::tie(desc, inserted) = add_edge(e.first, e.second, g);
-				weightmap[desc] = 1.0; // HARDCODING
-			}
-		}
-
-	}
-	
-
-	void remove_boundaries(list<AStarAbstract::vertex> &high_path){
-		for (list<AStarAbstract::vertex>::iterator i=high_path.begin(); i!=prev(high_path.end()); i++){
-			vector<edge> b = boundary_edges[pair<int,int>(*i,*std::next(i))];
-			for (edge e: b){
-				remove_edge(e.first,e.second,g);
-			}
-		}
-	}
-
-	void get8GridEdges(vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
-		// Gets the 8-grid edges broken up by sectors specified by "membership map".
-		// Reconnection of the sectors is based on the high-level plan during the search, and connects
-		// relevant edges in boundary_edges container.
-
-		XDIM = obstacle_map->size();
-		YDIM = obstacle_map->at(0).size();
-
-		// create connections on map
-		for (int x=0; x<XDIM; x++){
-			for (int y=0; y<YDIM; y++){
-				if (!obstacle_map->at(x)[y]){
-					nodes.insert(XY(x,y)); // add to list of possible nodes, if not in an obstacle
-					vector<XY> neighbors = get8GridNeighbors(x,y, obstacle_map);
-					
-					for (XY n: neighbors){
-						edge e;
-						e.first = sub2ind(x,y,YDIM,XDIM);
-						e.second = sub2ind((int)n.x,(int)n.y,YDIM,XDIM);
-
-						int m1 = (int)membership_map->at((unsigned int)x)[(unsigned int)y];
-						int m2 = (int)membership_map->at((unsigned int)n.x)[(unsigned int)n.y];
-
-						if (m1==m2){
-							edge_array.push_back(e);
-						} else {
-							boundary_edges[edge(m1,m2)].push_back(e);
-						}
-					}
-
-				}
-			}
-		}
-
-		locations = vector<XY>(nodes.size());
-		int count=0;
-		for (XY n : nodes){
-			locations[count++] = n;
-		}
-	}
-	*/
 };
 

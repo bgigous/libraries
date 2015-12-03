@@ -12,7 +12,7 @@ UTMDomainAbstract::UTMDomainAbstract()
 	n_agents = 20;
 
 	// Mode hardcoding
-	_reward_mode = GLOBAL;
+	_reward_mode = DIFFERENCE_DOWNSTREAM;
 	_airspace_mode = SAVED;
 
 	// Object creation
@@ -41,7 +41,7 @@ UTMDomainAbstract::UTMDomainAbstract()
 
 
 	for (int i=0; i<n_agents; i++){
-		sectors->at(i).conflicts = vector<int>(4,0);
+		sectors->at(i).conflicts = matrix1d(UAV::NTYPES,0.0);
 	}
 	
 	// Planning
@@ -71,6 +71,14 @@ matrix1d UTMDomainAbstract::getPerformance(){
 
 matrix1d UTMDomainAbstract::getDifferenceReward(){
 	// REMOVE THE AGENT FROM THE SYSTEM
+
+	for (int i=0; i<sectors->size(); i++){
+		for (int j=0; j<UAV::NTYPES; j++){
+			conflict_node_average[i] += sectors->at(i).conflicts[j];
+		}
+		conflict_node_average[i] /= double(sectors->at(i).steps);
+	}
+
 	
 	matrix1d D(n_agents,0.0);
 	double G_reg = conflict_count;
@@ -85,7 +93,7 @@ matrix1d UTMDomainAbstract::getDifferenceReward(){
 
 		else if (_reward_mode==DIFFERENCE_TOUCHED)
 		// METHOD 5: UPSTREAM AND DOWNSTREAM EFFECTS REMOVED
-			D[i] = G_reg - conflict_minus_touched[i]; // NOT FUNCTIONAL YET
+			D[i] = -(G_reg - conflict_minus_touched[i]); // NOT FUNCTIONAL YET
 
 		else if (_reward_mode==DIFFERENCE_REALLOC)
 		// METHOD 6: RANDOM TRAFFIC REALLOCATION
@@ -93,7 +101,7 @@ matrix1d UTMDomainAbstract::getDifferenceReward(){
 	
 		else if (_reward_mode==DIFFERENCE_AVG)
 		// METHOD 7: CONFLICTS AVERAGED OVER THE NODE'S HISTORY
-			D[i] = G_reg - conflict_node_average[i]; // NOT FUNCTIONAL YET
+			D[i] = -(G_reg - conflict_node_average[i]); // NOT FUNCTIONAL YET
 		
 		else{
 			printf("unrecognized mode!");
@@ -298,11 +306,14 @@ void UTMDomainAbstract::exportLog(std::string fid, double G){
 }
 
 void UTMDomainAbstract::reset(){
+
+	for (int i=0; i<sectors->size(); i++){
+		sectors->at(i).steps=0;
+		sectors->at(i).conflicts = matrix1d(UAV::NTYPES,0.0);
+	}
+
 	UAVs.clear();
 	planners->reset();
-	for (unsigned int i=0; i<sectors->size(); i++){
-		sectors->at(i).conflicts = vector<int>(4,0);
-	}
 	conflict_count = 0; // initialize with no conflicts
 	conflict_minus_downstream = matrix1d(n_agents,0.0);
 	conflict_minus_touched = matrix1d(n_agents, 0.0);

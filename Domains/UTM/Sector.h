@@ -19,6 +19,6 @@ public:
 	~Sector(){};
 	XY xy; // sector center
 
-	vector<int> conflicts;
+	matrix1d conflicts;
 	int steps;
 };
