@@ -349,27 +349,27 @@ static std::ostream& operator<<(std::ostream& output, const maze& m) {
 }
 
 
-class AStar_grid
+class AStarGrid
 {
 public:
-	AStar_grid(void);
-	AStar_grid(std::vector<std::vector<bool> > *obstacle_map):
+	AStarGrid(void);
+	AStarGrid(std::vector<std::vector<bool> > *obstacle_map):
 		m(maze(obstacle_map))
 	{
 	}
-	AStar_grid(std::vector<std::vector<bool> > *obstacle_map, std::vector<std::vector<int> >* members, int m1, int m2):
+	AStarGrid(std::vector<std::vector<bool> > *obstacle_map, std::vector<std::vector<int> >* members, int m1, int m2):
 		m(maze(obstacle_map,members,m1,m2))
 	{
 	}
-	AStar_grid(Matrix<bool,2> *obstacle_map, Matrix<int,2> *members, int m1, int m2):
+	AStarGrid(Matrix<bool,2> *obstacle_map, Matrix<int,2> *members, int m1, int m2):
 		m(maze(obstacle_map,members,m1,m2))
 	{
 	}
-	AStar_grid(Matrix<bool,2> *obstacle_map):
+	AStarGrid(Matrix<bool,2> *obstacle_map):
 		m(maze(obstacle_map))
 	{
 	}
-	~AStar_grid(void){};
+	~AStarGrid(void){};
 	maze m;
 };
 

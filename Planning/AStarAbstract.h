@@ -31,7 +31,6 @@ class distance_heuristic : public astar_heuristic<Graph, CostType>
 public:
 	typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
 	distance_heuristic(Vertex goal, double xdim, double ydim): 
-		m_location(l), 
 		m_goal(goal),
 		XDIM(xdim),
 		YDIM(ydim)
@@ -47,7 +46,7 @@ public:
 		return CostType(::sqrt(dx * dx + dy * dy)); // euclidean cost heuristic
 	}
 private:
-	//LocMap m_location;
+//	LocMap m_location;
 	Vertex m_goal;
 	double XDIM, YDIM;
 };
@@ -71,7 +70,7 @@ private:
 };
 
 
-class zero_heuristic {
+/*class zero_heuristic {
 public:
 	zero_heuristic(){};
 		typedef adjacency_list<listS, vecS, undirectedS, no_property,
@@ -79,7 +78,7 @@ public:
   double operator()( mygraph_t::vertex_descriptor v) {
 	  return 0.0;
   }
-};
+};*/
 
 class AStarAbstract
 {
@@ -87,7 +86,7 @@ public:
 	typedef adjacency_list
 		<listS, // edge container
 		vecS,	// vertex container
-		undirectedS,	// graph type is undirected -- SHOULD CHANGE THIS
+		undirectedS,	// graph type is undirected -- SHOULD CHANGE THIS?
 		no_property,
 		property<edge_weight_t, cost> > mygraph_t;
 	typedef property_map<mygraph_t, edge_weight_t>::type WeightMap;
@@ -95,9 +94,10 @@ public:
 	typedef mygraph_t::edge_descriptor edge_descriptor;
 	typedef mygraph_t::vertex_iterator vertex_iterator;
 	typedef std::pair<int, int> edge;
-	AStarAbstract(vector<easymath::XY> &locations, vector<edge> &edge_array, vector<double> &weights):
-		locations(locations),edge_array(edge_array),weights(weights)
+	AStarAbstract(vector<easymath::XY> &locations, vector<edge> &edge_array):
+		locations(locations),edge_array(edge_array)
 	{
+		weights = matrix1d(edge_array.size(),1.0); // initialize all weights to 1
 		// create graph
 		g = mygraph_t(locations.size());
 		weightmap = get(edge_weight, g);
@@ -110,7 +110,7 @@ public:
 	}
 
 	// create connections on map
-	AStarAbstract(vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
+	/*AStarAbstract(vector<vector<bool> > *obstacle_map, vector<vector<int> > *membership_map){
 		// Get 8-connected grid
 		get8GridEdges(obstacle_map,membership_map); // populate reachable_locs, lookup, edge_array
 
@@ -123,13 +123,13 @@ public:
 			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
 			weightmap[e] = float(weights[j]);
 		}
-	}
+	}*/
 	~AStarAbstract(void){};
 	
 	// A* fundamentals
 	vector<easymath::XY> locations; // physical locations of nodes
 	vector<edge> edge_array; // connections in map
-	vector<double> weights;
+	vector<cost> weights;
 	mygraph_t g;
 
 	// to delete
@@ -141,7 +141,7 @@ public:
 		try {
 			astar_search
 				(g, start,
-				zero_heuristic(),
+				distance_heuristic<mygraph_t,cost>(goal,XDIM,YDIM),
 				predecessor_map(&p[0]).distance_map(&d[0]).
 				visitor(astar_goal_visitor<vertex>(goal)));
 
@@ -173,6 +173,7 @@ public:
 		}
 	}
 
+	/*
 	vector<XY> search(list<AStarAbstract::vertex> high_path, easymath::XY loc,easymath::XY goal){
 		// Assumes mask already on high-level path: graph created externally: order enforced here
 		// takes specific start and end points in space
@@ -200,9 +201,10 @@ public:
 			system("pause");
 			exit(2);
 		}
-	}
+	}*/
 
 
+	/*
 	static 	vector<XY> get8GridNeighbors(int x, int y, vector<vector<bool> >* obstacle_map){
 		int XDIM = obstacle_map->size();
 		int YDIM = obstacle_map->at(0).size();
@@ -221,7 +223,7 @@ public:
 		neighbors.resize(n);
 
 		return neighbors;
-	}
+	}*/
 
 	static int sub2ind(int r, int c, int m, int n){ 
 		// 1-index!
@@ -239,6 +241,7 @@ public:
 
 	// better to add back in the boundaries?
 
+	/*
 	map<pair<int,int>,vector<edge> > boundary_edges; // lists boundary connections between different sectors
 
 	void add_boundaries(list<AStarAbstract::vertex> &high_path){
@@ -258,6 +261,7 @@ public:
 		}
 
 	}
+	
 
 	void remove_boundaries(list<AStarAbstract::vertex> &high_path){
 		for (list<AStarAbstract::vertex>::iterator i=high_path.begin(); i!=prev(high_path.end()); i++){
@@ -308,5 +312,6 @@ public:
 			locations[count++] = n;
 		}
 	}
+	*/
 };
 

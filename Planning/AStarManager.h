@@ -1,6 +1,6 @@
 #pragma once
-#include "AStar_easy.h"
-#include "AStar_grid.h"
+#include "AStarAbstract.h"
+#include "AStarGrid.h"
 #include "../Math/Matrix.h"
 #include <memory>
 
@@ -16,7 +16,7 @@ class AStarManager
 {
 public:
 
-	typedef std::map<int,std::map<int,AStar_grid*> > grid_lookup;
+	typedef std::map<int,std::map<int,AStarGrid*> > grid_lookup;
 	typedef Matrix<bool,2> barrier_grid;
 	typedef Matrix<int,2> ID_grid;
 	typedef pair<int,int> Edge;
@@ -34,13 +34,10 @@ public:
 	map<XY, int> loc2mem;
 
 	void initializeHighLevel(){
-		// HIGH LEVEL
-		weights = matrix2d(n_types, matrix1d(edges.size(), 1.0) );
-
 		// Initialize Astar object (must re-create this each time weight change
-		Astar_highlevel = std::vector<AStar_easy*>(n_types);
+		Astar_highlevel = std::vector<AStarAbstract*>(n_types);
 		for (unsigned int i=0; i<n_types; i++){
-			Astar_highlevel[i] = new AStar_easy(agentLocs,edges,weights[i]);
+			Astar_highlevel[i] = new AStarAbstract(agentLocs,edges);
 		}
 		for (unsigned int i=0; i<agentLocs.size(); i++){
 			loc2mem[agentLocs[i]]=i; // add in reverse lookup
@@ -72,7 +69,7 @@ public:
 		// Add a different A* for each connection
 		for (unsigned int i=0; i<edges.size(); i++){
 			Edge e = edges[i];
-			m2astar[e.first][e.second] = new AStar_grid(obstacle_map, membership_map, e.first, e.second);
+			m2astar[e.first][e.second] = new AStarGrid(obstacle_map, membership_map, e.first, e.second);
 		}
 	}
 
@@ -93,7 +90,7 @@ public:
 	}
 
 	list<int> search(int type_ID, int memstart, int memend){
-		list<AStar_easy::vertex> path = Astar_highlevel[type_ID]->search(memstart,memend);
+		list<AStarAbstract::vertex> path = Astar_highlevel[type_ID]->search(memstart,memend);
 		list<int> intpath;
 		// NOTE; MAKE VERTICES INTS FOR HIGH LEVEL
 		while (path.size()){
@@ -106,7 +103,7 @@ public:
 	list<int> search(int type_ID, easymath::XY start_loc, easymath::XY end_loc){
 		int memstart = (int)membership_map->at((Numeric_lib::Index)start_loc.x,(Numeric_lib::Index)start_loc.y);
 		int memend = (int)membership_map->at((Numeric_lib::Index)end_loc.x,(Numeric_lib::Index)end_loc.y);
-		list<AStar_easy::vertex> path = Astar_highlevel[type_ID]->search(memstart,memend);
+		list<AStarAbstract::vertex> path = Astar_highlevel[type_ID]->search(memstart,memend);
 		list<int> intpath;
 		// NOTE; MAKE VERTICES INTS FOR HIGH LEVEL
 		while (path.size()){
@@ -122,37 +119,19 @@ public:
 		// re-create high level a*
 		for (unsigned int i=0; i<Astar_highlevel.size(); i++){
 			delete Astar_highlevel[i];
-			Astar_highlevel[i] = new AStar_easy(agentLocs,edges,weights[i]);
+			Astar_highlevel[i] = new AStarAbstract(agentLocs,edges,weights[i]);
 		}
 	}
 	unsigned int n_types;
 
-	void setCostMaps(vector<vector<double> > agent_actions){
-		// [next sector][direction of travel] -- current
-		// agent_actions  = agent, [type, dir<-- alternating]
-
-
+	void setCostMaps(matrix2d agent_actions){
 		for (unsigned int i=0; i<weights[0].size(); i++){
 			for (unsigned int j=0; j<n_types; j++){
-				/*
-
-				int s = sector_dir_map[i].first;
-				//int d = j*UAV::NTYPES + sector_dir_map[i].second; // wrong
-
-				int d = j + sector_dir_map[i].second*n_types;
-				weights[j][i] = agent_actions[s][d];
-
-				*/
-
-				// Jen mod
-
 				int s = sector_dir_map[i].first;
 				int d = j*(n_types-1) + sector_dir_map[i].second;
-
 				weights[j][i] = agent_actions[s][d];
 			}
 		}
-
 		resetGraphWeights(weights);
 	}
 
@@ -162,7 +141,7 @@ public:
 
 		for (unsigned int i=0; i<Astar_highlevel.size(); i++){
 			delete Astar_highlevel[i];
-			Astar_highlevel[i] = new AStar_easy(agentLocs,edges,weights[i]); // replace existing weights
+			Astar_highlevel[i] = new AStarAbstract(agentLocs,edges,weights[i]); // replace existing weights
 		}
 	}
 
@@ -171,9 +150,9 @@ public:
 	Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later
 	Matrix<bool,2> * obstacle_map; // pass these to uavs later to determine where the obstacles are
 	vector<XY> agentLocs;
-	vector<AStar_easy::edge> edges;
+	vector<AStarAbstract::edge> edges;
 	matrix2d weights; // [type][connection]
-	std::vector<AStar_easy*> Astar_highlevel;
+	std::vector<AStarAbstract*> Astar_highlevel;
 	grid_lookup m2astar;
 
 	void printMasks(){
