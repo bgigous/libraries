@@ -25,8 +25,8 @@ public:
 	~AStarManager(void);
 
 
-	AStarManager(int n_types, std::vector<Edge> edges_set, vector<XY> agent_locs):
-		agent_locs(agent_locs),n_types(n_types), edges(edges_set)
+	AStarManager(int n_types, std::vector<Edge> edges_set, vector<XY> agentLocs):
+		agentLocs(agentLocs),n_types(n_types), edges(edges_set)
 	{
 		initializeHighLevel();
 	}
@@ -39,20 +39,20 @@ public:
 
 		// Initialize Astar object (must re-create this each time weight change
 		Astar_highlevel = std::vector<AStar_easy*>(n_types);
-		for (int i=0; i<n_types; i++){
-			Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]);
+		for (unsigned int i=0; i<n_types; i++){
+			Astar_highlevel[i] = new AStar_easy(agentLocs,edges,weights[i]);
 		}
-		for (int i=0; i<agent_locs.size(); i++){
-			loc2mem[agent_locs[i]]=i; // add in reverse lookup
+		for (unsigned int i=0; i<agentLocs.size(); i++){
+			loc2mem[agentLocs[i]]=i; // add in reverse lookup
 		}
 
 		// Get the directions
-		for (int i=0; i<edges.size(); i++){
+		for (unsigned int i=0; i<edges.size(); i++){
 			Edge e = edges[i];
 			int memi = e.first; // membership of origin of edge
 			int memj = e.second; // membership of connected node
-			XY xyi = agent_locs[memi];
-			XY xyj = agent_locs[memj];
+			XY xyi = agentLocs[memi];
+			XY xyj = agentLocs[memj];
 			XY dx_dy = xyj-xyi;
 			int xydir = cardinalDirection(dx_dy);
 			sector_dir_map[i] = make_pair(memj,xydir); // add at new index
@@ -70,7 +70,7 @@ public:
 		}
 
 		// Add a different A* for each connection
-		for (int i=0; i<edges.size(); i++){
+		for (unsigned int i=0; i<edges.size(); i++){
 			Edge e = edges[i];
 			m2astar[e.first][e.second] = new AStar_grid(obstacle_map, membership_map, e.first, e.second);
 		}
@@ -122,7 +122,7 @@ public:
 		// re-create high level a*
 		for (unsigned int i=0; i<Astar_highlevel.size(); i++){
 			delete Astar_highlevel[i];
-			Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]);
+			Astar_highlevel[i] = new AStar_easy(agentLocs,edges,weights[i]);
 		}
 	}
 	unsigned int n_types;
@@ -162,7 +162,7 @@ public:
 
 		for (unsigned int i=0; i<Astar_highlevel.size(); i++){
 			delete Astar_highlevel[i];
-			Astar_highlevel[i] = new AStar_easy(agent_locs,edges,weights[i]); // replace existing weights
+			Astar_highlevel[i] = new AStar_easy(agentLocs,edges,weights[i]); // replace existing weights
 		}
 	}
 
@@ -170,7 +170,7 @@ public:
 	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)
 	Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later
 	Matrix<bool,2> * obstacle_map; // pass these to uavs later to determine where the obstacles are
-	vector<XY> agent_locs;
+	vector<XY> agentLocs;
 	vector<AStar_easy::edge> edges;
 	matrix2d weights; // [type][connection]
 	std::vector<AStar_easy*> Astar_highlevel;
@@ -193,6 +193,7 @@ public:
 		} else {
 			printf("Point not found in membership lookup.\n");
 			system("pause");
+			exit(1);
 		}
 	}
 

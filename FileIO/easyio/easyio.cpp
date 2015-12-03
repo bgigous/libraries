@@ -5,7 +5,7 @@
 using namespace std;
 using namespace Numeric_lib;
 
-void Load::load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator){
+void Load::loadVariable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator){
 	// must be above threshold to be counted as a boolean
 	string_matrix2d f = FileManip::read(filename, separator);
 	*var = std::vector<std::vector<bool> >(f.size());
@@ -23,7 +23,7 @@ void Load::load_variable(std::vector<std::vector<bool> >* var, std::string filen
 }
 
 
-void Load::load_variable(Matrix<bool,2> **var, std::string filename, double thresh, std::string separator){
+void Load::loadVariable(Matrix<bool,2> **var, std::string filename, double thresh, std::string separator){
 	// must be above threshold to be counted as a boolean
 	string_matrix2d f = FileManip::read(filename, separator);
 	Matrix<bool,2> * mat = new Matrix<bool,2>(f.size(),f[0].size());
@@ -40,7 +40,7 @@ void Load::load_variable(Matrix<bool,2> **var, std::string filename, double thre
 	(*var) = mat;
 }
 
-void Load::load_variable(Matrix<int,2> **var, std::string filename, std::string separator){
+void Load::loadVariable(Matrix<int,2> **var, std::string filename, std::string separator){
 	// must be above threshold to be counted as a boolean
 	string_matrix2d f = FileManip::read(filename, separator);
 	Matrix<int,2> *mat = new Matrix<int,2>(f.size(),f[0].size());
@@ -53,7 +53,7 @@ void Load::load_variable(Matrix<int,2> **var, std::string filename, std::string 
 	(*var)=mat;
 }
 
-void Load::load_variable(std::vector<easymath::XY> &var, std::string filename, std::string separator){
+void Load::loadVariable(std::vector<easymath::XY> &var, std::string filename, std::string separator){
 	string_matrix2d f = FileManip::read(filename, separator);
 	var.clear();
 	for (string_matrix1d i:f){
@@ -68,7 +68,7 @@ void Load::load_variable(std::vector<easymath::XY> &var, std::string filename, s
 	}
 }
 
-void Load::load_variable(std::vector<std::pair<int,int> > &var, std::string filename, std::string separator){
+void Load::loadVariable(std::vector<std::pair<int,int> > &var, std::string filename, std::string separator){
 	string_matrix2d f = FileManip::read(filename, separator);
 	var.clear();
 	for (string_matrix1d i:f){
@@ -83,7 +83,7 @@ void Load::load_variable(std::vector<std::pair<int,int> > &var, std::string file
 	}
 }
 
-void Load::load_variable(matrix2d &var, std::string filename, std::string separator){
+void Load::loadVariable(matrix2d &var, std::string filename, std::string separator){
 	string_matrix2d f = FileManip::read(filename, separator);
 	var.clear();
 	

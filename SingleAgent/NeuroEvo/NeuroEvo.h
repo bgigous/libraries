@@ -61,7 +61,7 @@ public:
 
 	void load(std::string filein){
 		matrix2d netinfo;
-		DataManip::load_variable(&netinfo,filein);
+		DataManip::loadVariable(&netinfo,filein);
 
 		int i=0;
 		for (NeuralNet* p: population){

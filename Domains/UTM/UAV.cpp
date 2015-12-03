@@ -43,7 +43,7 @@ void UAV::planDetailPath(){
 	if (memnext==memend){
 		waypoint = end_loc;
 	} else {
-		waypoint = planners->agent_locs[memnext];
+		waypoint = planners->agentLocs[memnext];
 	}
 
 	// TODO: VERIFY HERE THAT THE HIGH_PATH_BEGIN() IS THE NEXT MEMBER... NOT THE FIRST...
@@ -60,7 +60,7 @@ void UAV::planDetailPath(){
 
 int UAV::getDirection(){
 	// Identifies whether traveling in one of four cardinal directions
-	return cardinalDirection(loc-planners->agent_locs[nextSectorID()]);
+	return cardinalDirection(loc-planners->agentLocs[nextSectorID()]);
 }
 
 /*  SEE IF WE CAN GET AWAY WITHOUT USING THIS?
@@ -69,15 +69,15 @@ void UAV::incrementDelay(){
 		if (memstart==memend){
 			t = 0;
 		} else {
-			t = (int)connection_times[*high_path.begin()][*std::next(high_path.begin())];
+			t = (int)connectionTimes[*high_path.begin()][*std::next(high_path.begin())];
 		}
 	} else if (t<=0 && memstart==memend){ // on final leg; get to goal
 		loc = end_loc;
 	} else if (t<=0){ // middle leg; plan rest of path
 		high_path.pop_front();
-		loc = planners->agent_locs[int(high_path.front())]; // now in a new sector!
+		loc = planners->agentLocs[int(high_path.front())]; // now in a new sector!
 		if (high_path.size()>1 && *high_path.begin()!=*std::next(high_path.begin())){
-			t = (int)connection_times[*high_path.begin()][*std::next(high_path.begin())];
+			t = (int)connectionTimes[*high_path.begin()][*std::next(high_path.begin())];
 		} else {
 			t = 0;
 		}

@@ -4,6 +4,7 @@
 #include "../../FileIO/easyio/easyio.h"
 #include "../../Planning/AStarManager.h"
 #include "../../Math/Matrix.h"
+#include "../../projects/IROS2015/IROS2015/AirspaceMap.h"
 #include "UAV.h"
 #include "Sector.h"
 #include "Fix.h"
@@ -16,18 +17,15 @@ public:
 	UTMDomainAbstract();
 	~UTMDomainAbstract(void);
 
-	// Simulation modes
-	enum RewardMode{GLOBAL, DIFFERENCE};
+	enum RewardMode{GLOBAL, DIFFERENCE_DOWNSTREAM,DIFFERENCE_TOUCHED,DIFFERENCE_REALLOC,DIFFERENCE_AVG};
 	RewardMode _reward_mode;
 	matrix1d getDifferenceReward();
 	double getGlobalReward();
 	matrix1d getLocalReward();
-	
-	// Graph topology
-	vector<XY> agent_locs;
-	std::vector<std::pair<int,int> > edges;
-	matrix2d connection_time; // time of UAV for each connection (regardless of type)
-	matrix2d sector_capacity; // for the other type of reporting: [agent][type]
+
+	AirspaceMap* airspace;
+	enum AirspaceMode{SAVED,GENERATED};
+	AirspaceMode _airspace_mode;
 
 	// Moving parts
 	std::vector<Sector>* sectors;

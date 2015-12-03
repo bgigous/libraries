@@ -18,7 +18,7 @@ typedef std::vector<std::vector<std::vector<double> > > matrix3d;
 // Applies a given function to every comparison between container_1 and container_2
 	// Note, ContainerOut should be a 2d version of ContainerIn (should be indexable, like vector), 2d list currently unsupported
 	template <class ContainerIn, class ContainerOut, class StaticFunction>
-		 void for_each_pairing(ContainerIn container_1, ContainerIn container_2, ContainerOut &output, StaticFunction func){
+		 void forEachPairing(ContainerIn container_1, ContainerIn container_2, ContainerOut &output, StaticFunction func){
 			 output = ContainerOut(container_1.size());
 			 int ind = 0;
 			for (ContainerIn::iterator c1=container_1.begin(); c1!=container_1.end(); c1++){
@@ -93,7 +93,7 @@ namespace easymath{
 		}
 	};
 
-	double manhattan_dist(XY &p1, XY &p2);
+	double manhattanDist(XY &p1, XY &p2);
 
 	typedef std::pair<double,int> P;
 	//typedef std::vector<P> DistIDPairVector; 
@@ -111,5 +111,7 @@ namespace easymath{
 	double distance(XY p1, XY p2);
 	void discretizeSegment(std::vector<XY>::iterator iter_begin, std::vector<XY> myvec, int n_even_segments);
 	int cardinalDirection(XY dx_dy);
+	double crossProduct(XY U, XY V);
+	bool intersects(std::pair<XY, XY> edge1, std::pair<XY,XY> edge2);
 }
 

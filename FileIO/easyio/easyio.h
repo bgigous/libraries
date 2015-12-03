@@ -19,12 +19,12 @@ typedef std::vector<double> matrix1d;
 class Load{
 public:
 	// This class loads data from files into variables. Static only class.
-	static void load_variable(Numeric_lib::Matrix<int,2> **var, std::string filename, std::string separator = STRING_UNINITIALIZED);
-	static void load_variable(Numeric_lib::Matrix<bool,2> **var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED);
-	static void load_variable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED);
-	static void load_variable(std::vector<easymath::XY> &var, std::string filename, std::string separator = STRING_UNINITIALIZED);
-	static void load_variable(matrix2d &var, std::string filename, std::string separator = STRING_UNINITIALIZED);
-	static void load_variable(std::vector<std::pair<int,int> > &var, std::string filename, std::string separator = STRING_UNINITIALIZED);
+	static void loadVariable(Numeric_lib::Matrix<int,2> **var, std::string filename, std::string separator = STRING_UNINITIALIZED);
+	static void loadVariable(Numeric_lib::Matrix<bool,2> **var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED);
+	static void loadVariable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED);
+	static void loadVariable(std::vector<easymath::XY> &var, std::string filename, std::string separator = STRING_UNINITIALIZED);
+	static void loadVariable(matrix2d &var, std::string filename, std::string separator = STRING_UNINITIALIZED);
+	static void loadVariable(std::vector<std::pair<int,int> > &var, std::string filename, std::string separator = STRING_UNINITIALIZED);
 };
 
 
@@ -39,14 +39,14 @@ public:
 class DataManip{
 public:
 	template <typename T>
-	static void load_variable(std::vector<std::vector<T> >* var, std::string filename, std::string separator = STRING_UNINITIALIZED){
+	static void loadVariable(std::vector<std::vector<T> >* var, std::string filename, std::string separator = STRING_UNINITIALIZED){
 		string_matrix2d f = FileManip::read(filename, separator);
 		*var = std::vector<std::vector<T> >(f.size());
 
 		std::stringstream convert;
-		for (int i=0; i<f.size(); i++){
+		for (unsigned int i=0; i<f.size(); i++){
 			var->at(i) = std::vector<T>(f[i].size());
-			for (int j=0; j<f[i].size(); j++){
+			for (unsigned int j=0; j<f[i].size(); j++){
 				convert.str(f[i][j]);
 				T hello;
 				convert >> hello;

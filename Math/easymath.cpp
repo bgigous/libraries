@@ -24,7 +24,7 @@ matrix3d zeros(int dim1, int dim2, int dim3){
 
 namespace easymath{
 
-	double manhattan_dist(XY &p1, XY &p2){
+	double manhattanDist(XY &p1, XY &p2){
 		XY diff = p1-p2;
 		return abs(diff.x)+abs(diff.y);
 	}
@@ -149,4 +149,30 @@ namespace easymath{
 		return (max-min)*COIN+min;
 	}
 
+	double crossProduct(XY U, XY V){
+		return U.x*V.y-U.y*V.x;
+	}
+
+	bool intersects(std::pair<XY, XY> edge1, std::pair<XY,XY> edge2){
+		XY p = edge1.first;
+		XY q = edge2.first;
+		XY r = edge1.second - edge1.first;
+		XY s = edge2.second - edge2.first;
+
+		XY qpdiff = q-p;
+		double rscross = crossProduct(r,s);
+		double t = crossProduct((qpdiff),s)/rscross;
+		double u = crossProduct((qpdiff),r)/rscross;
+		
+
+		if (rscross==0){
+			if (crossProduct(qpdiff,r)==0){
+				return true; // collinear
+			} else return false; // parallel non-intersecting
+		} else if (0<=t && t<=1 && 0<=u && u<=1){
+			return true; // intersects at p+tr = q+us
+		} else {
+			return false; // not parallel, don't inersect
+		}
+	}
 }

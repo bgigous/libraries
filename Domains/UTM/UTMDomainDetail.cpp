@@ -7,10 +7,10 @@ UTMDomainDetail::UTMDomainDetail():
 	conflict_thresh(10.0)
 {
 	
-	Load::load_variable(&membership_map,"agent_map/membership_map.csv");
+	Load::loadVariable(&membership_map,"agent_map/membership_map.csv");
 	
 
-	Load::load_variable(fix_locs,"agent_map/fixes.csv");
+	Load::loadVariable(fix_locs,"agent_map/fixes.csv");
 	
 	// Planning
 	planners->initializeLowLevel(membership_map);
