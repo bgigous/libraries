@@ -17,5 +17,5 @@ AStarManager::~AStarManager(void)
 			delete inner.second;
 		}
 	}
-	clear_all(Astar_highlevel);
+	//clear_all(Astar_highlevel);
 }

@@ -29,24 +29,31 @@ template <class Graph, class CostType>
 class distance_heuristic : public astar_heuristic<Graph, CostType>
 {
 public:
+	typedef vector<XY> LocMap;
 	typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
-	distance_heuristic(Vertex goal, double xdim, double ydim): 
-		m_goal(goal),
-		XDIM(xdim),
-		YDIM(ydim)
+	distance_heuristic(LocMap locations, Vertex goal): 
+		m_location(locations),
+		m_goal(goal)
+		//XDIM(xdim),
+		//YDIM(ydim)
 	{};
 	CostType operator()(Vertex u)
 	{
 		int x1, y1, x2, y2;
-		AStarAbstract::ind2sub(YDIM, u, x1, y1);
-		AStarAbstract::ind2sub(YDIM, m_goal, x2, y2);
-		
+		//AStarAbstract::ind2sub(YDIM, u, x1, y1);
+		//AStarAbstract::ind2sub(YDIM, m_goal, x2, y2);
+		x1 = m_location[u].x;
+		y1 = m_location[u].x;
+		x2 = m_location[m_goal].y;
+		y2 = m_location[m_goal].y;
+
+
 		double dx = x2-x1;
 		double dy = y2-y1;
 		return CostType(::sqrt(dx * dx + dy * dy)); // euclidean cost heuristic
 	}
 private:
-//	LocMap m_location // OPTION; STORE LOCATION LOOKUP IN HEURISTIC
+	LocMap m_location;
 	Vertex m_goal;
 	double XDIM, YDIM;
 };
@@ -79,12 +86,12 @@ public:
 		no_property,
 		property<edge_weight_t, cost> > mygraph_t;
 	//typedef property_map<mygraph_t, edge_weight_t>::type WeightMap;
-	typedef mygraph_t::vertex_descriptor vertex;
+	typedef mygraph_t::vertex_descriptor vertex; // vertex is an int: corresponds to number in the locations list
 	typedef mygraph_t::edge_descriptor edge_descriptor;
 	typedef mygraph_t::vertex_iterator vertex_iterator;
 	typedef std::pair<int, int> edge;
-	AStarAbstract(vector<easymath::XY> &locations, vector<edge> &edge_array):
-		locations(locations)
+	AStarAbstract(vector<XY> locations_set, vector<edge> &edge_array):
+		locations(locations_set)
 	{
 		// create graph
 		g = mygraph_t(locations.size());
@@ -110,8 +117,8 @@ public:
 	~AStarAbstract(void){};
 	
 	// A* fundamentals
-	vector<easymath::XY> locations; // physical locations of nodes
 	mygraph_t g;
+	vector<XY> locations;
 
 	list<vertex> search(vertex start, vertex goal){
 		vector<mygraph_t::vertex_descriptor> p(num_vertices(g));
@@ -119,7 +126,7 @@ public:
 		try {
 			astar_search
 				(g, start,
-				distance_heuristic<mygraph_t,cost>(goal,XDIM,YDIM),
+				distance_heuristic<mygraph_t,cost>(locations, goal),
 				predecessor_map(&p[0]).distance_map(&d[0]).
 				visitor(astar_goal_visitor<vertex>(goal)));
 
@@ -136,34 +143,8 @@ public:
 		return list<vertex>(1,start); // fail to find path: stay in one place
 	}
 
-	list<vertex> search(easymath::XY loc,easymath::XY goal){
-		// Takes specific start and end points in space
-		
-		int v1 = sub2ind((int)loc.x,(int)loc.y,XDIM,YDIM);
-		int v2 = sub2ind((int)goal.x,(int)goal.y,XDIM,YDIM);
-
-		if (nodes.count(loc) && nodes.count(goal))
-			return search(vertex(v1),vertex(v2));
-		else {
-			printf("Goal not in mask. Aborting.");
-			system("pause");
-			exit(2);
-		}
+	list<vertex> search(int v1, int v2){//easymath::XY loc,easymath::XY goal){
+		return search(vertex(v1),vertex(v2));
 	}
-
-	static int sub2ind(int r, int c, int m, int n){ 
-		// 1-index!
-		r++;
-		c++;
-		return (c-1)*m+r;
-	}
-	static void ind2sub(int cols, int ind, int &r, int &c){
-		//0-indexed: ind-1 always called
-		r = (ind-1)%cols;
-		c = int(floor((ind-1)/cols));
-	}
-	int XDIM, YDIM; // dimensions of the map
-	set<XY> nodes; // set of nodes already found
-
 };
 

@@ -12,7 +12,7 @@ UTMDomainAbstract::UTMDomainAbstract()
 	n_agents = 20;
 
 	// Mode hardcoding
-	_reward_mode = DIFFERENCE_DOWNSTREAM;
+	_reward_mode = DIFFERENCE_AVG;
 	_airspace_mode = SAVED;
 
 	// Object creation
@@ -89,7 +89,7 @@ matrix1d UTMDomainAbstract::getDifferenceReward(){
 	// METHOD 4: DOWNSTREAM EFFECTS REMOVED
 	for (int i=0; i<n_agents; i++){
 		if (_reward_mode==DIFFERENCE_DOWNSTREAM)
-			D[i] = G_reg - conflict_minus_downstream[i];
+			D[i] = -(G_reg - conflict_minus_downstream[i]);
 
 		else if (_reward_mode==DIFFERENCE_TOUCHED)
 		// METHOD 5: UPSTREAM AND DOWNSTREAM EFFECTS REMOVED
@@ -101,7 +101,7 @@ matrix1d UTMDomainAbstract::getDifferenceReward(){
 	
 		else if (_reward_mode==DIFFERENCE_AVG)
 		// METHOD 7: CONFLICTS AVERAGED OVER THE NODE'S HISTORY
-			D[i] = -(G_reg - conflict_node_average[i]); // NOT FUNCTIONAL YET
+		D[i] = -conflict_node_average[i];// -(G_reg - conflict_node_average[i]); // NOT FUNCTIONAL YET
 		
 		else{
 			printf("unrecognized mode!");

@@ -91,8 +91,6 @@ public:
 	}
 
 	list<int> search(int type_ID, int memstart, int memend){
-		printf("searching");
-		system("pause");
 		list<AStarAbstract::vertex> path = Astar_highlevel[type_ID]->search(memstart,memend);
 		list<int> intpath;
 		// NOTE; MAKE VERTICES INTS FOR HIGH LEVEL
@@ -100,7 +98,6 @@ public:
 			intpath.push_back(path.front());
 			path.pop_front();
 		}
-		printf("searched");
 		return intpath;
 	}
 
@@ -133,22 +130,13 @@ public:
 				weights[j][i] = agent_actions[s][d];
 			}
 		}
-		for (int i=0; i<agent_actions.size(); i++){
-			for (int j=0; j<agent_actions[i].size(); j++){
-
-				printf("%f,",agent_actions[i][j]);
-			}
-		}
 		resetGraphWeights(weights);
-		system("pause");
 	}
 
 
 	void resetGraphWeights(matrix2d weightset){
 		weights = weightset;
-
-		system("pause");
-
+		
 		for (unsigned int i=0; i<Astar_highlevel.size(); i++){
 			Astar_highlevel[i]->setWeights(weights[i]);
 		}

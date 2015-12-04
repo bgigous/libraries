@@ -21,7 +21,8 @@ public:
 	void addInputs(int nToAdd);
 
 	NeuralNet(int nInput, int nHidden, int nOutput, double gamma=0.9);
-	NeuralNet(std::vector<int> &nodes, double gamma=0.9);
+	NeuralNet(std::vector<int> &
+		, double gamma=0.9);
 	void train(matrix2d &O, matrix2d &T, double epsilon=0.0, int iterations=0);
 	matrix1d predictBinary(matrix1d o);
 	matrix1d predictContinuous(matrix1d o);
