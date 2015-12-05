@@ -14,7 +14,7 @@ using namespace easymath;
 class UTMDomainDetail: public UTMDomainAbstract
 {
 public:
-	UTMDomainDetail();
+	UTMDomainDetail(vector<pair<int,int> > edges);
 	~UTMDomainDetail(void);
 
 	// Base function overloads

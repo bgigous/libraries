@@ -34,23 +34,10 @@ public:
 	distance_heuristic(LocMap locations, Vertex goal): 
 		m_location(locations),
 		m_goal(goal)
-		//XDIM(xdim),
-		//YDIM(ydim)
 	{};
 	CostType operator()(Vertex u)
 	{
-		int x1, y1, x2, y2;
-		//AStarAbstract::ind2sub(YDIM, u, x1, y1);
-		//AStarAbstract::ind2sub(YDIM, m_goal, x2, y2);
-		x1 = m_location[u].x;
-		y1 = m_location[u].x;
-		x2 = m_location[m_goal].y;
-		y2 = m_location[m_goal].y;
-
-
-		double dx = x2-x1;
-		double dy = y2-y1;
-		return CostType(::sqrt(dx * dx + dy * dy)); // euclidean cost heuristic
+		return CostType(easymath::distance(m_location[u],m_location[m_goal])); // euclidean cost heuristic
 	}
 private:
 	LocMap m_location;
@@ -85,7 +72,6 @@ public:
 		directedS,	// graph type is directed: edge (u,v) can have a different weight than (v,u)
 		no_property,
 		property<edge_weight_t, cost> > mygraph_t;
-	//typedef property_map<mygraph_t, edge_weight_t>::type WeightMap;
 	typedef mygraph_t::vertex_descriptor vertex; // vertex is an int: corresponds to number in the locations list
 	typedef mygraph_t::edge_descriptor edge_descriptor;
 	typedef mygraph_t::vertex_iterator vertex_iterator;
@@ -103,6 +89,26 @@ public:
 		setWeights(matrix1d(edge_array.size(),1.0));
 	}
 
+	// For blocking 
+	matrix1d saved_weights; // for blocking and unblocking sectors
+	void blockVertex(int vertexID){
+		// Makes it highly suboptimal to travel to a vertex
+		saved_weights = getWeights();
+
+		typedef graph_traits<mygraph_t>::edge_iterator edge_iter;
+		std::pair<edge_iter, edge_iter> ep;
+		edge_iter ei, ei_end;
+		int i=0;
+		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
+			if ((*ei).m_target==vertex(vertexID));
+			put(edge_weight,g,*ei,999999.99);
+		}
+	}
+
+	void unblockVertex(){
+		setWeights(saved_weights);
+	}
+
 	void setWeights(matrix1d weights){
 		// iterate over all edge descriptors...
 		typedef graph_traits<mygraph_t>::edge_iterator edge_iter;
@@ -114,13 +120,34 @@ public:
 		}
 	}
 
+	matrix1d getWeights(){
+		// iterate over all edge descriptors...
+		typedef graph_traits<mygraph_t>::edge_iterator edge_iter;
+		std::pair<edge_iter, edge_iter> ep;
+		edge_iter ei, ei_end;
+		matrix1d weights;
+		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
+			weights.push_back(get(edge_weight,g,*ei));
+		}
+	}
+
+
 	~AStarAbstract(void){};
 	
 	// A* fundamentals
 	mygraph_t g;
 	vector<XY> locations;
 
-	list<vertex> search(vertex start, vertex goal){
+	list<int> vertex2int(list<vertex> vertexpath){
+		list<int> intpath;
+		while (vertexpath.size()){
+			intpath.push_back(vertexpath.front());
+			vertexpath.pop_front();
+		}
+		return intpath;
+	}
+
+	list<int> search(int start, int goal){
 		vector<mygraph_t::vertex_descriptor> p(num_vertices(g));
 		vector<cost> d(num_vertices(g));
 		try {
@@ -138,13 +165,10 @@ public:
 				if(p[v] == v)
 					break;
 			}
-			return shortest_path;
+			return vertex2int(shortest_path);
 		}
-		return list<vertex>(1,start); // fail to find path: stay in one place
+		return list<int>(1,int(start)); // fail to find path: stay in one place
 	}
 
-	list<vertex> search(int v1, int v2){//easymath::XY loc,easymath::XY goal){
-		return search(vertex(v1),vertex(v2));
-	}
 };
 

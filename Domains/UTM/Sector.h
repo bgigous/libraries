@@ -13,8 +13,9 @@ class Sector{
 public:
 	// An area of space that contains some fixes
 	int sectorID; // the identifier for this sector
-	Sector(XY xy, int sectorIDset, int n_agents);
+	Sector(XY xy, int sectorIDset, int n_agents, vector<int> connections);
 	int n_agents;
+	vector<int> connections;
 	Sector(){}; // default constructor
 	~Sector(){};
 	XY xy; // sector center

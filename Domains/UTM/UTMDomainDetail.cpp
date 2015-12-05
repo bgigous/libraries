@@ -3,7 +3,7 @@
 using namespace std;
 using namespace easymath;
 
-UTMDomainDetail::UTMDomainDetail():
+UTMDomainDetail::UTMDomainDetail(vector<pair<int,int> > edges):
 	conflict_thresh(10.0)
 {
 	
@@ -13,7 +13,7 @@ UTMDomainDetail::UTMDomainDetail():
 	Load::loadVariable(fix_locs,"agent_map/fixes.csv");
 	
 	// Planning
-	planners->initializeLowLevel(membership_map);
+	planners->initializeLowLevel(membership_map,edges);
 		
 	// initialize fixes
 	for (unsigned int i=0; i<fix_locs.size(); i++){
@@ -86,7 +86,6 @@ void UTMDomainDetail::incrementUAVPath(){
 
 void UTMDomainDetail::reset(){
 	UAVs.clear();
-	planners->reset();
 	conflict_count = 0;
 	(*conflict_count_map) = ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
 }

@@ -12,12 +12,12 @@ UAV::UAV(XY start_loc, XY end_loc, UAVType t, AStarManager* planners):
 };
 
 std::list<int> UAV::getBestPath(int memstart, int memend){
-	return planners->search(type_ID, memstart, memend);
+	return planners->Astar_highlevel[type_ID]->search(memstart, memend);
 }
 
 void UAV::planAbstractPath(){
 	sectors_touched.insert(curSectorID());
-	list<int> high_path = planners->search(type_ID, curSectorID(), endSectorID());
+	list<int> high_path = planners->Astar_highlevel[type_ID]->search(curSectorID(), endSectorID());
 	if (high_path_prev!=high_path){
 		pathChanged=true;
 		high_path_prev = high_path;
@@ -43,7 +43,7 @@ void UAV::planDetailPath(){
 	if (memnext==memend){
 		waypoint = end_loc;
 	} else {
-		waypoint = planners->agentLocs[memnext];
+		waypoint = planners->Astar_highlevel[type_ID]->locations[memnext];
 	}
 
 	// TODO: VERIFY HERE THAT THE HIGH_PATH_BEGIN() IS THE NEXT MEMBER... NOT THE FIRST...
@@ -60,7 +60,7 @@ void UAV::planDetailPath(){
 
 int UAV::getDirection(){
 	// Identifies whether traveling in one of four cardinal directions
-	return cardinalDirection(loc-planners->agentLocs[nextSectorID()]);
+	return cardinalDirection(loc-planners->Astar_highlevel[type_ID]->locations[nextSectorID()]);
 }
 
 /*  SEE IF WE CAN GET AWAY WITHOUT USING THIS?

@@ -7,7 +7,7 @@ UTMDomainAbstract::UTMDomainAbstract()
 	// Hardcoding of base constants
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	n_control_elements=n_state_elements*UAV::NTYPES;
-	n_steps=100; // steps of simulation time
+	n_steps=2; // steps of simulation time// TESTING PARAMETER: CHANGED FROM 100
 	n_types=UAV::NTYPES;
 	n_agents = 20;
 
@@ -28,7 +28,11 @@ UTMDomainAbstract::UTMDomainAbstract()
 
 	// Add sectors
 	for (int i=0; i<n_agents; i++){
-		sectors->push_back(Sector(airspace->agentLocs[i],i, n_agents));
+		sectors->push_back(Sector(airspace->agentLocs[i],i, n_agents, vector<int>()));
+		sectors->at(i).conflicts = matrix1d(UAV::NTYPES,0.0);
+	}
+	for (pair<int,int> i: airspace->edges){
+		sectors->at(i.first).connections.push_back(i.second);
 	}
 
 	fixed_types=vector<int>(n_agents,0);
@@ -38,11 +42,6 @@ UTMDomainAbstract::UTMDomainAbstract()
 	conflict_minus_touched = matrix1d(n_agents, 0.0);
 	conflict_node_average = matrix1d(n_agents,0.0);
 	conflict_random_reallocation = matrix1d(n_agents,0.0);
-
-
-	for (int i=0; i<n_agents; i++){
-		sectors->at(i).conflicts = matrix1d(UAV::NTYPES,0.0);
-	}
 	
 	// Planning
 	planners = new AStarManager(n_types, airspace->edges, airspace->agentLocs); //NOTE: MAY NOT HAVE TO MAKE A DIFFERENT ONE FOR ABSTRACTION???
@@ -180,13 +179,7 @@ matrix2d UTMDomainAbstract::getStates(){
 		sector_congestion_count[u->curSectorID()]++;
 	}
 	for (int i=0; i<n_agents; i++){
-		for (unsigned int j=0; j<planners->edges.size(); j++){
-			int conn;
-			if (planners->edges[j].first==i){
-				conn = planners->edges[j].second;
-			} else if (planners->edges[j].second==i){
-				conn = planners->edges[j].first;
-			} else continue;
+		for (int conn: sectors->at(i).connections){
 
 			allStates[i][cardinalDirection(sectors->at(i).xy-sectors->at(conn).xy)] += sector_congestion_count[conn];
 		}
@@ -313,7 +306,6 @@ void UTMDomainAbstract::reset(){
 	}
 
 	UAVs.clear();
-	planners->reset();
 	conflict_count = 0; // initialize with no conflicts
 	conflict_minus_downstream = matrix1d(n_agents,0.0);
 	conflict_minus_touched = matrix1d(n_agents, 0.0);

@@ -17,7 +17,7 @@ public:
 	UTMDomainAbstract();
 	~UTMDomainAbstract(void);
 
-	enum RewardMode{GLOBAL, DIFFERENCE_DOWNSTREAM,DIFFERENCE_TOUCHED,DIFFERENCE_REALLOC,DIFFERENCE_AVG};
+	static const enum RewardMode{GLOBAL, DIFFERENCE_DOWNSTREAM,DIFFERENCE_TOUCHED,DIFFERENCE_REALLOC,DIFFERENCE_AVG, NMODES};
 	RewardMode _reward_mode;
 	matrix1d getDifferenceReward();
 	double getGlobalReward();
