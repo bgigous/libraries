@@ -6,6 +6,7 @@
 
 // Library includes
 #include "UTMDomainAbstract.h"
+#include "../../projects/IROS2015/IROS2015/SectorAStarGrid.h"
 
 
 using namespace std;
@@ -30,16 +31,17 @@ public:
 	double conflict_thresh;
 	
 	// maps/planners
+	SectorAStarGrid* lowPlanners;
 	void loadMaps();
-	Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later	//backend
-	std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
+	//Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later	//backend
+	//std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
 	vector<XY> fix_locs;
 
 
 	unsigned int getSector(easymath::XY p);
 
 	// Conflict detection/logging
-	Matrix<int,2> *conflict_count_map; // this counts the number of conflicts in each grid (reset() clears this)
+	//Matrix<int,2> *conflict_count_map; // this counts the number of conflicts in each grid (reset() clears this)
 
 };
 

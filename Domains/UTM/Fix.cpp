@@ -3,8 +3,8 @@
 
 
 
-Fix::Fix(XY loc, int ID_set, AStarManager* planners): 
-	planners(planners), ID(ID_set), loc(loc),
+Fix::Fix(XY loc, int ID_set, TypeAStarAbstract* highPlanners, SectorAStarGrid* lowPlanners): 
+	highPlanners(highPlanners), lowPlanners(lowPlanners), ID(ID_set), loc(loc),
 	_arrival_mode(EXACT), dist_thresh(2.0)
 {
 	switch (_traffic_mode){
@@ -31,8 +31,9 @@ bool Fix::atDestinationFix(const UAV &u){
 		&& easymath::distance(u.loc,loc)<dist_thresh	// UAV is close enough
 		&& u.end_loc==loc;								// This is destination fix
 	default:
-		printf("No valid _arrival_mode chosen.");
+		printf("FATAL ERROR: No valid _arrival_mode chosen.");
 		system("pause");
+		exit(1);
 	}
 }
 
@@ -51,28 +52,9 @@ std::list<std::shared_ptr<UAV> > Fix::generateTraffic(vector<Fix>* allFixes){
 			end_loc = allFixes->at(ID-1).loc; // go to previous
 		}
 		UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES)); // EVEN TYPE NUMBER
-		newTraffic.push_back(std::shared_ptr<UAV>(new UAV(loc,end_loc,type_id_set,planners)));
+		newTraffic.push_back(std::shared_ptr<UAV>(new UAV(loc,end_loc,type_id_set,highPlanners,lowPlanners)));
 	}
 
 	calls++;
 	return newTraffic;
-}
-
-void Fix::absorbTraffic(list<UAV>* UAVs){
-	// INEFFICIENT: MOVED OUT OF FIX FUNCTION
-
-	/*
-	list<UAV> cur_UAVs;
-	for (list<UAV>::iterator u=UAVs->begin(); u!=UAVs->end(); u++){
-		if (atDestinationFix(*u)){
-			// don't copy over
-		} else {
-			if (u->target_waypoints.size() && u->target_waypoints.front()==loc){ // deleted if size==0; drop invalid plans
-				u->target_waypoints.pop();
-			}
-			cur_UAVs.push_back(*u);
-		}
-	}
-	(*UAVs) = cur_UAVs; // copy over
-	*/
 }

@@ -6,21 +6,21 @@ using namespace easymath;
 UTMDomainDetail::UTMDomainDetail(vector<pair<int,int> > edges):
 	conflict_thresh(10.0)
 {
-	
+	Matrix<int,2> membership_map(1,1);
 	Load::loadVariable(&membership_map,"agent_map/membership_map.csv");
 	
 
 	Load::loadVariable(fix_locs,"agent_map/fixes.csv");
 	
 	// Planning
-	planners->initializeLowLevel(membership_map,edges);
+	lowPlanners = new SectorAStarGrid(membership_map,edges);
 		
 	// initialize fixes
 	for (unsigned int i=0; i<fix_locs.size(); i++){
-		fixes->push_back(Fix(fix_locs[i],i,planners));
+		fixes->push_back(Fix(fix_locs[i],i,highPlanners,lowPlanners));
 	}
 	
-	conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
+	//conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
 }
 
 void UTMDomainDetail::loadMaps(){
@@ -29,7 +29,7 @@ void UTMDomainDetail::loadMaps(){
 
 UTMDomainDetail::~UTMDomainDetail(void)
 {
-	delete conflict_count_map;
+	//delete conflict_count_map;
 }
 
 
@@ -61,7 +61,7 @@ vector<double> UTMDomainDetail::getRewards(){
 
 unsigned int UTMDomainDetail::getSector(easymath::XY p){
 	// tests membership for sector, given a location
-	return membership_map->at(p);
+	return lowPlanners->getMembership(p);
 }
 
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
@@ -87,13 +87,13 @@ void UTMDomainDetail::incrementUAVPath(){
 void UTMDomainDetail::reset(){
 	UAVs.clear();
 	conflict_count = 0;
-	(*conflict_count_map) = ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
+	//(*conflict_count_map) = ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
 }
 
 
 void UTMDomainDetail::exportLog(std::string fid, double G){
 	static int calls = 0;
-	PrintOut::toFileMatrix2D(*conflict_count_map,fid+to_string(calls)+".csv");
+	//PrintOut::toFileMatrix2D(*conflict_count_map,fid+to_string(calls)+".csv");
 	calls++;
 }
 
@@ -109,7 +109,7 @@ void UTMDomainDetail::detectConflicts(){
 
 			int midx = ((int)(*u1)->loc.x+(int)(*u2)->loc.x)/2;
 			int midy = ((int)(*u1)->loc.y+(int)(*u2)->loc.y)/2;
-			conflict_count_map->at(midx,midy)++;
+			//conflict_count_map->at(midx,midy)++;
 
 			// each contributes half to conflict
 			sectors->at(getSector((*u1)->loc)).conflicts[(*u1)->type_ID]+=0.5;

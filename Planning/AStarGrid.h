@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/grid_graph.hpp>
@@ -12,18 +13,18 @@
 #include <ctime>
 #include <iostream>
 #include <limits>
-#include "../Math/easymath.h"
+#include "../../libraries/Math/easymath.h"
 #include <sstream>
 #include <fstream>
-#include "../Math/Matrix.h"
+#include "../../libraries/Math/Matrix.h"
 
 using namespace easymath;
 using namespace Numeric_lib;
 using namespace std;
 
-class mt{ // "maze types"
+class mt{ // "my types"
 public:
-	// Distance traveled in the maze
+	// Distance traveled in the AStarGrid
 	typedef double distance;
 
 	static const int GRID_RANK=2;
@@ -48,42 +49,22 @@ public:
 
 };
 
-// Euclidean heuristic for a grid
-//
-// This calculates the Euclidean distance between a vertex and a goal
-// vertex.
+// Euclidean heuristic
 class euclidean_heuristic:
 	public boost::astar_heuristic<mt::filtered_grid, double>
 {
 public:
-  //euclidean_heuristic(mt::vertex_descriptor goal):m_goal(goal) {};
 	euclidean_heuristic(){};
-	
   double operator()(mt::vertex_descriptor v) {
 	  return sqrt(pow(double(m_goal[0]) - double(v[0]), 2) + pow(double(m_goal[1]) - double(v[1]), 2));
   }
-
   mt::vertex_descriptor m_goal;
 };
 
-// A searchable maze
-//
-// The maze is grid of locations which can either be empty or contain a
-// barrier.  You can move to an adjacent location in the grid by going up,
-// down, left and right.  Moving onto a barrier is not allowed.  The maze can
-// be solved by finding a path from the lower-left-hand corner to the
-// upper-right-hand corner.  If no open path exists between these two
-// locations, the maze is unsolvable.
-//
-// The maze is implemented as a filtered grid graph where locations are
-// vertices.  Barrier vertices are filtered out of the graph.
-//
-// A-star search is used to find a path through the maze. Each edge has a
-// weight of one, so the total path length is equal to the number of edges
-// traversed.
-class maze {
-public:
 
+class AStarGrid {
+public:
+	~AStarGrid();
 		// Exception thrown when the goal vertex is found
 	struct found_goal {};
 
@@ -100,23 +81,16 @@ public:
 		mt::vertex_descriptor m_goal;
 	};
 
-
-	friend std::ostream& operator<<(std::ostream&, const maze&);
-	friend maze random_maze(std::size_t, std::size_t);
-
 	// CREATION FUNCTIONS
-	maze():m_grid(create_grid(0, 0)),m_barrier_grid(create_barrier_grid()) {};
-	maze(std::size_t x, std::size_t y):m_grid(create_grid(x, y)),
+	AStarGrid():m_grid(create_grid(0, 0)),m_barrier_grid(create_barrier_grid()) {};
+	AStarGrid(std::size_t x, std::size_t y):m_grid(create_grid(x, y)),
 		m_barrier_grid(create_barrier_grid()) {};
 
-	maze(Matrix<bool,2> *obstacle_map):
+	AStarGrid(Matrix<bool,2> *obstacle_map):
 		m_grid(create_grid(obstacle_map->dim1(),obstacle_map->dim2())),
 		m_barrier_grid(create_barrier_grid())
 	{
 		int v_index = 0;
-		// NOTE: V_INDEX COUNT ASSUMES YOU'RE GOING THROUGH THE OBSTACLES DIFFERENTLY...
-		//for (std::vector<std::vector<bool> >::iterator obs = obstacle_map->begin(); obs!=obstacle_map->end(); obs++){
-			//for (std::vector<bool>::iterator o = obs->begin(); o!=obs->end(); o++){
 		for (int y=0; y<obstacle_map->dim2(); y++){
 			for (int x=0; x<obstacle_map->dim1(); x++){
 				if ((*obstacle_map)(x,y)){ // there is an obstacle!
@@ -128,64 +102,34 @@ public:
 		}
 	}
 
-	maze(std::vector<std::vector<bool> >* obstacle_map):
-		m_grid(create_grid(obstacle_map->size(),obstacle_map->begin()->size())),
+	AStarGrid(Matrix<int,2> &members, int m1, int m2):
+		m_grid(create_grid(members.dim1(), members.dim2())),
 		m_barrier_grid(create_barrier_grid())
 	{
-		// SOURCE AND GOAL DECIDED IN SEARCH!
 
+		Matrix<bool,2> obstacle_map(members.dim1(),members.dim2());
+	for (int i=0; i<members.dim1(); i++){
+		for (int j=0; j<members.dim2(); j++){
+			obstacle_map(i,j) = members(i,j)<0;
+		}
+	}
+
+		// This map only shows grid cells of membership m1 and m2 as passable. Others are barriers.
+		// Backflow (travel from m2 to m1) is allowed but will tend to be suboptimal, so is improbable.
 		int v_index = 0;
-		// NOTE: V_INDEX COUNT ASSUMES YOU'RE GOING THROUGH THE OBSTACLES DIFFERENTLY...
-		//for (std::vector<std::vector<bool> >::iterator obs = obstacle_map->begin(); obs!=obstacle_map->end(); obs++){
-			//for (std::vector<bool>::iterator o = obs->begin(); o!=obs->end(); o++){
-		for (unsigned int y=0; y<obstacle_map->begin()->size(); y++){
-			for (unsigned int x=0; x<obstacle_map->size(); x++){
-				if (obstacle_map->at(x)[y]){ // there is an obstacle!
+		for (int y=0; y<obstacle_map.dim2(); y++){
+			for (int x=0; x<obstacle_map.dim1(); x++){
+				if (obstacle_map(x,y) || 
+					(members(x,y)!=m1 && members(x,y)!=m2)){ // there is an obstacle, or wrong membership
 					mt::vertex_descriptor u = vertex(v_index,m_grid);
 					m_barriers.insert(u); // insert a barrier!
 				}
-				v_index++; // increment v_index even if no barrier added!
+				v_index++;
 			}
 		}
 	}
 
-	maze(std::vector<std::vector<bool> >* obstacle_map, std::vector<std::vector<int> >* membership_map, int m1, int m2):
-		m_grid(create_grid(obstacle_map->size(),obstacle_map->begin()->size())),
-		m_barrier_grid(create_barrier_grid())
-	{
-		// This map will only show areas of membership. Others are seen as barriers.
-
-		int v_index = 0;
-		for (unsigned int x=0; x<obstacle_map->begin()->size(); x++){
-			for (unsigned int y=0; y<obstacle_map->size(); y++){
-				if (obstacle_map->at(x)[y] || (membership_map->at(x)[y]!=m1 && membership_map->at(x)[y]!=m2)){ // there is an obstacle, or wrong membership
-					mt::vertex_descriptor u = vertex(v_index,m_grid);
-					m_barriers.insert(u); // insert a barrier!
-				}
-				v_index++; // increment v_index even if no barrier added!
-			}
-		}
-	}
-
-	maze(Matrix<bool,2> *obstacle_map, Matrix<int,2> *members, int m1, int m2):
-		m_grid(create_grid(obstacle_map->dim1(), obstacle_map->dim2())),
-		m_barrier_grid(create_barrier_grid())
-	{
-		// This map will only show areas of membership. Others are seen as barriers.
-		int v_index = 0;
-		for (int y=0; y<obstacle_map->dim2(); y++){
-			for (int x=0; x<obstacle_map->dim1(); x++){
-				if (((*obstacle_map)(x,y)) || 
-					((*members)(x,y)!=m1 && (*members)(x,y)!=m2)){ // there is an obstacle, or wrong membership
-					mt::vertex_descriptor u = vertex(v_index,m_grid);
-					m_barriers.insert(u); // insert a barrier!
-				}
-				v_index++; // increment v_index even if no barrier added!
-			}
-		}
-	}
-
-	// The length of the maze along the specified dimension.
+	// The length of the AStarGrid along the specified dimension.
 	mt::vertices_size_type length(std::size_t d) const {return m_grid.length(d);}
 
 	bool has_barrier(mt::vertex_descriptor u) const {
@@ -265,7 +209,7 @@ public:
 		
 		for (unsigned int i = 0; i<length(0); i++){
 			for (unsigned int j = 0; j < length(1); j++) {
-				// Put the character representing this point in the maze grid.
+				// Put the character representing this point in the AStarGrid grid.
 				mt::vertex_descriptor u = {{i, j}};
 				if (solution_contains(u))
 					output << 2 << ",";
@@ -277,7 +221,7 @@ public:
 			output << std::endl;
 		}
 	}
-		// The vertices on a solution path through the maze
+		// The vertices on a solution path through the AStarGrid
 	mt::vertex_vector m_solution;
 
 private:
@@ -292,95 +236,8 @@ private:
 		return boost::make_vertex_subset_complement_filter(m_grid, m_barriers);
 	}
 
-	// The grid underlying the maze
-	mt::grid m_grid;
-	// The underlying maze grid with barrier vertices filtered out
-	mt::filtered_grid m_barrier_grid;
-	// The barriers in the maze
-	mt::vertex_set m_barriers;
-
-	
+	mt::grid m_grid; // The grid underlying the AStarGrid
+	mt::filtered_grid m_barrier_grid; // The underlying AStarGrid grid with barrier vertices filtered out
+	mt::vertex_set m_barriers; // The barriers in the AStarGrid
 };
-
-static std::ostream& operator<<(std::ostream& output, const maze& m) {
-		// Header
-		std::string BARRIER = "#";
-
-		//for (mt::vertices_size_type i = 0; i < m.length(0)+2; i++)
-
-		unsigned int START = 78;
-		unsigned int END = START+78;
-
-		for (mt::vertices_size_type i = START; i < END+2; i++)
-			output << BARRIER;
-		output << std::endl;
-		// Body
-		for (unsigned int y = 0; y<m.length(1); y++){//m.length(1)-1; y >= 0; y--) {
-			// Enumerate rows in reverse order and columns in regular order so that
-			// (0,0) appears in the lower left-hand corner.  This requires that y be
-			// int and not the unsigned vertices_size_type because the loop exit
-			// condition is y==-1.
-			//for (mt::vertices_size_type x = 0; x < m.length(0); x++) { // hack to fit on screen
-			for (mt::vertices_size_type x = START; x < END; x++) {
-				// Put a barrier on the left-hand side.
-				if (x == 0)
-					output << BARRIER;
-				// Put the character representing this point in the maze grid.
-				mt::vertex_descriptor u = {{x, mt::vertices_size_type(y)}};
-				if (m.solution_contains(u))
-					output << ".";
-				else if (m.has_barrier(u))
-					output << BARRIER;
-				else
-					output << " ";
-				// Put a barrier on the right-hand side.
-				if (x == m.length(0)-1)
-					output << BARRIER;
-			}
-			// Put a newline after every row except the last one.
-			output << std::endl;
-		}
-		// Footer
-		for (mt::vertices_size_type i = START; i < END+2; i++)
-			output << BARRIER;
-		if (m.solved())
-			output << std::endl << "Solution length " << m.m_solution_length;
-		return output;
-}
-
-
-class AStarGrid
-{
-public:
-	AStarGrid(void);
-	AStarGrid(std::vector<std::vector<bool> > *obstacle_map):
-		m(maze(obstacle_map))
-	{
-	}
-	AStarGrid(std::vector<std::vector<bool> > *obstacle_map, std::vector<std::vector<int> >* members, int m1, int m2):
-		m(maze(obstacle_map,members,m1,m2))
-	{
-	}
-	AStarGrid(Matrix<bool,2> *obstacle_map, Matrix<int,2> *members, int m1, int m2):
-		m(maze(obstacle_map,members,m1,m2))
-	{
-	}
-	AStarGrid(Matrix<bool,2> *obstacle_map):
-		m(maze(obstacle_map))
-	{
-	}
-	~AStarGrid(void){};
-	maze m;
-};
-
-/*
-
-
-
-// Solve the maze using A-star search.  Return true if a solution was found.
-bool maze::solve() {
-}
-
-
-*/
 

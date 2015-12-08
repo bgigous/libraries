@@ -40,14 +40,13 @@ void Load::loadVariable(Matrix<bool,2> **var, std::string filename, double thres
 	(*var) = mat;
 }
 
-void Load::loadVariable(Matrix<int,2> **var, std::string filename, std::string separator){
-	// must be above threshold to be counted as a boolean
+void Load::loadVariable(Matrix<int,2> *var, std::string filename, std::string separator){
 	string_matrix2d f = FileManip::read(filename, separator);
-	Matrix<int,2> *mat = new Matrix<int,2>(f.size(),f[0].size());
+	Matrix<int,2> mat(f.size(),f[0].size());
 
 	for (unsigned int i=0; i<f.size(); i++){
 		for (unsigned int j=0; j<f[i].size(); j++){
-			mat->at(i,j) = atoi(f[i][j].c_str());
+			mat(i,j) = atoi(f[i][j].c_str());
 		}
 	}
 	(*var)=mat;

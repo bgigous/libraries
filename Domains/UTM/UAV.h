@@ -1,7 +1,8 @@
 #pragma once
 
 #include <list>
-#include "../../Planning/AStarManager.h"
+#include "../../Planning/TypeAStarAbstract.h"
+#include "../../projects/IROS2015/IROS2015/SectorAStarGrid.h"
 #include "../../Math/easymath.h"
 #include "../../Math/Matrix.h"
 
@@ -21,7 +22,7 @@ public:
 	const enum UAVType{SLOW, FAST, NTYPES=1};
 	//const enum UAVType{SLOW,NTYPES};
 
-	UAV(easymath::XY start_loc, easymath::XY end_loc, UAVType t, AStarManager* planners);
+	UAV(easymath::XY start_loc, easymath::XY end_loc, UAVType t, TypeAStarAbstract* highPlanners, SectorAStarGrid* lowPlanners);
 
 	~UAV(){
 		//printf("UAV %i dying.\n", ID);
@@ -49,22 +50,23 @@ public:
 		if (high_path_prev.size()>1){
 			return *std::next(high_path_prev.begin()); // return second element (towards) of path
 		} else {
-			return planners->getMembership(loc); // return current sector
+			return highPlanners->getMembership(loc); // return current sector
 		}
 	}
 
 	int curSectorID(){
-		return planners->getMembership(loc); // return current sector
+		return highPlanners->getMembership(loc); // return current sector
 	}
 	int endSectorID(){
-		return planners->getMembership(end_loc);
+		return highPlanners->getMembership(end_loc);
 	}
 
+	SectorAStarGrid* lowPlanners;
 	// ABSTRACTION MODE
 	int t;
 	set<int> sectors_touched; // the sectors that the UAV has touched...
 private:
-	AStarManager* planners; // shared with the simulator (for now);
+	TypeAStarAbstract* highPlanners; // shared with the simulator (for now);
 };
 
 	static bool at_destination(const std::shared_ptr<UAV> &u){

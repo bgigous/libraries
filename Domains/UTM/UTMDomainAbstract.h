@@ -2,7 +2,7 @@
 #include "../IDomainStateful.h"
 #include "../../Math/easymath.h"
 #include "../../FileIO/easyio/easyio.h"
-#include "../../Planning/AStarManager.h"
+#include "../../Planning/TypeAStarAbstract.h"
 #include "../../Math/Matrix.h"
 #include "../../projects/IROS2015/IROS2015/AirspaceMap.h"
 #include "UAV.h"
@@ -36,7 +36,7 @@ public:
 	void getNewUAVTraffic();
 	void absorbUAVTraffic();
 	
-	AStarManager* planners;
+	TypeAStarAbstract* highPlanners;
 	
 	// Base function overloads
 	matrix2d getStates();

@@ -19,7 +19,7 @@ typedef std::vector<double> matrix1d;
 class Load{
 public:
 	// This class loads data from files into variables. Static only class.
-	static void loadVariable(Numeric_lib::Matrix<int,2> **var, std::string filename, std::string separator = STRING_UNINITIALIZED);
+	static void loadVariable(Numeric_lib::Matrix<int,2> *var, std::string filename, std::string separator = STRING_UNINITIALIZED);
 	static void loadVariable(Numeric_lib::Matrix<bool,2> **var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED);
 	static void loadVariable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator = STRING_UNINITIALIZED);
 	static void loadVariable(std::vector<easymath::XY> &var, std::string filename, std::string separator = STRING_UNINITIALIZED);

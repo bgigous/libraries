@@ -86,10 +86,15 @@ public:
 			bool inserted;
 			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
 		}
+
+		for (unsigned int i=0; i<locations.size(); i++){
+			loc2mem[locations[i]]=i; // add in reverse lookup
+		}
+
 		setWeights(matrix1d(edge_array.size(),1.0));
 	}
 
-	// For blocking 
+	// WEIGHT MODIFICATIONS
 	matrix1d saved_weights; // for blocking and unblocking sectors
 	void blockVertex(int vertexID){
 		// Makes it highly suboptimal to travel to a vertex
@@ -100,8 +105,8 @@ public:
 		edge_iter ei, ei_end;
 		int i=0;
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
-			if ((*ei).m_target==vertex(vertexID));
-			put(edge_weight,g,*ei,999999.99);
+			if ((*ei).m_target==vertex(vertexID))
+				put(edge_weight,g,*ei,999999.99);
 		}
 	}
 
@@ -137,6 +142,7 @@ public:
 	// A* fundamentals
 	mygraph_t g;
 	vector<XY> locations;
+	map<XY, int> loc2mem;
 
 	list<int> vertex2int(list<vertex> vertexpath){
 		list<int> intpath;
@@ -169,6 +175,5 @@ public:
 		}
 		return list<int>(1,int(start)); // fail to find path: stay in one place
 	}
-
 };
 

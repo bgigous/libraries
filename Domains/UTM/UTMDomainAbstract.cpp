@@ -44,24 +44,21 @@ UTMDomainAbstract::UTMDomainAbstract()
 	conflict_random_reallocation = matrix1d(n_agents,0.0);
 	
 	// Planning
-	planners = new AStarManager(n_types, airspace->edges, airspace->agentLocs); //NOTE: MAY NOT HAVE TO MAKE A DIFFERENT ONE FOR ABSTRACTION???
+	highPlanners = new TypeAStarAbstract(n_types, airspace->edges, airspace->agentLocs); //NOTE: MAY NOT HAVE TO MAKE A DIFFERENT ONE FOR ABSTRACTION???
 
 	// initialize fixes
 	for (unsigned int i=0; i<sectors->size(); i++){
-		fixes->push_back(Fix(sectors->at(i).xy,i,planners));
+		fixes->push_back(Fix(sectors->at(i).xy,i,highPlanners, NULL));
 	}
 }
 
 
 UTMDomainAbstract::~UTMDomainAbstract(void)
 {
-	delete fixes;
-	delete sectors;
-	delete planners;
 }
 
 double UTMDomainAbstract::getGlobalReward(){
-	return -conflict_count; // REPLACE THIS LATER
+	return -conflict_count;
 }
 
 matrix1d UTMDomainAbstract::getPerformance(){
@@ -191,7 +188,7 @@ matrix2d UTMDomainAbstract::getStates(){
 
 void UTMDomainAbstract::simulateStep(matrix2d agent_actions){
 	static int calls=0;
-	planners->setCostMaps(agent_actions);
+	highPlanners->setCostMaps(agent_actions);
 	absorbUAVTraffic();
 	if (Fix::_traffic_mode==Fix::PROBABILISTIC || calls%10==0)
 		getNewUAVTraffic();

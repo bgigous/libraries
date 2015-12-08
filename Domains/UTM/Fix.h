@@ -4,11 +4,12 @@
 #include <vector>
 #include <memory>
 #include "UAV.h"
-#include "../../Planning/AStarManager.h"
+#include "../../Planning/TypeAStarAbstract.h"
+#include "../../projects/IROS2015/IROS2015/SectorAStarGrid.h"
 
 class Fix{
 public:
-	Fix(XY loc, int ID, AStarManager* planners);
+	Fix(XY loc, int ID, TypeAStarAbstract* planners, SectorAStarGrid* lowPlanners);
 	~Fix(){};
 	
 	
@@ -19,13 +20,15 @@ public:
 
 	std::list<std::shared_ptr<UAV> > generateTraffic(std::vector<Fix>* fixes);
 	
-	void absorbTraffic(std::list<UAV>* UAVs);
 	bool atDestinationFix(const UAV &u);
 	int ID;
-	AStarManager* planners; // for passing in for UAV creation
+
 	XY loc;
 
 private:
+	// FOR PASSING IN TO UAVS
+	TypeAStarAbstract* highPlanners;
+	SectorAStarGrid* lowPlanners;
 	double p_gen;
 	const double dist_thresh;
 	
