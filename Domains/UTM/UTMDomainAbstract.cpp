@@ -13,26 +13,36 @@ UTMDomainAbstract::UTMDomainAbstract()
 
 	// Mode hardcoding
 	_reward_mode = DIFFERENCE_AVG;
-	_airspace_mode = SAVED;
+	_airspace_mode = GENERATED;
 
 	// Object creation
 	sectors = new vector<Sector>();
 	fixes = new vector<Fix>();
 	
 	if (_airspace_mode == SAVED){
-		airspace = new AirspaceMap("agent_map/agent_map.csv","agent_map/edges.csv", n_types,2.0);
-		n_agents = airspace->agentLocs.size();
+		//airspace = new AirspaceMap("agent_map/agent_map.csv","agent_map/edges.csv", n_types,2.0);
+		//n_agents = airspace->agentLocs.size();
+		highPlanners = new TypeAStarAbstract("agent_map/agent_map.csv","agent_map/edges.csv",n_types);
+		n_agents = highPlanners->getNAgents();
 	} else if(_airspace_mode == GENERATED){
-		airspace = new AirspaceMap(n_agents, n_types, 2.0);
+		//airspace = new AirspaceMap(n_agents, n_types, 2.0);
+		highPlanners = new TypeAStarAbstract(n_agents,n_types,200.0,200.0);
 	}
 
 	// Add sectors
 	for (int i=0; i<n_agents; i++){
-		sectors->push_back(Sector(airspace->agentLocs[i],i, n_agents, vector<int>()));
+		sectors->push_back(Sector(highPlanners->getLocation(i),i, n_agents, vector<int>()));
 		sectors->at(i).conflicts = matrix1d(UAV::NTYPES,0.0);
 	}
-	for (pair<int,int> i: airspace->edges){
+	for (pair<int,int> i: highPlanners->getEdges()){
 		sectors->at(i.first).connections.push_back(i.second);
+	}
+	sectorCapacity = matrix2d(n_agents,matrix1d(UAV::NTYPES,2.0));
+	connectionTime = matrix2d(n_agents,matrix1d(n_agents,0.0));
+	for (unsigned int i=0; i<sectors->size(); i++){
+		for (unsigned int j=0; j<sectors->size(); j++){
+			connectionTime[i][j] = manhattanDist(sectors->at(i).xy,sectors->at(j).xy);
+		}
 	}
 
 	fixed_types=vector<int>(n_agents,0);
@@ -43,9 +53,6 @@ UTMDomainAbstract::UTMDomainAbstract()
 	conflict_node_average = matrix1d(n_agents,0.0);
 	conflict_random_reallocation = matrix1d(n_agents,0.0);
 	
-	// Planning
-	highPlanners = new TypeAStarAbstract(n_types, airspace->edges, airspace->agentLocs); //NOTE: MAY NOT HAVE TO MAKE A DIFFERENT ONE FOR ABSTRACTION???
-
 	// initialize fixes
 	for (unsigned int i=0; i<sectors->size(); i++){
 		fixes->push_back(Fix(sectors->at(i).xy,i,highPlanners, NULL));
@@ -68,7 +75,7 @@ matrix1d UTMDomainAbstract::getPerformance(){
 matrix1d UTMDomainAbstract::getDifferenceReward(){
 	// REMOVE THE AGENT FROM THE SYSTEM
 
-	for (int i=0; i<sectors->size(); i++){
+	for (unsigned int i=0; i<sectors->size(); i++){
 		for (int j=0; j<UAV::NTYPES; j++){
 			conflict_node_average[i] += sectors->at(i).conflicts[j];
 		}
@@ -139,7 +146,7 @@ void UTMDomainAbstract::incrementUAVPath(){
 	// in abstraction mode, move to next center of target
 	for (std::shared_ptr<UAV> &u: UAVs){
 		if (u->pathChanged){
-			u->t = int(airspace->connectionTime[u->curSectorID()][u->nextSectorID()]);
+			u->t = int(connectionTime[u->curSectorID()][u->nextSectorID()]);
 		} else if (u->t <=0){
 			u->high_path_prev.pop_front();
 			u->loc = sectors->at(u->high_path_prev.front()).xy;
@@ -230,7 +237,7 @@ void UTMDomainAbstract::detectConflicts(){
 	// count the over capacity here
 
 	// Calculate the amount OVER or UNDER the given capacity
-	matrix2d cap = airspace->sectorCapacity;
+	matrix2d cap = sectorCapacity;
 
 	for (std::shared_ptr<UAV> &u: UAVs){
 		double c = cap[u->curSectorID()][u->type_ID]--;
@@ -297,7 +304,7 @@ void UTMDomainAbstract::exportLog(std::string fid, double G){
 
 void UTMDomainAbstract::reset(){
 
-	for (int i=0; i<sectors->size(); i++){
+	for (unsigned int i=0; i<sectors->size(); i++){
 		sectors->at(i).steps=0;
 		sectors->at(i).conflicts = matrix1d(UAV::NTYPES,0.0);
 	}

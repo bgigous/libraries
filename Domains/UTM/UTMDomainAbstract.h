@@ -4,7 +4,6 @@
 #include "../../FileIO/easyio/easyio.h"
 #include "../../Planning/TypeAStarAbstract.h"
 #include "../../Math/Matrix.h"
-#include "../../projects/IROS2015/IROS2015/AirspaceMap.h"
 #include "UAV.h"
 #include "Sector.h"
 #include "Fix.h"
@@ -23,7 +22,6 @@ public:
 	double getGlobalReward();
 	matrix1d getLocalReward();
 
-	AirspaceMap* airspace;
 	enum AirspaceMode{SAVED,GENERATED};
 	AirspaceMode _airspace_mode;
 
@@ -33,6 +31,8 @@ public:
 	
 	// Traffic
 	std::list<std::shared_ptr<UAV> > UAVs; // this is in a list because it has to be modified often. Never tie an ID/index to a UAV
+	matrix2d sectorCapacity;
+	matrix2d connectionTime;
 	void getNewUAVTraffic();
 	void absorbUAVTraffic();
 	

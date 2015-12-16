@@ -5,7 +5,7 @@
 #include <memory>
 #include "UAV.h"
 #include "../../Planning/TypeAStarAbstract.h"
-#include "../../projects/IROS2015/IROS2015/SectorAStarGrid.h"
+#include "../../Planning/SectorAStarGrid.h"
 
 class Fix{
 public:

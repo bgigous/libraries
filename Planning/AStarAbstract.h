@@ -1,6 +1,7 @@
 #pragma once
 
 // Boost includes
+#include <boost/graph/make_maximal_planar.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/random.hpp>
@@ -76,6 +77,7 @@ public:
 	typedef mygraph_t::edge_descriptor edge_descriptor;
 	typedef mygraph_t::vertex_iterator vertex_iterator;
 	typedef std::pair<int, int> edge;
+
 	AStarAbstract(vector<XY> locations_set, vector<edge> &edge_array):
 		locations(locations_set)
 	{

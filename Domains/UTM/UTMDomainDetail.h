@@ -6,7 +6,7 @@
 
 // Library includes
 #include "UTMDomainAbstract.h"
-#include "../../projects/IROS2015/IROS2015/SectorAStarGrid.h"
+#include "../../Planning/SectorAStarGrid.h"
 
 
 using namespace std;
