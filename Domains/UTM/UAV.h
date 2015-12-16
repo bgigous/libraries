@@ -25,8 +25,8 @@ public:
 	UAV(easymath::XY start_loc, easymath::XY end_loc, UAVType t, TypeAStarAbstract* highPlanners, SectorAStarGrid* lowPlanners);
 
 	~UAV(){
-		//printf("UAV %i dying.\n", ID);
-		//system("pause");
+		/*printf("UAV %i dying.\n", ID);
+		system("pause");*/
 	}
 	
 	int getDirection(); // gets the cardinal direction of the UAV

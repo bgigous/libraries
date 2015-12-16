@@ -32,7 +32,7 @@ TypeAStarAbstract::TypeAStarAbstract(int n_vertices, int n_types, double gridSiz
 
 	// voronoi
 
-	//Construct a planar graph
+	//Construct a planar graph // NEW
 	/*do {
 		for (unsigned int i=0; i<2*agentLocs.size(); i++){ // scales with number of agents (tries to add 2x the number of agents before testing connectedness)
 			// Add edge randomly
@@ -44,15 +44,48 @@ TypeAStarAbstract::TypeAStarAbstract(int n_vertices, int n_types, double gridSiz
 		}
 	} while (!fullyConnected(agentLocs));*/
 
+
+	vector<pair<int,int> > candidates;
+	for (int i=0; i<agentLocs.size(); i++){
+		for (int j=0; j<agentLocs.size(); j++){
+			if (i==j) continue;
+			candidates.push_back(make_pair(i,j));
+		}
+	}
+	random_shuffle(candidates.begin(), candidates.end());
+
+	for (pair<int,int> c: candidates){
+		if (!intersectsExistingEdge(c,agentLocs)) edges.push_back(c);
+	}
+
+	/*for (unsigned int i=0; i<agentLocs.size(); i++){
+		for (unsigned int j=0; j<agentLocs.size(); j++){
+			if (i==j) continue;
+			pair<int,int> candidate = pair<int,int>(i,j);
+
+			if (!intersectsExistingEdge(candidate, agentLocs)) edges.push_back(candidate);
+		}
+	}*/
+
+	bool isfullyconnected = fullyConnected(agentLocs);
+
+	for (unsigned int i=0; i<agentLocs.size(); i++){
+		loc2mem[agentLocs[i]]=i; // add in reverse lookup
+	}
+
 	initializeTypeLookupAndDirections(agentLocs);
 }
 
-/*
+
 bool TypeAStarAbstract::intersectsExistingEdge(pair<int, int> candidate, vector<XY> agentLocs){
 	for (pair<int,int> e:edges){
-		if (intersects(pair<XY,XY>(agentLocs[e.first],agentLocs[e.second]),pair<XY,XY>(agentLocs[candidate.first],agentLocs[candidate.second]))){
+		if (candidate.first==e.first 
+			|| candidate.first == e.second 
+			|| candidate.second == e.first 
+			|| candidate.second == e.second)
+			return false;
+		else if (intersects(pair<XY,XY>(agentLocs[e.first],agentLocs[e.second]),pair<XY,XY>(agentLocs[candidate.first],agentLocs[candidate.second])))
 			return true;
-		}
 	}
 	return false;
 }
@@ -62,13 +95,14 @@ bool TypeAStarAbstract::fullyConnected(vector<XY> agentLocs){
 
 	for (unsigned int i=0; i<agentLocs.size(); i++){
 		for (unsigned int j=0; j<agentLocs.size(); j++){
+			if (i==j) continue;
 			list<int> path = a.search(i,j);
 			if (path.size()==1) return false;
 		}
 	}
 	return true;
 }
-*/
+
 
 TypeAStarAbstract::~TypeAStarAbstract(void)
 {

@@ -89,9 +89,9 @@ public:
 			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
 		}
 
-		for (unsigned int i=0; i<locations.size(); i++){
+		/*for (unsigned int i=0; i<locations.size(); i++){
 			loc2mem[locations[i]]=i; // add in reverse lookup
-		}
+		}*/
 
 		setWeights(matrix1d(edge_array.size(),1.0));
 	}
@@ -144,7 +144,7 @@ public:
 	// A* fundamentals
 	mygraph_t g;
 	vector<XY> locations;
-	map<XY, int> loc2mem;
+	//map<XY, int> loc2mem;
 
 	list<int> vertex2int(list<vertex> vertexpath){
 		list<int> intpath;

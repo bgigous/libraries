@@ -7,7 +7,7 @@ UTMDomainAbstract::UTMDomainAbstract()
 	// Hardcoding of base constants
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	n_control_elements=n_state_elements*UAV::NTYPES;
-	n_steps=2; // steps of simulation time// TESTING PARAMETER: CHANGED FROM 100
+	n_steps=100; // steps of simulation time// TESTING PARAMETER: CHANGED FROM 100
 	n_types=UAV::NTYPES;
 	n_agents = 20;
 
