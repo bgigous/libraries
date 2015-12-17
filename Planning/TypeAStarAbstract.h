@@ -32,7 +32,7 @@ public:
 	// Accessor functions
 	int getMembership(easymath::XY pt);
 	XY getLocation(int sectorID);
-	vector<Edge>& getEdges();
+	vector<Edge> getEdges();
 	int getNAgents();
 
 private: 

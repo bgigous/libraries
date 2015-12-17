@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 typedef std::vector<double> matrix1d;
 typedef std::vector<std::vector<double> > matrix2d;
@@ -19,7 +20,7 @@ public:
 	virtual void simulateStep(matrix2d agent_actions)=0; // Simulates a step
 	virtual void reset()=0;
 	virtual void logStep(int step)=0;
-	virtual void exportLog(std::string fid, double G)=0;
+	virtual std::string createExperimentDirectory()=0; // creates a directory for the current domain's parameters
 
 	// constants
 	bool type_blind;

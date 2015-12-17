@@ -9,7 +9,7 @@
 
 class Fix{
 public:
-	Fix(XY loc, int ID, TypeAStarAbstract* planners, SectorAStarGrid* lowPlanners);
+	Fix(XY loc, int ID, TypeAStarAbstract* planners, SectorAStarGrid* lowPlanners, vector<Fix>* fixes);
 	~Fix(){};
 	
 	
@@ -18,18 +18,20 @@ public:
 	enum ArrivalMode{EXACT, THRESHOLD};
 	const ArrivalMode _arrival_mode;
 
-	std::list<std::shared_ptr<UAV> > generateTraffic(std::vector<Fix>* fixes);
+	std::list<std::shared_ptr<UAV> > generateTraffic(int step);
 	
 	bool atDestinationFix(const UAV &u);
 	int ID;
 
 	XY loc;
+	double p_gen;
+	int gen_rate;
 
 private:
 	// FOR PASSING IN TO UAVS
 	TypeAStarAbstract* highPlanners;
 	SectorAStarGrid* lowPlanners;
-	double p_gen;
+	vector<Fix>* fixes; // for generating destinations
 	const double dist_thresh;
 	
 };

@@ -56,12 +56,12 @@ public:
 			nets.push_back(wt_info);
 		}
 
-		PrintOut::toFile2D(nets,fileout);
+		FileOut::print2D(nets,fileout);
 	}
 
 	void load(std::string filein){
 		matrix2d netinfo;
-		DataManip::loadVariable(&netinfo,filein);
+		FileIn::loadVariable(&netinfo,filein);
 
 		int i=0;
 		for (NeuralNet* p: population){

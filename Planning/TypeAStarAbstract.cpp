@@ -16,8 +16,8 @@ TypeAStarAbstract::TypeAStarAbstract(string edgesFile, string verticesFile, int 
 {
 	vector<XY> agentLocs;
 	// Read in files for sector management
-	Load::loadVariable(agentLocs, verticesFile);
-	Load::loadVariable(edges, edgesFile);
+	FileIn::loadVariable(agentLocs, verticesFile);
+	FileIn::loadVariable(edges, edgesFile);
 
 	initializeTypeLookupAndDirections(agentLocs);
 }
@@ -30,24 +30,9 @@ TypeAStarAbstract::TypeAStarAbstract(int n_vertices, int n_types, double gridSiz
 		l = XY(rand()%int(gridSizeX),rand()%int(gridSizeY));
 	}
 
-	// voronoi
-
-	//Construct a planar graph // NEW
-	/*do {
-		for (unsigned int i=0; i<2*agentLocs.size(); i++){ // scales with number of agents (tries to add 2x the number of agents before testing connectedness)
-			// Add edge randomly
-			int p1 = int(rand()%agentLocs.size());
-			int p2 = int(rand()%agentLocs.size());
-			pair<int,int> candidate = pair<int,int>(p1,p2);
-
-			if (!intersectsExistingEdge(candidate, agentLocs)) edges.push_back(candidate);
-		}
-	} while (!fullyConnected(agentLocs));*/
-
-
 	vector<pair<int,int> > candidates;
-	for (int i=0; i<agentLocs.size(); i++){
-		for (int j=0; j<agentLocs.size(); j++){
+	for (unsigned int i=0; i<agentLocs.size(); i++){
+		for (unsigned int j=0; j<agentLocs.size(); j++){
 			if (i==j) continue;
 			candidates.push_back(make_pair(i,j));
 		}
@@ -57,15 +42,6 @@ TypeAStarAbstract::TypeAStarAbstract(int n_vertices, int n_types, double gridSiz
 	for (pair<int,int> c: candidates){
 		if (!intersectsExistingEdge(c,agentLocs)) edges.push_back(c);
 	}
-
-	/*for (unsigned int i=0; i<agentLocs.size(); i++){
-		for (unsigned int j=0; j<agentLocs.size(); j++){
-			if (i==j) continue;
-			pair<int,int> candidate = pair<int,int>(i,j);
-
-			if (!intersectsExistingEdge(candidate, agentLocs)) edges.push_back(candidate);
-		}
-	}*/
 
 	bool isfullyconnected = fullyConnected(agentLocs);
 
@@ -150,12 +126,12 @@ XY TypeAStarAbstract::getLocation(int sectorID){
 	return Astar_highlevel[0]->locations[sectorID];
 }
 
-vector<TypeAStarAbstract::Edge>& TypeAStarAbstract::getEdges(){
+vector<TypeAStarAbstract::Edge> TypeAStarAbstract::getEdges(){
 	return edges;
 }
 
 int TypeAStarAbstract::getNAgents(){
-	return sector_dir_map.size();
+	return Astar_highlevel[0]->locations.size();
 }
 
 void TypeAStarAbstract::initializeTypeLookupAndDirections(vector<XY> agentLocs)

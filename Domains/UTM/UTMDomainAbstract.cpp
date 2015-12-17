@@ -7,13 +7,15 @@ UTMDomainAbstract::UTMDomainAbstract()
 	// Hardcoding of base constants
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	n_control_elements=n_state_elements*UAV::NTYPES;
-	n_steps=100; // steps of simulation time// TESTING PARAMETER: CHANGED FROM 100
+	n_steps=2; // steps of simulation time// TESTING PARAMETER: CHANGED FROM 100
 	n_types=UAV::NTYPES;
 	n_agents = 20;
 
+	
+
 	// Mode hardcoding
 	_reward_mode = DIFFERENCE_AVG;
-	_airspace_mode = GENERATED;
+	_airspace_mode = SAVED;
 
 	// Object creation
 	sectors = new vector<Sector>();
@@ -22,7 +24,7 @@ UTMDomainAbstract::UTMDomainAbstract()
 	if (_airspace_mode == SAVED){
 		//airspace = new AirspaceMap("agent_map/agent_map.csv","agent_map/edges.csv", n_types,2.0);
 		//n_agents = airspace->agentLocs.size();
-		highPlanners = new TypeAStarAbstract("agent_map/agent_map.csv","agent_map/edges.csv",n_types);
+		highPlanners = new TypeAStarAbstract("agent_map/edges.csv","agent_map/agent_map.csv",n_types);
 		n_agents = highPlanners->getNAgents();
 	} else if(_airspace_mode == GENERATED){
 		//airspace = new AirspaceMap(n_agents, n_types, 2.0);
@@ -32,12 +34,12 @@ UTMDomainAbstract::UTMDomainAbstract()
 	// Add sectors
 	for (int i=0; i<n_agents; i++){
 		sectors->push_back(Sector(highPlanners->getLocation(i),i, n_agents, vector<int>()));
-		sectors->at(i).conflicts = matrix1d(UAV::NTYPES,0.0);
+		sectors->at(i).conflicts = matrix1d(n_types,0.0);
 	}
 	for (pair<int,int> i: highPlanners->getEdges()){
 		sectors->at(i.first).connections.push_back(i.second);
 	}
-	sectorCapacity = matrix2d(n_agents,matrix1d(UAV::NTYPES,2.0));
+	sectorCapacity = matrix2d(n_agents,matrix1d(n_types,2.0));
 	connectionTime = matrix2d(n_agents,matrix1d(n_agents,0.0));
 	for (unsigned int i=0; i<sectors->size(); i++){
 		for (unsigned int j=0; j<sectors->size(); j++){
@@ -55,7 +57,7 @@ UTMDomainAbstract::UTMDomainAbstract()
 	
 	// initialize fixes
 	for (unsigned int i=0; i<sectors->size(); i++){
-		fixes->push_back(Fix(sectors->at(i).xy,i,highPlanners, NULL));
+		fixes->push_back(Fix(sectors->at(i).xy,i,highPlanners, NULL, fixes));
 	}
 }
 
@@ -197,8 +199,7 @@ void UTMDomainAbstract::simulateStep(matrix2d agent_actions){
 	static int calls=0;
 	highPlanners->setCostMaps(agent_actions);
 	absorbUAVTraffic();
-	if (Fix::_traffic_mode==Fix::PROBABILISTIC || calls%10==0)
-		getNewUAVTraffic();
+	getNewUAVTraffic(calls);
 	calls++;
 	getPathPlans();
 	incrementUAVPath();
@@ -299,9 +300,6 @@ void UTMDomainAbstract::getPathPlans(std::list<std::shared_ptr<UAV> > &new_UAVs)
 	}
 }
 
-void UTMDomainAbstract::exportLog(std::string fid, double G){
-}
-
 void UTMDomainAbstract::reset(){
 
 	for (unsigned int i=0; i<sectors->size(); i++){
@@ -322,17 +320,43 @@ void UTMDomainAbstract::absorbUAVTraffic(){
 }
 
 
-void UTMDomainAbstract::getNewUAVTraffic(){
-	//static int calls = 0;
-	//static vector<XY> UAV_targets; // making static targets
+void UTMDomainAbstract::getNewUAVTraffic(int step){
 
 	// Generates (with some probability) plane traffic for each sector
 	list<std::shared_ptr<UAV> > all_new_UAVs;
 	for (Fix f: *fixes){
-		list<std::shared_ptr<UAV> > new_UAVs = f.generateTraffic(fixes);
+		list<std::shared_ptr<UAV> > new_UAVs = f.generateTraffic(step);
 		all_new_UAVs.splice(all_new_UAVs.end(),new_UAVs);
 	}
 
 	UAVs.splice(UAVs.end(),all_new_UAVs);
-	//calls++;
+}
+
+string UTMDomainAbstract::createExperimentDirectory(){
+	// Creates a directory for the experiment and then returns that as a string
+	// DIRECTORY HIERARCHY: EXPERIMENTS/NAGENTS/TRAFFIC/CAPACITY/REWARDTYPE/
+	// typehandling(file name).csv assumed
+	string AGENT_FOLDER = EXPERIMENT_FOLDER+to_string(n_agents)+"_Agents/";
+	string TRAFFIC_FOLDER;
+	if (Fix::_traffic_mode==Fix::DETERMINISTIC){
+		TRAFFIC_FOLDER = AGENT_FOLDER + "Deterministic_" + to_string(fixes->at(0).gen_rate), + "_Traffic/";
+	} else {
+		TRAFFIC_FOLDER = AGENT_FOLDER + "Probabilistic_" + to_string(fixes->at(0).p_gen*100) + "_Traffic/";
+	}
+	string CAPACITY_FOLDER = TRAFFIC_FOLDER + to_string(sectorCapacity[0][0]) + "_Capacity/"; // assume uniform sector capacity
+	string REWARD_FOLDER = CAPACITY_FOLDER + to_string(_reward_mode) + "_Reward/";
+
+	return REWARD_FOLDER;
+}
+
+string UTMDomainAbstract::getRewardModeName(RewardMode mode){
+	string reward_names[RewardMode::NMODES] = {
+		"GLOBAL-", 
+		"DIFFERENCE_DOWNSTREAM-",
+		"DIFFERENCE_TOUCHED-",
+		"DIFFERENCE_REALLOC-",
+		"DIFFERENCE_AVG-",
+	};
+
+	return reward_names[mode];
 }

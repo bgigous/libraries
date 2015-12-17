@@ -50,12 +50,15 @@ public:
 		if (high_path_prev.size()>1){
 			return *std::next(high_path_prev.begin()); // return second element (towards) of path
 		} else {
-			return highPlanners->getMembership(loc); // return current sector
+			return curSectorID(); // return current sector
 		}
 	}
 
 	int curSectorID(){
-		return highPlanners->getMembership(loc); // return current sector
+		if (lowPlanners==NULL)
+			return highPlanners->getMembership(loc); // return current sector
+		else 
+			return lowPlanners->getMembership(loc);
 	}
 	int endSectorID(){
 		return highPlanners->getMembership(end_loc);

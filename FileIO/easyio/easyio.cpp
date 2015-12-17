@@ -5,9 +5,9 @@
 using namespace std;
 using namespace Numeric_lib;
 
-void Load::loadVariable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator){
+void FileIn::loadVariable(std::vector<std::vector<bool> >* var, std::string filename, double thresh, std::string separator){
 	// must be above threshold to be counted as a boolean
-	string_matrix2d f = FileManip::read(filename, separator);
+	string_matrix2d f = read(filename, separator);
 	*var = std::vector<std::vector<bool> >(f.size());
 
 	for (unsigned int i=0; i<f.size(); i++){
@@ -23,9 +23,9 @@ void Load::loadVariable(std::vector<std::vector<bool> >* var, std::string filena
 }
 
 
-void Load::loadVariable(Matrix<bool,2> **var, std::string filename, double thresh, std::string separator){
+void FileIn::loadVariable(Matrix<bool,2> **var, std::string filename, double thresh, std::string separator){
 	// must be above threshold to be counted as a boolean
-	string_matrix2d f = FileManip::read(filename, separator);
+	string_matrix2d f = read(filename, separator);
 	Matrix<bool,2> * mat = new Matrix<bool,2>(f.size(),f[0].size());
 
 	for (unsigned int i=0; i<f.size(); i++){
@@ -40,20 +40,20 @@ void Load::loadVariable(Matrix<bool,2> **var, std::string filename, double thres
 	(*var) = mat;
 }
 
-void Load::loadVariable(Matrix<int,2> *var, std::string filename, std::string separator){
-	string_matrix2d f = FileManip::read(filename, separator);
-	Matrix<int,2> mat(f.size(),f[0].size());
+void FileIn::loadVariable(Matrix<int,2> **var, std::string filename, std::string separator){
+	string_matrix2d f = read(filename, separator);
+	Matrix<int,2> * mat = new Matrix<int, 2>(f.size(),f[0].size());
 
 	for (unsigned int i=0; i<f.size(); i++){
 		for (unsigned int j=0; j<f[i].size(); j++){
-			mat(i,j) = atoi(f[i][j].c_str());
+			mat->at(i,j) = atoi(f[i][j].c_str());
 		}
 	}
 	(*var)=mat;
 }
 
-void Load::loadVariable(std::vector<easymath::XY> &var, std::string filename, std::string separator){
-	string_matrix2d f = FileManip::read(filename, separator);
+void FileIn::loadVariable(std::vector<easymath::XY> &var, std::string filename, std::string separator){
+	string_matrix2d f = read(filename, separator);
 	var.clear();
 	for (string_matrix1d i:f){
 		if (i.size()!=2){
@@ -67,8 +67,8 @@ void Load::loadVariable(std::vector<easymath::XY> &var, std::string filename, st
 	}
 }
 
-void Load::loadVariable(std::vector<std::pair<int,int> > &var, std::string filename, std::string separator){
-	string_matrix2d f = FileManip::read(filename, separator);
+void FileIn::loadVariable(std::vector<std::pair<int,int> > &var, std::string filename, std::string separator){
+	string_matrix2d f = read(filename, separator);
 	var.clear();
 	for (string_matrix1d i:f){
 		if (i.size()!=2){
@@ -82,8 +82,8 @@ void Load::loadVariable(std::vector<std::pair<int,int> > &var, std::string filen
 	}
 }
 
-void Load::loadVariable(matrix2d &var, std::string filename, std::string separator){
-	string_matrix2d f = FileManip::read(filename, separator);
+void FileIn::loadVariable(matrix2d &var, std::string filename, std::string separator){
+	string_matrix2d f = read(filename, separator);
 	var.clear();
 	
 	for (string_matrix1d i:f){
@@ -95,7 +95,7 @@ void Load::loadVariable(matrix2d &var, std::string filename, std::string separat
 	}
 }
 
-matrix2d FileManip::str2double(string_matrix2d mystring){
+matrix2d FileIn::str2double(string_matrix2d mystring){
 	matrix2d mymatrix = matrix2d(mystring.size());
 	for (unsigned int i=0; i<mystring.size(); i++){
 		mymatrix[i] = matrix1d(mystring[i].size());
@@ -107,7 +107,7 @@ matrix2d FileManip::str2double(string_matrix2d mystring){
 }
 
 
-vector<string> FileManip::divide(string myString, string separator){
+vector<string> FileIn::divide(string myString, string separator){
 	//----- Divides a string at the points of 'separator' -----//
 	vector<string> divided;
 	while (myString.find(separator)!=string::npos){
@@ -128,7 +128,7 @@ void PrintOut::screen(vector<string> myVector, string separator){
 	}
 }
 
-vector<vector<string> > FileManip::read(string filename, string separator){
+string_matrix2d FileIn::read(string filename, string separator){
 	//----- Reads in a file and converts to a vector matrix of strings -----//
 
 	if (separator==STRING_UNINITIALIZED){
@@ -166,16 +166,16 @@ vector<vector<string> > FileManip::read(string filename, string separator){
 	return filematrix;
 }
 
-matrix2d FileManip::readDouble(std::string filename, std::string separator){
+matrix2d FileIn::readDouble(std::string filename, std::string separator){
 	string_matrix2d temp = read(filename, separator);
 	return str2double(temp);
 }
 
-double DataManip::stringToDouble(string s){
+double FileIn::stringToDouble(string s){
 	return atof(s.c_str());
 }
 
-matrix2d DataManip::stringToDouble(vector<vector<string> > stringVector){
+matrix2d FileIn::stringToDouble(vector<vector<string> > stringVector){
 	matrix2d doubleVector;
 	for (unsigned int i=0; i<stringVector.size(); i++){
 		doubleVector.push_back(vector<double>(stringVector[i].size(),0.0));
@@ -186,7 +186,7 @@ matrix2d DataManip::stringToDouble(vector<vector<string> > stringVector){
 	return doubleVector;
 }
 
-vector<double> DataManip::getColumn(matrix2d doubleVector, unsigned int col){
+vector<double> FileIn::getColumn(matrix2d doubleVector, unsigned int col){
 	vector<double> colVector = vector<double>(doubleVector.size(),0.0);
 	for (unsigned int i=0; i<doubleVector.size(); i++){
 		if (doubleVector[i].size()<=col){
@@ -200,7 +200,7 @@ vector<double> DataManip::getColumn(matrix2d doubleVector, unsigned int col){
 	return colVector;
 }
 
-matrix2d DataManip::getColumns(matrix2d doubleVector, vector<int> cols){
+matrix2d FileIn::getColumns(matrix2d doubleVector, vector<int> cols){
 	matrix2d colVector;
 	for (unsigned int i=0; i<doubleVector.size(); i++){
 		colVector.push_back(vector<double>(cols.size(),0.0));

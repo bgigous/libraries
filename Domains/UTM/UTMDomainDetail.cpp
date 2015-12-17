@@ -3,21 +3,23 @@
 using namespace std;
 using namespace easymath;
 
-UTMDomainDetail::UTMDomainDetail(vector<pair<int,int> > edges):
+UTMDomainDetail::UTMDomainDetail():
+	UTMDomainAbstract(),
 	conflict_thresh(10.0)
 {
-	Matrix<int,2> membership_map(1,1);
-	Load::loadVariable(&membership_map,"agent_map/membership_map.csv");
+	Matrix<int,2> * membership_map = new Matrix<int,2>(1,1);
+	FileIn::loadVariable(&membership_map,"agent_map/membership_map.csv");
 	
 
-	Load::loadVariable(fix_locs,"agent_map/fixes.csv");
+	FileIn::loadVariable(fix_locs,"agent_map/fixes.csv");
 	
 	// Planning
-	lowPlanners = new SectorAStarGrid(membership_map,edges);
+	lowPlanners = new SectorAStarGrid(*membership_map,highPlanners->getEdges());
 		
 	// initialize fixes
+	fixes->clear();
 	for (unsigned int i=0; i<fix_locs.size(); i++){
-		fixes->push_back(Fix(fix_locs[i],i,highPlanners,lowPlanners));
+		fixes->push_back(Fix(fix_locs[i],i,highPlanners,lowPlanners,fixes));
 	}
 	
 	//conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
@@ -117,9 +119,9 @@ void UTMDomainDetail::detectConflicts(){
 		}
 	}
 
-	for (int i=0; i<sectors->size(); i++){
+	for (unsigned int i=0; i<sectors->size(); i++){
 		sectors->at(i).steps++;
 	}
 
-	printf("UAVs=%i\n",UAVs.size());
+	//printf("UAVs=%i\n",UAVs.size());
 }

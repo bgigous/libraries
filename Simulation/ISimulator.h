@@ -23,11 +23,12 @@ public:
 	IMultiagentSystem* MAS;
 	virtual void runExperiment(void)=0; // run the experiment
 	void outputRewardLog(std::string reward_file){
-		PrintOut::toFile1D(reward_log, reward_file);
+		FileOut::print1D(reward_log, reward_file);
 	}
 	void outputMetricLog(std::string metric_file){
 		// Prints out log of performance metric/epoch
-		PrintOut::toFile1D(metric_log,metric_file);
+		std::string filepath = domain->createExperimentDirectory();
+		FileOut::print1D(metric_log,filepath+metric_file);
 	}
 
 	std::vector<double> reward_log;

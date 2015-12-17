@@ -71,7 +71,7 @@ NeuralNet::NeuralNet(int nInputs, int nHidden, int nOutputs, double
 void NeuralNet::load(string filein){
 	// loads neural net specs
 	matrix2d wts;
-	DataManip::loadVariable(&wts,filein);
+	FileIn::loadVariable(&wts,filein);
 
 	// CURRENTLY HARDCODED TO ONLY ALLOW A SINGLE LAYER
 	
@@ -121,7 +121,7 @@ void NeuralNet::save(string fileout){
 			}
 		}
 	}
-	PrintOut::toFile2D(outmatrix,fileout);
+	FileOut::print2D(outmatrix,fileout);
 }
 
 void NeuralNet::load(matrix1d node_info, matrix1d wt_info){
@@ -129,9 +129,9 @@ void NeuralNet::load(matrix1d node_info, matrix1d wt_info){
 	
 	/// TOP CONTAINS TOPOLOGY INFORMATION
 	nodes_ = vector<int>(3);
-	nodes_[0] = node_info[0];
-	nodes_[1] = node_info[1];
-	nodes_[2] = node_info[2];
+	nodes_[0] = int(node_info[0]);
+	nodes_[1] = int(node_info[1]);
+	nodes_[2] = int(node_info[2]);
 
 	Wbar = matrix3d(connections());
 	W = matrix3d(connections());
@@ -159,7 +159,9 @@ void NeuralNet::load(matrix1d node_info, matrix1d wt_info){
 
 
 void NeuralNet::save(matrix1d &node_info, matrix1d &wt_info){
+	
 	node_info = matrix1d(nodes_.size());
+	
 	for (unsigned int i=0; i<nodes_.size(); i++){
 		node_info[i] = double(nodes_[i]);
 	}
