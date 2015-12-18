@@ -39,7 +39,7 @@ void SimNE::epoch(int ep){
 			for (int s=0; s<domain->n_steps; s++){
 				//printf("Step %i\n",s);
 				matrix2d A = this->getActions(); // must be called by 'this' in order to access potential child class overload
-				domain->simulateStep(A);
+				domain->simulateStep(A,s);
 				domain->logStep(s);
 			}
 			t= clock();

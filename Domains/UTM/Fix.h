@@ -4,12 +4,12 @@
 #include <vector>
 #include <memory>
 #include "UAV.h"
-#include "../../Planning/TypeAStarAbstract.h"
-#include "../../Planning/SectorAStarGrid.h"
+#include "../../Planning/TypeGraphManager.h"
+#include "../../Planning/SectorGraphManager.h"
 
 class Fix{
 public:
-	Fix(XY loc, int ID, TypeAStarAbstract* planners, SectorAStarGrid* lowPlanners, vector<Fix>* fixes);
+	Fix(XY loc, int ID, TypeGraphManager* highGraph, SectorGraphManager* lowGraph, vector<Fix>* fixes);
 	~Fix(){};
 	
 	
@@ -29,8 +29,8 @@ public:
 
 private:
 	// FOR PASSING IN TO UAVS
-	TypeAStarAbstract* highPlanners;
-	SectorAStarGrid* lowPlanners;
+	TypeGraphManager* highGraph;
+	SectorGraphManager* lowGraph;
 	vector<Fix>* fixes; // for generating destinations
 	const double dist_thresh;
 	

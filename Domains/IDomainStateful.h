@@ -17,7 +17,7 @@ public:
 	virtual matrix3d getTypeStates()=0; // [AGENTID][TYPEID][STATEELEMENT]
 	virtual matrix1d getRewards()=0; // Returns the reward vector for a set of agents [AGENTID]
 	virtual matrix1d getPerformance()=0; // returns the performance vector for a set of agents
-	virtual void simulateStep(matrix2d agent_actions)=0; // Simulates a step
+	virtual void simulateStep(matrix2d agent_actions, int step)=0; // Simulates a step
 	virtual void reset()=0;
 	virtual void logStep(int step)=0;
 	virtual std::string createExperimentDirectory()=0; // creates a directory for the current domain's parameters

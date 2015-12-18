@@ -2,7 +2,7 @@
 
 #include "UAV.h"
 #include "../../Math/Matrix.h"
-#include "../../Planning/AStarGrid.h"
+#include "../../Planning/GridGraph.h"
 #include <memory>
 
 

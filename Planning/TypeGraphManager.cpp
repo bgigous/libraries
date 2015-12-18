@@ -1,17 +1,17 @@
-#include "TypeAStarAbstract.h"
+#include "TypeGraphManager.h"
 
 
-TypeAStarAbstract::TypeAStarAbstract(void)
+TypeGraphManager::TypeGraphManager(void)
 {
 }
 
-TypeAStarAbstract::TypeAStarAbstract(int n_types, std::vector<Edge> edges, vector<XY> agentLocs):
+TypeGraphManager::TypeGraphManager(int n_types, std::vector<Edge> edges, vector<XY> agentLocs):
 	n_types(n_types),edges(edges)
 {
 	initializeTypeLookupAndDirections(agentLocs);
 }	
 
-TypeAStarAbstract::TypeAStarAbstract(string edgesFile, string verticesFile, int n_types):
+TypeGraphManager::TypeGraphManager(string edgesFile, string verticesFile, int n_types):
 	n_types(n_types)
 {
 	vector<XY> agentLocs;
@@ -22,7 +22,7 @@ TypeAStarAbstract::TypeAStarAbstract(string edgesFile, string verticesFile, int 
 	initializeTypeLookupAndDirections(agentLocs);
 }
 
-TypeAStarAbstract::TypeAStarAbstract(int n_vertices, int n_types, double gridSizeX, double gridSizeY):
+TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX, double gridSizeY):
 	n_types(n_types)
 {
 	vector<XY> agentLocs = vector<XY>(n_vertices);
@@ -53,7 +53,7 @@ TypeAStarAbstract::TypeAStarAbstract(int n_vertices, int n_types, double gridSiz
 }
 
 
-bool TypeAStarAbstract::intersectsExistingEdge(pair<int, int> candidate, vector<XY> agentLocs){
+bool TypeGraphManager::intersectsExistingEdge(pair<int, int> candidate, vector<XY> agentLocs){
 	for (pair<int,int> e:edges){
 		if (candidate.first==e.first 
 			|| candidate.first == e.second 
@@ -66,13 +66,13 @@ bool TypeAStarAbstract::intersectsExistingEdge(pair<int, int> candidate, vector<
 	return false;
 }
 
-bool TypeAStarAbstract::fullyConnected(vector<XY> agentLocs){
-	AStarAbstract a = AStarAbstract(agentLocs,edges);
+bool TypeGraphManager::fullyConnected(vector<XY> agentLocs){
+	LinkGraph a = LinkGraph(agentLocs,edges);
 
 	for (unsigned int i=0; i<agentLocs.size(); i++){
 		for (unsigned int j=0; j<agentLocs.size(); j++){
 			if (i==j) continue;
-			list<int> path = a.search(i,j);
+			list<int> path = a.astar(i,j);
 			if (path.size()==1) return false;
 		}
 	}
@@ -80,11 +80,11 @@ bool TypeAStarAbstract::fullyConnected(vector<XY> agentLocs){
 }
 
 
-TypeAStarAbstract::~TypeAStarAbstract(void)
+TypeGraphManager::~TypeGraphManager(void)
 {
 }
 
-matrix2d TypeAStarAbstract::sectorTypeVertex2SectorTypeDirection(matrix2d agent_actions){
+matrix2d TypeGraphManager::sectorTypeVertex2SectorTypeDirection(matrix2d agent_actions){
 	// Converts format of agent output to format of A* weights
 	int n_edges = edges.size();
 
@@ -99,20 +99,20 @@ matrix2d TypeAStarAbstract::sectorTypeVertex2SectorTypeDirection(matrix2d agent_
 	return weights;
 }
 
-void TypeAStarAbstract::setCostMaps(matrix2d agent_actions){
+void TypeGraphManager::setCostMaps(matrix2d agent_actions){
 	matrix2d weights = sectorTypeVertex2SectorTypeDirection(agent_actions);
 
-	for (unsigned int i=0; i<Astar_highlevel.size(); i++){
-		Astar_highlevel[i]->setWeights(weights[i]);
+	for (unsigned int i=0; i<Graph_highlevel.size(); i++){
+		Graph_highlevel[i]->setWeights(weights[i]);
 	}
 }
 
 
-list<int> TypeAStarAbstract::search(int mem1, int mem2, int type_ID){
-	return Astar_highlevel[type_ID]->search(mem1,mem2);
+list<int> TypeGraphManager::astar(int mem1, int mem2, int type_ID){
+	return Graph_highlevel[type_ID]->astar(mem1,mem2);
 }
 
-int TypeAStarAbstract::getMembership(easymath::XY pt){
+int TypeGraphManager::getMembership(easymath::XY pt){
 	if (loc2mem.find(pt)!=loc2mem.end()) {
 		return loc2mem[pt];
 	} else {
@@ -122,23 +122,23 @@ int TypeAStarAbstract::getMembership(easymath::XY pt){
 	}
 }
 
-XY TypeAStarAbstract::getLocation(int sectorID){
-	return Astar_highlevel[0]->locations[sectorID];
+XY TypeGraphManager::getLocation(int sectorID){
+	return Graph_highlevel[0]->locations[sectorID];
 }
 
-vector<TypeAStarAbstract::Edge> TypeAStarAbstract::getEdges(){
+vector<TypeGraphManager::Edge> TypeGraphManager::getEdges(){
 	return edges;
 }
 
-int TypeAStarAbstract::getNAgents(){
-	return Astar_highlevel[0]->locations.size();
+int TypeGraphManager::getNAgents(){
+	return Graph_highlevel[0]->locations.size();
 }
 
-void TypeAStarAbstract::initializeTypeLookupAndDirections(vector<XY> agentLocs)
+void TypeGraphManager::initializeTypeLookupAndDirections(vector<XY> agentLocs)
 {
-	Astar_highlevel = std::vector<AStarAbstract*>(n_types);
+	Graph_highlevel = std::vector<LinkGraph*>(n_types);
 	for (int i=0; i<n_types; i++){
-		Astar_highlevel[i] = new AStarAbstract(agentLocs,edges);
+		Graph_highlevel[i] = new LinkGraph(agentLocs,edges);
 	}
 
 	// STATE SPECIFIC

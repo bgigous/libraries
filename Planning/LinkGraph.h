@@ -64,7 +64,7 @@ private:
 	Vertex m_goal;
 };
 
-class AStarAbstract
+class LinkGraph
 {
 public:
 	typedef adjacency_list
@@ -78,7 +78,7 @@ public:
 	typedef mygraph_t::vertex_iterator vertex_iterator;
 	typedef std::pair<int, int> edge;
 
-	AStarAbstract(vector<XY> locations_set, vector<edge> &edge_array):
+	LinkGraph(vector<XY> locations_set, vector<edge> &edge_array):
 		locations(locations_set)
 	{
 		// create graph
@@ -139,7 +139,7 @@ public:
 	}
 
 
-	~AStarAbstract(void){};
+	~LinkGraph(void){};
 	
 	// A* fundamentals
 	mygraph_t g;
@@ -155,7 +155,7 @@ public:
 		return intpath;
 	}
 
-	list<int> search(int start, int goal){
+	list<int> astar(int start, int goal){
 		vector<mygraph_t::vertex_descriptor> p(num_vertices(g));
 		vector<cost> d(num_vertices(g));
 		try {

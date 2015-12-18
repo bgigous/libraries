@@ -3,8 +3,8 @@
 
 
 
-Fix::Fix(XY loc, int ID_set, TypeAStarAbstract* highPlanners, SectorAStarGrid* lowPlanners, vector<Fix>* fixes): 
-	highPlanners(highPlanners), lowPlanners(lowPlanners), fixes(fixes), ID(ID_set), loc(loc),
+Fix::Fix(XY loc, int ID_set, TypeGraphManager* highGraph, SectorGraphManager* lowGraph, vector<Fix>* fixes): 
+	highGraph(highGraph), lowGraph(lowGraph), fixes(fixes), ID(ID_set), loc(loc),
 	_arrival_mode(EXACT), dist_thresh(2.0), gen_rate(10)
 {
 	switch (_traffic_mode){
@@ -38,7 +38,6 @@ bool Fix::atDestinationFix(const UAV &u){
 }
 
 std::list<std::shared_ptr<UAV> > Fix::generateTraffic(int step){
-	static int calls = 0;
 	// Creates a new UAV in the world
 	std::list<std::shared_ptr<UAV> > newTraffic;
 	
@@ -51,10 +50,9 @@ std::list<std::shared_ptr<UAV> > Fix::generateTraffic(int step){
 		} else {
 			end_loc = fixes->at(ID-1).loc; // go to previous
 		}
-		UAV::UAVType type_id_set = UAV::UAVType(calls%int(UAV::UAVType::NTYPES)); // EVEN TYPE NUMBER
-		newTraffic.push_back(std::shared_ptr<UAV>(new UAV(loc,end_loc,type_id_set,highPlanners,lowPlanners)));
+		UAV::UAVType type_id_set = UAV::UAVType(step%int(UAV::UAVType::NTYPES)); // EVEN TYPE NUMBER
+		newTraffic.push_back(std::shared_ptr<UAV>(new UAV(loc,end_loc,type_id_set,highGraph,lowGraph)));
 	}
 
-	calls++;
 	return newTraffic;
 }

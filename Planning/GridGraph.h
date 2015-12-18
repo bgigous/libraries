@@ -24,7 +24,7 @@ using namespace std;
 
 class mt{ // "my types"
 public:
-	// Distance traveled in the AStarGrid
+	// Distance traveled in the GridGraph
 	typedef double distance;
 
 	static const int GRID_RANK=2;
@@ -61,10 +61,22 @@ public:
   mt::vertex_descriptor m_goal;
 };
 
-
-class AStarGrid {
+// Manhattan heuristic
+class manhattan_heuristic:
+	public boost::astar_heuristic<mt::filtered_grid, double>
+{
 public:
-	~AStarGrid();
+	manhattan_heuristic(){};
+  double operator()(mt::vertex_descriptor v) {
+	  return fabs(double(m_goal[0]) - double(v[0])) + fabs(double(m_goal[1]) - double(v[1]));
+  }
+  mt::vertex_descriptor m_goal;
+};
+
+
+class GridGraph {
+public:
+	~GridGraph();
 		// Exception thrown when the goal vertex is found
 	struct found_goal {};
 
@@ -82,11 +94,11 @@ public:
 	};
 
 	// CREATION FUNCTIONS
-	AStarGrid():m_grid(create_grid(0, 0)),m_barrier_grid(create_barrier_grid()) {};
-	AStarGrid(std::size_t x, std::size_t y):m_grid(create_grid(x, y)),
+	GridGraph():m_grid(create_grid(0, 0)),m_barrier_grid(create_barrier_grid()) {};
+	GridGraph(std::size_t x, std::size_t y):m_grid(create_grid(x, y)),
 		m_barrier_grid(create_barrier_grid()) {};
 
-	AStarGrid(Matrix<bool,2> *obstacle_map):
+	GridGraph(Matrix<bool,2> *obstacle_map):
 		m_grid(create_grid(obstacle_map->dim1(),obstacle_map->dim2())),
 		m_barrier_grid(create_barrier_grid())
 	{
@@ -102,7 +114,7 @@ public:
 		}
 	}
 
-	AStarGrid(Matrix<int,2> &members, int m1, int m2):
+	GridGraph(Matrix<int,2> &members, int m1, int m2):
 		m_grid(create_grid(members.dim1(), members.dim2())),
 		m_barrier_grid(create_barrier_grid())
 	{
@@ -177,7 +189,7 @@ public:
 		return maxdist;
 	}
 
-	std::vector<XY> get_solution_path(XY source, XY goal){
+	std::vector<XY> astar(XY source, XY goal){
 		solve((int)source.x,(int)source.y, (int)goal.x, (int)goal.y);
 
 //		printf("size = %i\n",m_solution.size());

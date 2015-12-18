@@ -1,21 +1,63 @@
 #include "UTMDomainAbstract.h"
 
 
-UTMDomainAbstract::UTMDomainAbstract()
+UTMDomainAbstract::UTMDomainAbstract():
+	// MODES
+	_capacity_mode(TWO),
+	_nagents_mode(FIFTEEN),
+	_reward_mode(GLOBAL),
+	_airspace_mode(GENERATED)
 {
 
 	// Hardcoding of base constants
 	n_state_elements=4; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	n_control_elements=n_state_elements*UAV::NTYPES;
-	n_steps=2; // steps of simulation time// TESTING PARAMETER: CHANGED FROM 100
+	n_steps=100; // steps of simulation time// TESTING PARAMETER: CHANGED FROM 100
 	n_types=UAV::NTYPES;
-	n_agents = 20;
 
-	
 
-	// Mode hardcoding
-	_reward_mode = DIFFERENCE_AVG;
-	_airspace_mode = SAVED;
+	switch (_nagents_mode){
+	case FIVE:
+		n_agents = 5;
+		break;
+	case TEN:
+		n_agents = 10;
+		break;
+	case FIFTEEN:
+		n_agents = 15;
+		break;
+	case TWENTY:
+		n_agents = 20;
+		break;
+	case THIRTY:
+		n_agents = 30;
+		break;
+	case FORTY:
+		n_agents = 40;
+		break;
+	case FIFTY:
+		n_agents = 50;
+		break;
+	default:
+		printf("unknown nagents mode");
+	}
+
+	switch(_capacity_mode){
+	case TWO:
+		flat_capacity = 2;
+		break;
+	case FOUR: 
+		flat_capacity = 4;
+		break;
+	case SIX:
+		flat_capacity = 6;
+		break;
+	case EIGHT:
+		flat_capacity = 8;
+		break;
+	default:
+		printf("unknown capacity mode");
+	}
 
 	// Object creation
 	sectors = new vector<Sector>();
@@ -24,22 +66,22 @@ UTMDomainAbstract::UTMDomainAbstract()
 	if (_airspace_mode == SAVED){
 		//airspace = new AirspaceMap("agent_map/agent_map.csv","agent_map/edges.csv", n_types,2.0);
 		//n_agents = airspace->agentLocs.size();
-		highPlanners = new TypeAStarAbstract("agent_map/edges.csv","agent_map/agent_map.csv",n_types);
-		n_agents = highPlanners->getNAgents();
+		highGraph = new TypeGraphManager("agent_map/edges.csv","agent_map/agent_map.csv",n_types);
+		n_agents = highGraph->getNAgents();
 	} else if(_airspace_mode == GENERATED){
 		//airspace = new AirspaceMap(n_agents, n_types, 2.0);
-		highPlanners = new TypeAStarAbstract(n_agents,n_types,200.0,200.0);
+		highGraph = new TypeGraphManager(n_agents,n_types,200.0,200.0);
 	}
 
 	// Add sectors
 	for (int i=0; i<n_agents; i++){
-		sectors->push_back(Sector(highPlanners->getLocation(i),i, n_agents, vector<int>()));
+		sectors->push_back(Sector(highGraph->getLocation(i),i, n_agents, vector<int>()));
 		sectors->at(i).conflicts = matrix1d(n_types,0.0);
 	}
-	for (pair<int,int> i: highPlanners->getEdges()){
+	for (pair<int,int> i: highGraph->getEdges()){
 		sectors->at(i.first).connections.push_back(i.second);
 	}
-	sectorCapacity = matrix2d(n_agents,matrix1d(n_types,2.0));
+	sectorCapacity = matrix2d(n_agents,matrix1d(n_types, flat_capacity));
 	connectionTime = matrix2d(n_agents,matrix1d(n_agents,0.0));
 	for (unsigned int i=0; i<sectors->size(); i++){
 		for (unsigned int j=0; j<sectors->size(); j++){
@@ -57,7 +99,7 @@ UTMDomainAbstract::UTMDomainAbstract()
 	
 	// initialize fixes
 	for (unsigned int i=0; i<sectors->size(); i++){
-		fixes->push_back(Fix(sectors->at(i).xy,i,highPlanners, NULL, fixes));
+		fixes->push_back(Fix(sectors->at(i).xy,i,highGraph, NULL, fixes));
 	}
 }
 
@@ -195,16 +237,13 @@ matrix2d UTMDomainAbstract::getStates(){
 }
 
 
-void UTMDomainAbstract::simulateStep(matrix2d agent_actions){
-	static int calls=0;
-	highPlanners->setCostMaps(agent_actions);
+void UTMDomainAbstract::simulateStep(matrix2d agent_actions, int step){
+	highGraph->setCostMaps(agent_actions);
 	absorbUAVTraffic();
-	getNewUAVTraffic(calls);
-	calls++;
+	getNewUAVTraffic(step);
 	getPathPlans();
 	incrementUAVPath();
 	detectConflicts();
-	//printf("Conflicts %i\n",conflict_count);
 }
 
 
@@ -339,12 +378,19 @@ string UTMDomainAbstract::createExperimentDirectory(){
 	string AGENT_FOLDER = EXPERIMENT_FOLDER+to_string(n_agents)+"_Agents/";
 	string TRAFFIC_FOLDER;
 	if (Fix::_traffic_mode==Fix::DETERMINISTIC){
-		TRAFFIC_FOLDER = AGENT_FOLDER + "Deterministic_" + to_string(fixes->at(0).gen_rate), + "_Traffic/";
+		TRAFFIC_FOLDER = AGENT_FOLDER + "Deterministic_" + to_string(fixes->at(0).gen_rate) + "_Traffic/";
 	} else {
 		TRAFFIC_FOLDER = AGENT_FOLDER + "Probabilistic_" + to_string(fixes->at(0).p_gen*100) + "_Traffic/";
 	}
 	string CAPACITY_FOLDER = TRAFFIC_FOLDER + to_string(sectorCapacity[0][0]) + "_Capacity/"; // assume uniform sector capacity
 	string REWARD_FOLDER = CAPACITY_FOLDER + to_string(_reward_mode) + "_Reward/";
+
+	_mkdir(EXPERIMENT_FOLDER);
+	_mkdir(AGENT_FOLDER.c_str());
+	_mkdir(TRAFFIC_FOLDER.c_str());
+	_mkdir(CAPACITY_FOLDER.c_str());
+	_mkdir(REWARD_FOLDER.c_str());
+
 
 	return REWARD_FOLDER;
 }

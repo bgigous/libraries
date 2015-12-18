@@ -3,8 +3,8 @@
 
 using namespace easymath;
 
-UAV::UAV(XY start_loc, XY end_loc, UAVType t, TypeAStarAbstract* highPlanners, SectorAStarGrid* lowPlanners):
-	highPlanners(highPlanners),lowPlanners(lowPlanners),loc(start_loc), end_loc(end_loc), type_ID(t),speed(1.0)
+UAV::UAV(XY start_loc, XY end_loc, UAVType t, TypeGraphManager* highGraph, SectorGraphManager* lowGraph):
+	highGraph(highGraph),lowGraph(lowGraph),loc(start_loc), end_loc(end_loc), type_ID(t),speed(1.0)
 {
 	static int calls=0;
 	ID = calls++;
@@ -12,12 +12,12 @@ UAV::UAV(XY start_loc, XY end_loc, UAVType t, TypeAStarAbstract* highPlanners, S
 };
 
 std::list<int> UAV::getBestPath(int memstart, int memend){
-	return highPlanners->search(memstart, memend, type_ID);
+	return highGraph->astar(memstart, memend, type_ID);
 }
 
 void UAV::planAbstractPath(){
 	sectors_touched.insert(curSectorID());
-	list<int> high_path = highPlanners->search(curSectorID(), endSectorID(), type_ID);
+	list<int> high_path = highGraph->astar(curSectorID(), endSectorID(), type_ID);
 	if (high_path_prev!=high_path){
 		pathChanged=true;
 		high_path_prev = high_path;
@@ -27,8 +27,8 @@ void UAV::planAbstractPath(){
 }
 
 void UAV::planDetailPath(){
-	int memstart = lowPlanners->getMembership(loc);
-	int memend =  lowPlanners->getMembership(end_loc);
+	int memstart = lowGraph->getMembership(loc);
+	int memend =  lowGraph->getMembership(end_loc);
 	list<int> high_path = getBestPath(memstart, memend);
 	if (high_path.size()==0){
 		printf("no path found!");
@@ -43,12 +43,12 @@ void UAV::planDetailPath(){
 	if (memnext==memend){
 		waypoint = end_loc;
 	} else {
-		waypoint = highPlanners->getLocation(memnext);
+		waypoint = highGraph->getLocation(memnext);
 	}
 
 	// TODO: VERIFY HERE THAT THE HIGH_PATH_BEGIN() IS THE NEXT MEMBER... NOT THE FIRST...
 	// target the center of the sector, or the goal if it is reachable
-	vector<XY> low_path = lowPlanners->search(loc,waypoint);
+	vector<XY> low_path = lowGraph->astar(loc,waypoint);
 
 	if (low_path.empty()) low_path.push_back(loc); // stay in place...
 
@@ -60,7 +60,7 @@ void UAV::planDetailPath(){
 
 int UAV::getDirection(){
 	// Identifies whether traveling in one of four cardinal directions
-	return cardinalDirection(loc-highPlanners->getLocation(nextSectorID()));
+	return cardinalDirection(loc-highGraph->getLocation(nextSectorID()));
 }
 
 void UAV::moveTowardNextWaypoint(){

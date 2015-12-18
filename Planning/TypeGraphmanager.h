@@ -1,33 +1,33 @@
 #pragma once
-#include "AStarAbstract.h"
-#include "AStarGrid.h"
+#include "LinkGraph.h"
+#include "GridGraph.h"
 #include "../Math/Matrix.h"
 #include "../FileIO/easyio/easyio.h"
 #include <memory>
 
 
 /**
-* Manages AStarAbstract usage for different types in the system
+* Manages LinkGraph usage for different types in the system
 */
 
 using namespace Numeric_lib;
 using namespace std;
 
-class TypeAStarAbstract
+class TypeGraphManager
 {
 public:
 	typedef pair<int,int> Edge;
 	typedef Matrix<bool,2> barrier_grid;
 
-	TypeAStarAbstract(void);
-	TypeAStarAbstract(int n_types, std::vector<Edge> edges, vector<XY> verticesFile);
-	TypeAStarAbstract(string edgesFile, string verticesFile, int n_types);
-	TypeAStarAbstract(int n_vertices, int n_types, double gridSizeX, double gridSizeY);
-	~TypeAStarAbstract(void);
+	TypeGraphManager(void);
+	TypeGraphManager(int n_types, std::vector<Edge> edges, vector<XY> verticesFile);
+	TypeGraphManager(string edgesFile, string verticesFile, int n_types);
+	TypeGraphManager(int n_vertices, int n_types, double gridSizeX, double gridSizeY);
+	~TypeGraphManager(void);
 
 	// A* modification functions
 	void setCostMaps(matrix2d agent_actions);
-	list<int> search(int mem1, int mem2, int type_ID);
+	list<int> astar(int mem1, int mem2, int type_ID);
 	
 	// Accessor functions
 	int getMembership(easymath::XY pt);
@@ -40,7 +40,7 @@ private:
 	int n_types;
 	map<XY, int> loc2mem; // maps location to membership
 	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)
-	std::vector<AStarAbstract*> Astar_highlevel;
+	std::vector<LinkGraph*> Graph_highlevel;
 	
 	// Helpers/translators
 	bool intersectsExistingEdge(pair<int, int> candidate,vector<XY> agentLocs);

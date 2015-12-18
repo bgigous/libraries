@@ -1,8 +1,8 @@
 #pragma once
 
 #include <list>
-#include "../../Planning/TypeAStarAbstract.h"
-#include "../../Planning/SectorAStarGrid.h"
+#include "../../Planning/TypeGraphManager.h"
+#include "../../Planning/SectorGraphManager.h"
 #include "../../Math/easymath.h"
 #include "../../Math/Matrix.h"
 
@@ -22,7 +22,7 @@ public:
 	const enum UAVType{SLOW, FAST, NTYPES=1};
 	//const enum UAVType{SLOW,NTYPES};
 
-	UAV(easymath::XY start_loc, easymath::XY end_loc, UAVType t, TypeAStarAbstract* highPlanners, SectorAStarGrid* lowPlanners);
+	UAV(easymath::XY start_loc, easymath::XY end_loc, UAVType t, TypeGraphManager* highGraph, SectorGraphManager* lowGraph);
 
 	~UAV(){
 		/*printf("UAV %i dying.\n", ID);
@@ -55,21 +55,21 @@ public:
 	}
 
 	int curSectorID(){
-		if (lowPlanners==NULL)
-			return highPlanners->getMembership(loc); // return current sector
+		if (lowGraph==NULL)
+			return highGraph->getMembership(loc); // return current sector
 		else 
-			return lowPlanners->getMembership(loc);
+			return lowGraph->getMembership(loc);
 	}
 	int endSectorID(){
-		return highPlanners->getMembership(end_loc);
+		return highGraph->getMembership(end_loc);
 	}
 
-	SectorAStarGrid* lowPlanners;
+	SectorGraphManager* lowGraph;
 	// ABSTRACTION MODE
 	int t;
 	set<int> sectors_touched; // the sectors that the UAV has touched...
 private:
-	TypeAStarAbstract* highPlanners; // shared with the simulator (for now);
+	TypeGraphManager* highGraph; // shared with the simulator (for now);
 };
 
 	static bool at_destination(const std::shared_ptr<UAV> &u){

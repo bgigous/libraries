@@ -5,7 +5,7 @@
 #include "../IDomainStateful.h"
 #include "../../Math/easymath.h"
 #include "../../FileIO/easyio/easyio.h"
-#include "../../Planning/TypeAStarAbstract.h"
+#include "../../Planning/TypeGraphManager.h"
 #include "../../Math/Matrix.h"
 #include "UAV.h"
 #include "Sector.h"
@@ -26,6 +26,14 @@ public:
 
 	static const enum RewardMode{GLOBAL, DIFFERENCE_DOWNSTREAM,DIFFERENCE_TOUCHED,DIFFERENCE_REALLOC,DIFFERENCE_AVG, NMODES};
 	RewardMode _reward_mode;
+
+	static const enum AgentNumberMode{FIVE, TEN, FIFTEEN, TWENTY, THIRTY, FORTY, FIFTY, NAGENTNUMBERS};
+	AgentNumberMode _nagents_mode;
+	
+	static const enum CapacityMode{TWO, FOUR, SIX, EIGHT, NCAPACITYMODES};
+	CapacityMode _capacity_mode;
+	int flat_capacity; // capacity of all sectors
+
 	matrix1d getDifferenceReward();
 	double getGlobalReward();
 	matrix1d getLocalReward();
@@ -44,12 +52,12 @@ public:
 	void getNewUAVTraffic(int step);
 	void absorbUAVTraffic();
 	
-	TypeAStarAbstract* highPlanners;
+	TypeGraphManager* highGraph;
 	
 	// Base function overloads
 	matrix2d getStates();
 	matrix3d getTypeStates();
-	void simulateStep(matrix2d agent_actions);
+	void simulateStep(matrix2d agent_actions, int step);
 	void logStep(int step);
 	string createExperimentDirectory();
 

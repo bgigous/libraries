@@ -6,7 +6,7 @@
 
 // Library includes
 #include "UTMDomainAbstract.h"
-#include "../../Planning/SectorAStarGrid.h"
+#include "../../Planning/SectorGraphManager.h"
 
 
 using namespace std;
@@ -31,8 +31,8 @@ public:
 	
 	double conflict_thresh;
 	
-	// maps/planners
-	SectorAStarGrid* lowPlanners;
+	// maps/Graph
+	SectorGraphManager* lowGraph;
 	void loadMaps();
 	//Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later	//backend
 	//std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]

@@ -14,12 +14,12 @@ UTMDomainDetail::UTMDomainDetail():
 	FileIn::loadVariable(fix_locs,"agent_map/fixes.csv");
 	
 	// Planning
-	lowPlanners = new SectorAStarGrid(*membership_map,highPlanners->getEdges());
+	lowGraph = new SectorGraphManager(*membership_map,highGraph->getEdges());
 		
 	// initialize fixes
 	fixes->clear();
 	for (unsigned int i=0; i<fix_locs.size(); i++){
-		fixes->push_back(Fix(fix_locs[i],i,highPlanners,lowPlanners,fixes));
+		fixes->push_back(Fix(fix_locs[i],i,highGraph,lowGraph,fixes));
 	}
 	
 	//conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
@@ -63,7 +63,7 @@ vector<double> UTMDomainDetail::getRewards(){
 
 unsigned int UTMDomainDetail::getSector(easymath::XY p){
 	// tests membership for sector, given a location
-	return lowPlanners->getMembership(p);
+	return lowGraph->getMembership(p);
 }
 
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
