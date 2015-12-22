@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include <direct.h>
 
 #include "../IDomainStateful.h"
 #include "../../Math/easymath.h"
@@ -11,35 +10,20 @@
 #include "Sector.h"
 #include "Fix.h"
 
-
-
-// Output files
-#define EXPERIMENT_FOLDER "Experiments/" // DIRECTORY HIERARCHY: EXPERIMENTS/NAGENTS/TRAFFIC/CAPACITY/TYPEHANDLING/REWARDTYPE(file name)
-// CURRENTLY NOT TRYING DIFFERENT TYPES APPROACHES
-
 class UTMDomainAbstract :
 	public IDomainStateful
 {
 public:
-	UTMDomainAbstract();
+	UTMDomainAbstract(UTMModes* params=NULL, UTMFileNames* filehandler=NULL);
 	~UTMDomainAbstract(void);
 
-	static const enum RewardMode{GLOBAL, DIFFERENCE_DOWNSTREAM,DIFFERENCE_TOUCHED,DIFFERENCE_REALLOC,DIFFERENCE_AVG, NMODES};
-	RewardMode _reward_mode;
-
-	static const enum AgentNumberMode{FIVE, TEN, FIFTEEN, TWENTY, THIRTY, FORTY, FIFTY, NAGENTNUMBERS};
-	AgentNumberMode _nagents_mode;
-	
-	static const enum CapacityMode{TWO, FOUR, SIX, EIGHT, NCAPACITYMODES};
-	CapacityMode _capacity_mode;
-	int flat_capacity; // capacity of all sectors
+	UTMModes* params;
+	UTMFileNames* filehandler;
 
 	matrix1d getDifferenceReward();
 	double getGlobalReward();
 	matrix1d getLocalReward();
 
-	enum AirspaceMode{SAVED,GENERATED};
-	AirspaceMode _airspace_mode;
 
 	// Moving parts
 	std::vector<Sector>* sectors;
@@ -75,8 +59,5 @@ public:
 	matrix1d conflict_minus_touched; // conflict for entire system minus those that touched agent i
 	matrix1d conflict_random_reallocation; // conflict for entire system with agent i's traffic reallocated to others
 	matrix1d conflict_node_average; // conflict with sector's conflict replaced by an average
-
-	// File output
-	string getRewardModeName(RewardMode mode);
 };
 

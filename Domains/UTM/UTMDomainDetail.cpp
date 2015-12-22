@@ -4,8 +4,7 @@ using namespace std;
 using namespace easymath;
 
 UTMDomainDetail::UTMDomainDetail():
-	UTMDomainAbstract(),
-	conflict_thresh(10.0)
+	UTMDomainAbstract()
 {
 	Matrix<int,2> * membership_map = new Matrix<int,2>(1,1);
 	FileIn::loadVariable(&membership_map,"agent_map/membership_map.csv");
@@ -19,7 +18,7 @@ UTMDomainDetail::UTMDomainDetail():
 	// initialize fixes
 	fixes->clear();
 	for (unsigned int i=0; i<fix_locs.size(); i++){
-		fixes->push_back(Fix(fix_locs[i],i,highGraph,lowGraph,fixes));
+		fixes->push_back(Fix(fix_locs[i],i,highGraph,lowGraph,fixes, params));
 	}
 	
 	//conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
@@ -102,10 +101,10 @@ void UTMDomainDetail::exportLog(std::string fid, double G){
 void UTMDomainDetail::detectConflicts(){
 	for (list<std::shared_ptr<UAV> >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
 		for (list<std::shared_ptr<UAV> >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
-
+			
 			double d = easymath::distance((*u1)->loc,(*u2)->loc);
 
-			if (d>conflict_thresh) continue; // No conflict!
+			if (d>params->get_conflict_thresh()) continue; // No conflict!
 
  			conflict_count++;
 
@@ -113,9 +112,7 @@ void UTMDomainDetail::detectConflicts(){
 			int midy = ((int)(*u1)->loc.y+(int)(*u2)->loc.y)/2;
 			//conflict_count_map->at(midx,midy)++;
 
-			// each contributes half to conflict
-			sectors->at(getSector((*u1)->loc)).conflicts[(*u1)->type_ID]+=0.5;
-			sectors->at(getSector((*u2)->loc)).conflicts[(*u2)->type_ID]+=0.5;
+			addConflict(*u1, *u2);
 		}
 	}
 

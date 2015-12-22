@@ -3,7 +3,7 @@
 
 using namespace easymath;
 
-UAV::UAV(XY start_loc, XY end_loc, UAVType t, TypeGraphManager* highGraph, SectorGraphManager* lowGraph):
+UAV::UAV(XY start_loc, XY end_loc, UTMModes::UAVType t, TypeGraphManager* highGraph, SectorGraphManager* lowGraph):
 	highGraph(highGraph),lowGraph(lowGraph),loc(start_loc), end_loc(end_loc), type_ID(t),speed(1.0)
 {
 	static int calls=0;

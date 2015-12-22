@@ -5,6 +5,7 @@
 #include "../../Planning/SectorGraphManager.h"
 #include "../../Math/easymath.h"
 #include "../../Math/Matrix.h"
+#include "UTMModesAndFiles.h"
 
 
 using namespace Numeric_lib;
@@ -19,10 +20,7 @@ class UAV{
 	environment through planning. Planning is done through boost. 
 	*/
 public:
-	const enum UAVType{SLOW, FAST, NTYPES=1};
-	//const enum UAVType{SLOW,NTYPES};
-
-	UAV(easymath::XY start_loc, easymath::XY end_loc, UAVType t, TypeGraphManager* highGraph, SectorGraphManager* lowGraph);
+	UAV(easymath::XY start_loc, easymath::XY end_loc, UTMModes::UAVType t, TypeGraphManager* highGraph, SectorGraphManager* lowGraph);
 
 	~UAV(){
 		/*printf("UAV %i dying.\n", ID);
@@ -39,7 +37,7 @@ public:
 	std::list<int> getBestPath(int memstart, int memene); // does not set anything within the UAV
 
 	int ID;
-	UAVType type_ID;
+	UTMModes::UAVType type_ID;
 	double speed; // connected to type_ID
 	easymath::XY loc;
 	bool pathChanged;
@@ -73,9 +71,5 @@ private:
 };
 
 	static bool at_destination(const std::shared_ptr<UAV> &u){
-		if (u->loc==u->end_loc){
-			//printf("UAV %i at dest\n",u->ID);
-			return true;
-		}
-		return false;
+		return  (u->loc==u->end_loc);
 	}

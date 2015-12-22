@@ -28,17 +28,18 @@ public:
 	virtual void detectConflicts();
 	virtual void incrementUAVPath();
 	virtual void reset();
-	
-	double conflict_thresh;
-	
+		
 	// maps/Graph
 	SectorGraphManager* lowGraph;
 	void loadMaps();
 	//Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later	//backend
 	//std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
 	vector<XY> fix_locs;
-
-
+	
+	void addConflict(std::shared_ptr<UAV> u1, std::shared_ptr<UAV> u2){
+		sectors->at(getSector(u1->loc)).conflicts[u1->type_ID]+=0.5;
+		sectors->at(getSector(u2->loc)).conflicts[u2->type_ID]+=0.5;
+	}
 	unsigned int getSector(easymath::XY p);
 };
 
