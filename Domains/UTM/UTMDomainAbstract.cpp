@@ -1,11 +1,11 @@
 #include "UTMDomainAbstract.h"
 
 
-UTMDomainAbstract::UTMDomainAbstract(UTMModes* params, UTMFileNames* filehandler):
-	filehandler(filehandler), params(params)
+UTMDomainAbstract::UTMDomainAbstract(UTMModes* params, UTMFileNames* setfilehandler):
+	filehandler(setfilehandler), params(params)
 {
 	if (params==NULL) params = new UTMModes(); // use all defaults
-	if (filehandler==NULL) filehandler = new UTMFileNames(params);
+	if (setfilehandler==NULL) filehandler = new UTMFileNames(params);
 	
 	// Base constants
 	n_state_elements	=	params->get_n_state_elements();

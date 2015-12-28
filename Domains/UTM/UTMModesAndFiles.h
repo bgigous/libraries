@@ -2,6 +2,7 @@
 #include <string>
 #include <direct.h>
 
+
 class UTMModes{
 public:
 	UTMModes():
@@ -28,11 +29,11 @@ public:
 	RewardMode _reward_mode;
 	std::string getRewardModeName(){
 		std::string reward_names[RewardMode::NMODES] = {
-			"GLOBAL-", 
-			"DIFFERENCE_DOWNSTREAM-",
-			"DIFFERENCE_TOUCHED-",
-			"DIFFERENCE_REALLOC-",
-			"DIFFERENCE_AVG-",
+			"GLOBAL", 
+			"DIFFERENCE_DOWNSTREAM",
+			"DIFFERENCE_TOUCHED",
+			"DIFFERENCE_REALLOC",
+			"DIFFERENCE_AVG",
 		};
 		return reward_names[_reward_mode];
 	}
@@ -51,7 +52,6 @@ public:
 	enum AirspaceMode{SAVED,GENERATED};
 	AirspaceMode _airspace_mode;
 
-
 	//SUBCLASS MODES/CONSTANTS
 	enum TrafficMode{DETERMINISTIC, PROBABILISTIC};
 	TrafficMode _traffic_mode;
@@ -67,7 +67,7 @@ public:
 	// CONSTANTS
 	int get_n_state_elements(){return 4;}; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	int get_n_control_elements(){return get_n_state_elements()*NTYPES;};
-	int get_n_steps(){return 2;};
+	int get_n_steps(){return 100;};
 	int get_n_types(){return NTYPES;};
 	double get_p_gen(){return 0.5;};
 	int get_gen_rate(){return 10;};
@@ -80,7 +80,9 @@ public:
 	UTMFileNames(UTMModes* modes):modes(modes){
 	printf("me");
 	}
-	~UTMFileNames();
+	~UTMFileNames(){
+		printf("dying");
+	}
 
 	UTMModes* modes;
 	

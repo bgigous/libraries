@@ -14,7 +14,7 @@ public:
 	SimNE(IDomainStateful* domain, MultiagentNE* MAS);
 	~SimNE(void);
 
-	static const int n_epochs=2; // testing parameter, changed from 500;
+	static const int n_epochs=500; // testing parameter, changed from 500;
 	static const int n_trials=1;
 
 	virtual void runExperiment();
