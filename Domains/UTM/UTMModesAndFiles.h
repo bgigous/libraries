@@ -8,19 +8,19 @@ public:
 	UTMModes():
 		// Defaults
 		_capacity_mode(0), // 0 is default parameter (variable value is not 0)
-		_nagents_mode(2), // needs to be 2 for detailed sim
+		_nagents_mode(0), // needs to be 2 for detailed sim
 		_reward_mode(GLOBAL),
-		_airspace_mode(SAVED), // needs to be SAVED for detailed sim
+		_airspace_mode(GENERATED), // needs to be SAVED for detailed sim
 		_arrival_mode(EXACT),
 		_traffic_mode(DETERMINISTIC)
 	{};
 	~UTMModes(){};
 
 	// NUMBER OF AGENTS
-	static const int NAGENTNUMBERS = 7;
+	static const int NAGENTNUMBERS = 5;
 	int _nagents_mode;
 	int get_n_agents(){
-		int agent_num_trials[] = {5,10,15,20,30,40,50};
+		int agent_num_trials[] = {15,20,30,40,50};
 		return agent_num_trials[_nagents_mode];
 	}
 
