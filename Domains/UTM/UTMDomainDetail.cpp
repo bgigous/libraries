@@ -6,6 +6,10 @@ using namespace easymath;
 UTMDomainDetail::UTMDomainDetail():
 	UTMDomainAbstract()
 {
+
+	if (params==NULL) params = new UTMModes(); // use all defaults
+	if (filehandler==NULL) filehandler = new UTMFileNames(params);
+
 	Matrix<int,2> * membership_map = new Matrix<int,2>(1,1);
 	FileIn::loadVariable(&membership_map,"agent_map/membership_map.csv");
 	

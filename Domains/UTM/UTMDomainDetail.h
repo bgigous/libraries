@@ -36,7 +36,7 @@ public:
 	//std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
 	vector<XY> fix_locs;
 	
-	void addConflict(std::shared_ptr<UAV> u1, std::shared_ptr<UAV> u2){
+	void addConflict(UAV_ptr u1, UAV_ptr u2){
 		sectors->at(getSector(u1->loc)).conflicts[u1->type_ID]+=0.5;
 		sectors->at(getSector(u2->loc)).conflicts[u2->type_ID]+=0.5;
 	}

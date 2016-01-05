@@ -190,6 +190,7 @@ matrix2d UTMDomainAbstract::getStates(){
 
 
 void UTMDomainAbstract::simulateStep(matrix2d agent_actions, int step){
+	logAgentActions(agent_actions);
 	highGraph->setCostMaps(agent_actions);
 	absorbUAVTraffic();
 	getNewUAVTraffic(step);
@@ -200,6 +201,7 @@ void UTMDomainAbstract::simulateStep(matrix2d agent_actions, int step){
 
 
 void UTMDomainAbstract::logStep(int step){
+	logUAVLocations();
 }
 
 matrix3d UTMDomainAbstract::getTypeStates(){
@@ -299,6 +301,15 @@ void UTMDomainAbstract::reset(){
 	}
 
 	UAVs.clear();
+
+	static int calls = 0; // temporary incrementing system
+	//exportUAVLocations(calls);
+	//exportAgentLocations(calls);
+	//exportAgentActions(calls);
+	calls++;
+
+	UAVLocations.clear();
+	agentActions.clear();
 	conflict_count = 0; // initialize with no conflicts
 	conflict_minus_downstream = matrix1d(n_agents,0.0);
 	conflict_minus_touched = matrix1d(n_agents, 0.0);
@@ -314,9 +325,9 @@ void UTMDomainAbstract::absorbUAVTraffic(){
 void UTMDomainAbstract::getNewUAVTraffic(int step){
 
 	// Generates (with some probability) plane traffic for each sector
-	list<std::shared_ptr<UAV> > all_new_UAVs;
+	list<UAV_ptr> all_new_UAVs;
 	for (Fix f: *fixes){
-		list<std::shared_ptr<UAV> > new_UAVs = f.generateTraffic(step);
+		list<UAV_ptr> new_UAVs = f.generateTraffic(step);
 		all_new_UAVs.splice(all_new_UAVs.end(),new_UAVs);
 	}
 

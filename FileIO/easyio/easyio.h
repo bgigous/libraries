@@ -141,7 +141,7 @@ public:
 		file.open(fileName.c_str());
 		if (file.is_open()){
 			for (M3::iterator outer=output3d.begin(); outer!=output3d.end(); outer++){
-				fileOut2D(*outer, file, separator);
+				print2D(*outer, file, separator);
 				file << "\n";
 			}
 			file.close();
@@ -167,7 +167,7 @@ private:
 		Helper function for 3-d file output
 		*/
 		for (M2::iterator outer=output2d.begin(); outer!=output2d.end(); outer++){
-			fileOut1D(*outer, file, separator);
+			print1D(*outer, file, separator);
 		}
 	}
 
