@@ -93,7 +93,7 @@ matrix2d TypeGraphManager::sectorTypeVertex2SectorTypeDirection(matrix2d agent_a
 		for (int j=0; j<n_types; j++){
 			int s = sector_dir_map[i].first;	// sector
 			int d = j*(n_types-1) + sector_dir_map[i].second; // type/direction combo
-			weights[j][i] = agent_actions[s][d];	// turns into 'type', 'edge'
+			weights[j][i] = agent_actions[s][d]*1000.0;	// turns into 'type', 'edge'
 		}
 	}
 	return weights;
