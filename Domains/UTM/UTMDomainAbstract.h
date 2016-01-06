@@ -10,6 +10,8 @@
 #include "Sector.h"
 #include "Fix.h"
 
+typedef std::shared_ptr<UAV> UAV_ptr;
+
 class UTMDomainAbstract :
 	public IDomainStateful
 {
@@ -31,7 +33,7 @@ public:
 	std::vector<Fix>* fixes;
 	
 	// Traffic
-	std::list<std::shared_ptr<UAV> > UAVs; // this is in a list because it has to be modified often. Never tie an ID/index to a UAV
+	std::list<UAV_ptr> UAVs; // this is in a list because it has to be modified often. Never tie an ID/index to a UAV
 	matrix2d sectorCapacity;
 	matrix2d connectionTime;
 	void getNewUAVTraffic(int step);
@@ -46,13 +48,43 @@ public:
 	void logStep(int step);
 	string createExperimentDirectory();
 
+	// UAV motion tracking
+	void logUAVLocations(){
+		matrix1d stepLocation;
+		for (UAV_ptr u: UAVs){
+			stepLocation.push_back(u->loc.x);
+			stepLocation.push_back(u->loc.y);
+		}
+		UAVLocations.push_back(stepLocation);
+	}
+	matrix2d UAVLocations; // UAVLocation is nUAVs*2 x nSteps long, with the first dimension being twice as long because there are x- and y-values
+	void exportUAVLocations(int fileID){
+		FileOut::print2D(UAVLocations,"visualization/locations"+to_string(fileID)+".csv");
+	}
+	void exportAgentLocations(int fileID){
+		matrix1d sectorLocations;
+		for (Sector s: *sectors){
+			sectorLocations.push_back(s.xy.x);
+			sectorLocations.push_back(s.xy.y);
+		}
+		FileOut::print1D(sectorLocations,"visualization/agent_locations"+to_string(fileID)+".csv");
+	}
+
+	matrix3d agentActions;
+	void logAgentActions(matrix2d agentStepActions){
+		agentActions.push_back(agentStepActions);
+	}
+	void exportAgentActions(int fileID){
+		FileOut::print3D(agentActions,"visualization/actions"+to_string(fileID)+".csv");
+	}
+
 	// Different from children
 	virtual matrix1d getPerformance();
 	virtual matrix1d getRewards();
 	virtual void incrementUAVPath();
 	virtual void detectConflicts();
 	virtual void getPathPlans();
-	virtual void getPathPlans(std::list<std::shared_ptr<UAV> > &new_UAVs);
+	virtual void getPathPlans(std::list<UAV_ptr> &new_UAVs);
 	virtual void reset();
 
 	int conflict_count;
