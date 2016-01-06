@@ -67,7 +67,7 @@ void SimNE::epoch(int ep){
 				best_run_performance = avg_perf;
 			}
 
-			printf("NN#%i, %f, %f\n",n, best_run_performance, best_run);
+			printf("NN#%i, %f, %f, %f\n",n, best_run_performance, best_run, avg_perf);
 			//printf(".");
 			ostringstream epi,ni,ti;
 			epi << ep;

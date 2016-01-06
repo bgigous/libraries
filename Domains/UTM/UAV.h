@@ -34,7 +34,7 @@ public:
 	void planAbstractPath();
 	void planDetailPath();
 
-	std::list<int> getBestPath(int memstart, int memene); // does not set anything within the UAV
+	std::list<int> getBestPath(int memstart, int memend); // does not set anything within the UAV
 
 	int ID;
 	UTMModes::UAVType type_ID;

@@ -8,7 +8,7 @@ public:
 	UTMModes():
 		// Defaults
 		_capacity_mode(0), // 0 is default parameter (variable value is not 0)
-		_nagents_mode(0),
+		_nagents_mode(3),
 		_reward_mode(GLOBAL),
 		_airspace_mode(GENERATED),
 		_arrival_mode(EXACT),
@@ -16,16 +16,43 @@ public:
 	{};
 	~UTMModes(){};
 
+	// OPTION HERE FOR ONE AGENT PER LINK
+	enum AgentDefinition{SECTOR,LINK};
+	AgentDefinition _agent_defn_mode;
+
 	// NUMBER OF AGENTS
-	static const int NAGENTNUMBERS = 7;
+	static const int NAGENTNUMBERS = 4;
 	int _nagents_mode;
 	int get_n_agents(){
-		int agent_num_trials[] = {5,10,15,20,30,40,50};
-		return agent_num_trials[_nagents_mode];
+		int agent_num_trials[] = {20,30,40,50};
+
+		if (_agent_defn_mode==SECTOR)
+			return agent_num_trials[_nagents_mode];
+		else{
+			// MAKE A WAY FOR THIS TO BE INPUT TO UTMMODESANDFILES
+			printf("Currently in link mode! Exiting.");
+			system("pause");
+			exit(1);
+		}
 	}
 
 	// REWARDS
-	static const enum RewardMode{GLOBAL, DIFFERENCE_DOWNSTREAM,DIFFERENCE_TOUCHED,DIFFERENCE_REALLOC,DIFFERENCE_AVG, NMODES};
+	static const enum RewardMode
+	{
+		// LINEAR REWARDS
+		GLOBAL, 
+		DIFFERENCE_DOWNSTREAM,
+		DIFFERENCE_TOUCHED,
+		DIFFERENCE_REALLOC,
+		DIFFERENCE_AVG,
+		// SQUARED REWARDS
+		GLOBAL_SQ,
+		DIFFERENCE_DOWNSTREAM_SQ,
+		DIFFERENCE_TOUCHED_SQ,
+		DIFFERENCE_REALLOC_SQ,
+		DIFFERENCE_AVG_SQ,
+		NMODES
+	};
 	RewardMode _reward_mode;
 	std::string getRewardModeName(){
 		std::string reward_names[RewardMode::NMODES] = {
@@ -34,6 +61,11 @@ public:
 			"DIFFERENCE_TOUCHED",
 			"DIFFERENCE_REALLOC",
 			"DIFFERENCE_AVG",
+			"GLOBAL_SQ",
+			"DIFFERENCE_DOWNSTREAM_SQ",
+			"DIFFERENCE_TOUCHED_SQ",
+			"DIFFERENCE_REALLOC_SQ",
+			"DIFFERENCE_AVG_SQ",
 		};
 		return reward_names[_reward_mode];
 	}
@@ -65,8 +97,13 @@ public:
 	//const enum UAVType{SLOW,NTYPES};
 
 	// CONSTANTS
-	int get_n_state_elements(){return 4;}; // 4 state elements for sectors ( number of planes traveling in cardinal directions)
-	int get_n_control_elements(){return get_n_state_elements()*NTYPES;};
+	int get_n_state_elements(){
+		if (_agent_defn_mode==SECTOR) return 4;
+		else return 1;
+	} // 4 state elements for sectors ( number of planes traveling in cardinal directions)
+	int get_n_control_elements(){
+		return get_n_state_elements()*NTYPES;
+	}
 	int get_n_steps(){return 100;};
 	int get_n_types(){return NTYPES;};
 	double get_p_gen(){return 0.5;};

@@ -22,6 +22,7 @@ public:
 
 	matrix1d getDifferenceReward();
 	double getGlobalReward();
+	double getGlobalRewardSquared();
 	matrix1d getLocalReward();
 
 
@@ -60,4 +61,3 @@ public:
 	matrix1d conflict_random_reallocation; // conflict for entire system with agent i's traffic reallocated to others
 	matrix1d conflict_node_average; // conflict with sector's conflict replaced by an average
 };
-

@@ -19,6 +19,11 @@ TypeGraphManager::TypeGraphManager(string edgesFile, string verticesFile, int n_
 	FileIn::loadVariable(agentLocs, verticesFile);
 	FileIn::loadVariable(edges, edgesFile);
 
+	
+	for (unsigned int i=0; i<agentLocs.size(); i++){
+		loc2mem[agentLocs[i]]=i; // add in reverse lookup
+	}
+
 	initializeTypeLookupAndDirections(agentLocs);
 }
 
@@ -93,15 +98,17 @@ matrix2d TypeGraphManager::sectorTypeVertex2SectorTypeDirection(matrix2d agent_a
 		for (int j=0; j<n_types; j++){
 			int s = sector_dir_map[i].first;	// sector
 			int d = j*(n_types-1) + sector_dir_map[i].second; // type/direction combo
-			weights[j][i] = agent_actions[s][d];	// turns into 'type', 'edge'
+			weights[j][i] = agent_actions[s][d]*1000;	// turns into 'type', 'edge'
 		}
 	}
 	return weights;
 }
 
 void TypeGraphManager::setCostMaps(matrix2d agent_actions){
-	matrix2d weights = sectorTypeVertex2SectorTypeDirection(agent_actions);
+	// SWITCH BASED ON MODES
 
+	matrix2d weights = sectorTypeVertex2SectorTypeDirection(agent_actions);
+	
 	for (unsigned int i=0; i<Graph_highlevel.size(); i++){
 		Graph_highlevel[i]->setWeights(weights[i]);
 	}
@@ -116,7 +123,7 @@ int TypeGraphManager::getMembership(easymath::XY pt){
 	if (loc2mem.find(pt)!=loc2mem.end()) {
 		return loc2mem[pt];
 	} else {
-		printf("Point not found in membership lookup. (Were you trying to use the detailed map?) \n");
+		printf("Point (%f,%f) not found in membership lookup. (Were you trying to use the detailed map?) \n",pt.x,pt.y);
 		system("pause");
 		exit(1);
 	}

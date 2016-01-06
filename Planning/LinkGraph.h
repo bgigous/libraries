@@ -122,9 +122,12 @@ public:
 		std::pair<edge_iter, edge_iter> ep;
 		edge_iter ei, ei_end;
 		int i=0;
+
+		matrix1d w = getWeights();
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
 			put(edge_weight,g,*ei,weights[i++]);
 		}
+		w = getWeights();
 	}
 
 	matrix1d getWeights(){
@@ -136,6 +139,7 @@ public:
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
 			weights.push_back(get(edge_weight,g,*ei));
 		}
+		return weights;
 	}
 
 

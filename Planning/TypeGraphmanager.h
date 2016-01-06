@@ -47,6 +47,5 @@ private:
 	bool fullyConnected(vector<XY> agentLocs);
 	void initializeTypeLookupAndDirections(vector<XY> agentLocs);
 	matrix2d sectorTypeVertex2SectorTypeDirection(matrix2d agent_actions);
-
 };
 

@@ -72,8 +72,18 @@ double UTMDomainAbstract::getGlobalReward(){
 	return -conflict_count;
 }
 
+double UTMDomainAbstract::getGlobalRewardSquared(){
+	return -getGlobalReward()*getGlobalReward();
+}
+
 matrix1d UTMDomainAbstract::getPerformance(){
-	return matrix1d(n_agents,getGlobalReward());
+	if (params->_reward_mode==UTMModes::GLOBAL_SQ || 
+		params->_reward_mode==UTMModes::DIFFERENCE_AVG_SQ || 
+		params->_reward_mode==UTMModes::DIFFERENCE_DOWNSTREAM_SQ || 
+		params->_reward_mode==UTMModes::DIFFERENCE_TOUCHED_SQ)
+		return matrix1d(n_agents,-pow(getGlobalReward(),2.0));
+	else
+		return matrix1d(n_agents,getGlobalReward());
 }
 
 matrix1d UTMDomainAbstract::getDifferenceReward(){
@@ -88,7 +98,7 @@ matrix1d UTMDomainAbstract::getDifferenceReward(){
 
 
 	matrix1d D(n_agents,0.0);
-	double G_reg = conflict_count;
+	double G_reg = -getGlobalReward();
 
 	// METHOD 1: INFINITE LINK COSTS (*resim) // NOT FUNCTIONAL YET
 	// METHOD 2: STATIC LINK COSTS (*resim) // NOT FUNCTIONAL YET
@@ -99,14 +109,25 @@ matrix1d UTMDomainAbstract::getDifferenceReward(){
 		case UTMModes::DIFFERENCE_DOWNSTREAM:	// METHOD 4: DOWNSTREAM EFFECTS REMOVED
 			D[i] = -(G_reg - conflict_minus_downstream[i]);
 			break;
+		case UTMModes::DIFFERENCE_DOWNSTREAM_SQ:	// Method 4.1 squareed w/downstream removed
+			D[i] = -(pow(G_reg,2.0) - pow(conflict_minus_downstream[i],2.0);
 		case UTMModes::DIFFERENCE_TOUCHED:		// METHOD 5: UPSTREAM AND DOWNSTREAM EFFECTS REMOVED
 			D[i] = -(G_reg - conflict_minus_touched[i]); // NOT FUNCTIONAL YET
+			break;
+		case UTMModes::DIFFERENCE_TOUCHED_SQ:		// METHOD 5.1: UPSTREAM AND DOWNSTREAM EFFECTS REMOVED squared
+ 			D[i] = -(pow(G_reg,2.0) - pow(conflict_minus_touched[i],2.0); // NOT FUNCTIONAL YET
 			break;
 		case UTMModes::DIFFERENCE_REALLOC:		// METHOD 6: RANDOM TRAFFIC REALLOCATION
 			D[i] = -(G_reg - conflict_random_reallocation[i]);
 			break;
+		case UTMModes::DIFFERENCE_REALLOC_SQ:		// METHOD 6.1: RANDOM TRAFFIC REALLOCATION
+			D[i] = -(pow(G_reg,2.0) - pow(conflict_random_reallocation[i],2.0));
+			break;
 		case UTMModes::DIFFERENCE_AVG:			// METHOD 7: CONFLICTS AVERAGED OVER THE NODE'S HISTORY
-			D[i] = -conflict_node_average[i];// -(G_reg - conflict_node_average[i]); // NOT FUNCTIONAL YET
+			D[i] = -conflict_node_average[i];
+			break;
+		case UTMModes::DIFFERENCE_AVG_SQ:			// METHOD 7.1: CONFLICTS AVERAGED OVER THE NODE'S HISTORY, squared
+			D[i] = -(pow(G_reg,2.0)-pow(G_reg - conflict_node_average[i],2.0));
 			break;
 		default:{
 			printf("unrecognized mode!");
@@ -133,6 +154,8 @@ matrix1d UTMDomainAbstract::getRewards(){
 	switch (params->_reward_mode){
 	case UTMModes::GLOBAL:
 		return matrix1d(n_agents, getGlobalReward());
+	case UTMModes::GLOBAL_SQ:
+		return matrix1d(n_agents, -getGlobalReward()*getGlobalReward());
 	default:
 		return getDifferenceReward();
 	}
