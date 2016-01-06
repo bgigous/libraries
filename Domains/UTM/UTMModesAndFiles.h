@@ -12,7 +12,8 @@ public:
 		_reward_mode(GLOBAL),
 		_airspace_mode(GENERATED), // needs to be SAVED for detailed sim
 		_arrival_mode(EXACT),
-		_traffic_mode(DETERMINISTIC)
+		_traffic_mode(DETERMINISTIC),
+		_agent_defn_mode(SECTOR)
 	{};
 	~UTMModes(){};
 
