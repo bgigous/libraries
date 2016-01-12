@@ -52,6 +52,11 @@ public:
 		}
 	}
 
+	int curLinkID(){
+		pair<int,int> link(curSectorID(), nextSectorID());
+		return highGraph->getEdgeID(link);
+	}
+
 	int curSectorID(){
 		if (lowGraph==NULL)
 			return highGraph->getMembership(loc); // return current sector
@@ -66,6 +71,7 @@ public:
 	// ABSTRACTION MODE
 	int t;
 	set<int> sectors_touched; // the sectors that the UAV has touched...
+	set<int> links_touched; // the sectors that the UAV has touched...
 private:
 	TypeGraphManager* highGraph; // shared with the simulator (for now);
 };

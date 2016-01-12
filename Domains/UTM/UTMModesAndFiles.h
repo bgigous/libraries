@@ -8,12 +8,12 @@ public:
 	UTMModes():
 		// Defaults
 		_capacity_mode(0), // 0 is default parameter (variable value is not 0)
-		_nagents_mode(3),
+		_nsectors_mode(3),
 		_reward_mode(GLOBAL),
 		_airspace_mode(GENERATED), // needs to be SAVED for detailed sim
 		_arrival_mode(EXACT),
 		_traffic_mode(DETERMINISTIC),
-		_agent_defn_mode(SECTOR)
+		_agent_defn_mode(LINK)
 	{};
 	~UTMModes(){};
 
@@ -21,20 +21,12 @@ public:
 	enum AgentDefinition{SECTOR,LINK};
 	AgentDefinition _agent_defn_mode;
 
-	// NUMBER OF AGENTS
-	static const int NAGENTNUMBERS = 4;
-	int _nagents_mode;
-	int get_n_agents(){
-		int agent_num_trials[] = {20,30,40,50};
-
-		if (_agent_defn_mode==SECTOR)
-			return agent_num_trials[_nagents_mode];
-		else{
-			// MAKE A WAY FOR THIS TO BE INPUT TO UTMMODESANDFILES
-			printf("Currently in link mode! Exiting.");
-			system("pause");
-			exit(1);
-		}
+	// NUMBER OF SECTORS
+	static const int NSECTORNUMBERS = 4;
+	int _nsectors_mode;
+	int get_n_sectors(){
+		int sector_num_trials[] = {20,30,40,50};
+		return sector_num_trials[_nsectors_mode];
 	}
 
 	// REWARDS
@@ -116,7 +108,6 @@ public:
 class UTMFileNames{
 public:
 	UTMFileNames(UTMModes* modes):modes(modes){
-	printf("me");
 	}
 	~UTMFileNames(){
 		printf("dying");
@@ -129,14 +120,14 @@ public:
 		// Creates a directory for the experiment and then returns that as a string
 		// DIRECTORY HIERARCHY: EXPERIMENTS/NAGENTS/TRAFFIC/CAPACITY/REWARDTYPE/
 		// typehandling(file name).csv assumed
-		std::string AGENT_FOLDER = EXPERIMENT_FOLDER+std::to_string(modes->get_n_agents())+"_Agents/";
+		std::string SECTOR_FOLDER = EXPERIMENT_FOLDER+std::to_string(modes->get_n_sectors())+"_Sectors/";
 		std::string TRAFFIC_FOLDER;
 		switch(modes->_traffic_mode){
 		case UTMModes::DETERMINISTIC:
-			TRAFFIC_FOLDER = AGENT_FOLDER + "Deterministic_" + std::to_string(modes->get_gen_rate()) + "_Traffic/";
+			TRAFFIC_FOLDER = SECTOR_FOLDER + "Deterministic_" + std::to_string(modes->get_gen_rate()) + "_Traffic/";
 			break;
 		case UTMModes::PROBABILISTIC:
-			TRAFFIC_FOLDER = AGENT_FOLDER + "Probabilistic_" + std::to_string(modes->get_p_gen()*100) + "_Traffic/";
+			TRAFFIC_FOLDER = SECTOR_FOLDER + "Probabilistic_" + std::to_string(modes->get_p_gen()*100) + "_Traffic/";
 			break;
 		default:
 			TRAFFIC_FOLDER = "UNKNOWN";
@@ -147,7 +138,7 @@ public:
 		std::string REWARD_FOLDER = CAPACITY_FOLDER + modes->getRewardModeName() + "_Reward/";
 
 		_mkdir(EXPERIMENT_FOLDER.c_str());
-		_mkdir(AGENT_FOLDER.c_str());
+		_mkdir(SECTOR_FOLDER.c_str());
 		_mkdir(TRAFFIC_FOLDER.c_str());
 		_mkdir(CAPACITY_FOLDER.c_str());
 		_mkdir(REWARD_FOLDER.c_str());

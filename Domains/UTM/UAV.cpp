@@ -17,6 +17,7 @@ std::list<int> UAV::getBestPath(int memstart, int memend){
 
 void UAV::planAbstractPath(){
 	sectors_touched.insert(curSectorID());
+	links_touched.insert(curLinkID());
 	list<int> high_path = highGraph->astar(curSectorID(), endSectorID(), type_ID);
 	if (high_path_prev!=high_path){
 		pathChanged=true;

@@ -78,6 +78,11 @@ public:
 	typedef mygraph_t::vertex_iterator vertex_iterator;
 	typedef std::pair<int, int> edge;
 
+	std::map<edge,int> edge2Index; // reverse lookup for edges
+	int getEdgeID(edge e){
+		return edge2Index[e];
+	}
+
 	LinkGraph(vector<XY> locations_set, vector<edge> &edge_array):
 		locations(locations_set)
 	{
@@ -87,6 +92,7 @@ public:
 			edge_descriptor e;
 			bool inserted;
 			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
+			edge2Index[edge_array[j]] = j;
 		}
 
 		/*for (unsigned int i=0; i<locations.size(); i++){

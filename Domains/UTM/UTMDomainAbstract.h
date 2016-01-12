@@ -12,6 +12,62 @@
 
 typedef std::shared_ptr<UAV> UAV_ptr;
 
+class IAgentManager{
+public:
+	virtual matrix2d actions2weights(matrix2d agent_actions, int n_types, int n_edges)=0;
+	matrix3d agentActions;
+	void logAgentActions(matrix2d agentStepActions){
+		agentActions.push_back(agentStepActions);
+	}
+	void exportAgentActions(int fileID){
+		FileOut::print3D(agentActions,"visualization/actions"+to_string(fileID)+".csv");
+	}
+	
+};
+
+class LinkAgentManager: public IAgentManager{
+public:
+	// The agent that communicates with others
+	LinkAgentManager(){};
+	~LinkAgentManager(){};
+	// weights are ntypesxnagents
+
+	virtual matrix2d actions2weights(matrix2d agent_actions, int n_types, int n_edges){
+			matrix2d weights(n_types, matrix1d(n_edges,0.0));
+
+			for (int t=0; t<n_types; t++){
+				for (int i=0; i<n_edges; i++){
+					weights[t][i] = agent_actions[i][t];
+				}
+			}
+			return weights;
+	}
+};
+
+class SectorAgentManager: public IAgentManager{
+public:
+	SectorAgentManager(map<int,pair<int,int> > sector_dir_map):
+		sector_dir_map(sector_dir_map)
+	{};
+	~SectorAgentManager(){};
+
+	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)
+
+	virtual matrix2d actions2weights(matrix2d agent_actions, int n_types, int n_edges){
+		// Converts format of agent output to format of A* weights
+
+		matrix2d weights(n_types, matrix1d(n_edges,0.0));
+		for (int i=0; i<n_edges; i++){
+			for (int j=0; j<n_types; j++){
+				int s = sector_dir_map[i].first;	// sector
+				int d = j*(n_types-1) + sector_dir_map[i].second; // type/direction combo
+				weights[j][i] = agent_actions[s][d]*1000.0;	// turns into 'type', 'edge'
+			}
+		}
+		return weights;
+	}
+};
+
 class UTMDomainAbstract :
 	public IDomainStateful
 {
@@ -27,6 +83,9 @@ public:
 	double getGlobalRewardSquared();
 	matrix1d getLocalReward();
 
+	// Agents
+	IAgentManager* agents;
+
 
 	// Moving parts
 	std::vector<Sector>* sectors;
@@ -35,6 +94,8 @@ public:
 	// Traffic
 	std::list<UAV_ptr> UAVs; // this is in a list because it has to be modified often. Never tie an ID/index to a UAV
 	matrix2d sectorCapacity;
+	int n_links;
+	matrix2d linkCapacity;
 	matrix2d connectionTime;
 	void getNewUAVTraffic(int step);
 	void absorbUAVTraffic();
@@ -61,21 +122,13 @@ public:
 	void exportUAVLocations(int fileID){
 		FileOut::print2D(UAVLocations,"visualization/locations"+to_string(fileID)+".csv");
 	}
-	void exportAgentLocations(int fileID){
+	void exportSectorLocations(int fileID){
 		matrix1d sectorLocations;
 		for (Sector s: *sectors){
 			sectorLocations.push_back(s.xy.x);
 			sectorLocations.push_back(s.xy.y);
 		}
 		FileOut::print1D(sectorLocations,"visualization/agent_locations"+to_string(fileID)+".csv");
-	}
-
-	matrix3d agentActions;
-	void logAgentActions(matrix2d agentStepActions){
-		agentActions.push_back(agentStepActions);
-	}
-	void exportAgentActions(int fileID){
-		FileOut::print3D(agentActions,"visualization/actions"+to_string(fileID)+".csv");
 	}
 
 	// Different from children
@@ -92,4 +145,13 @@ public:
 	matrix1d conflict_minus_touched; // conflict for entire system minus those that touched agent i
 	matrix1d conflict_random_reallocation; // conflict for entire system with agent i's traffic reallocated to others
 	matrix1d conflict_node_average; // conflict with sector's conflict replaced by an average
+
+	int link_conflict_count;
+	matrix1d link_conflict_minus_downstream;
+	matrix1d link_conflict_minus_touched;
+	matrix1d link_conflict_node_average;
+	matrix1d link_conflict_random_reallocation;
+
+	matrix2d linkConflicts;
+	matrix1d linkSteps;
 };

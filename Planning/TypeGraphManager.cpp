@@ -89,28 +89,11 @@ TypeGraphManager::~TypeGraphManager(void)
 {
 }
 
-matrix2d TypeGraphManager::sectorTypeVertex2SectorTypeDirection(matrix2d agent_actions){
-	// Converts format of agent output to format of A* weights
-	int n_edges = edges.size();
-
-	matrix2d weights(n_types, matrix1d(n_edges,0.0));
-	for (int i=0; i<n_edges; i++){
-		for (int j=0; j<n_types; j++){
-			int s = sector_dir_map[i].first;	// sector
-			int d = j*(n_types-1) + sector_dir_map[i].second; // type/direction combo
-			weights[j][i] = agent_actions[s][d]*1000.0;	// turns into 'type', 'edge'
-		}
-	}
-	return weights;
-}
 
 void TypeGraphManager::setCostMaps(matrix2d agent_actions){
-	// SWITCH BASED ON MODES
-
-	matrix2d weights = sectorTypeVertex2SectorTypeDirection(agent_actions);
 	
 	for (unsigned int i=0; i<Graph_highlevel.size(); i++){
-		Graph_highlevel[i]->setWeights(weights[i]);
+		Graph_highlevel[i]->setWeights(agent_actions[i]);
 	}
 }
 
@@ -137,7 +120,7 @@ vector<TypeGraphManager::Edge> TypeGraphManager::getEdges(){
 	return edges;
 }
 
-int TypeGraphManager::getNAgents(){
+int TypeGraphManager::getNVertices(){
 	return Graph_highlevel[0]->locations.size();
 }
 
@@ -146,18 +129,5 @@ void TypeGraphManager::initializeTypeLookupAndDirections(vector<XY> agentLocs)
 	Graph_highlevel = std::vector<LinkGraph*>(n_types);
 	for (int i=0; i<n_types; i++){
 		Graph_highlevel[i] = new LinkGraph(agentLocs,edges);
-	}
-
-	// STATE SPECIFIC
-	// Get the directions
-	for (unsigned int i=0; i<edges.size(); i++){
-		Edge e = edges[i];
-		int memi = e.first; // membership of origin of edge
-		int memj = e.second; // membership of connected node
-		XY xyi = agentLocs[memi];
-		XY xyj = agentLocs[memj];
-		XY dx_dy = xyj-xyi;
-		int xydir = cardinalDirection(dx_dy);
-		sector_dir_map[i] = make_pair(memj,xydir); // add at new index
 	}
 }

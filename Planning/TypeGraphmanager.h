@@ -33,19 +33,20 @@ public:
 	int getMembership(easymath::XY pt);
 	XY getLocation(int sectorID);
 	vector<Edge> getEdges();
-	int getNAgents();
+	int getNVertices();
+	int getEdgeID(Edge e){
+		return Graph_highlevel[0]->getEdgeID(e);
+	}
 
 private: 
 	vector<Edge> edges;
 	int n_types;
 	map<XY, int> loc2mem; // maps location to membership
-	map<int,pair<int,int> > sector_dir_map; // maps index of edge to (sector next, direction of travel)
 	std::vector<LinkGraph*> Graph_highlevel;
 	
 	// Helpers/translators
 	bool intersectsExistingEdge(pair<int, int> candidate,vector<XY> agentLocs);
 	bool fullyConnected(vector<XY> agentLocs);
 	void initializeTypeLookupAndDirections(vector<XY> agentLocs);
-	matrix2d sectorTypeVertex2SectorTypeDirection(matrix2d agent_actions);
 };
 
