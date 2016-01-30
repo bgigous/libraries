@@ -9,13 +9,13 @@
 
 class Fix{
 public:
-	Fix(XY loc, int ID, TypeGraphManager* highGraph, SectorGraphManager* lowGraph, vector<Fix>* fixes, UTMModes* params);
+	Fix(easymath::XY loc, int ID, TypeGraphManager* highGraph, SectorGraphManager* lowGraph, vector<Fix>* fixes, UTMModes* params);
 	~Fix(){};
 	UTMModes* params;
-	std::list<std::shared_ptr<UAV> > generateTraffic(int step);
+	std::list<UAV_ptr> generateTraffic(int step);
 	bool atDestinationFix(const UAV &u);
 	int ID;
-	XY loc;
+	easymath::XY loc;
 	
 
 private:

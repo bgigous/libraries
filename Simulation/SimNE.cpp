@@ -49,8 +49,8 @@ void SimNE::epoch(int ep){
 			matrix1d R = domain->getRewards();
 			matrix1d perf = domain->getPerformance();
 
-			double avg_G = mean(R);
-			double avg_perf = mean(perf);
+			double avg_G = easymath::mean(R);
+			double avg_perf = easymath::mean(perf);
 
 			// note: things here get specific to the utm domain
 			if (avg_G>best_run) { // NOTE: STILL SORTED BY BEST RUN, NOT BEST PERFORMANCE!
@@ -81,7 +81,7 @@ void SimNE::epoch(int ep){
 
 			domain->reset();
 		}
-		MAS->updatePolicyValues(mean2(Rtrials)); // based on the trials...
+		MAS->updatePolicyValues(easymath::mean2(Rtrials)); // based on the trials...
 
 		n++;
 	} while (((MultiagentNE*)MAS)->setNextPopMembers()); // this also takes care of reset functions

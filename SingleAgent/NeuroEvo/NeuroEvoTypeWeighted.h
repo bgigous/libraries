@@ -9,7 +9,7 @@ public:
 	NeuroEvoTypeWeighted(NeuroEvoParameters* NE_params, int n_types, int n_state_elements):
 		NeuroEvo(NE_params), n_types(n_types), n_state_elements(n_state_elements)
 	{
-		matrix3d preprocess_weights = zeros(n_types,n_state_elements,1); // last element not used; 1-1 relationship with state_element
+		matrix3d preprocess_weights = matrix3d(n_types,matrix2d(n_state_elements,matrix1d(1,0.0)));; // last element not used; 1-1 relationship with state_element
 		while (population.size()){
 			delete population.front();
 			population.pop_front();

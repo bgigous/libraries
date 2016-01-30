@@ -13,7 +13,8 @@ public:
 		_airspace_mode(GENERATED), // needs to be SAVED for detailed sim
 		_arrival_mode(EXACT),
 		_traffic_mode(DETERMINISTIC),
-		_agent_defn_mode(LINK)
+		_agent_defn_mode(LINK),
+		_reward_type_mode(DELAY)
 	{};
 	~UTMModes(){};
 
@@ -62,6 +63,13 @@ public:
 		};
 		return reward_names[_reward_mode];
 	}
+
+	static const enum RewardType{	// this is which types of environment variable is counted
+		CONFLICTS,
+		DELAY,
+		NREWARDTYPES
+	};
+	int _reward_type_mode;
 
 
 	// CAPACITIES
@@ -130,20 +138,38 @@ public:
 			TRAFFIC_FOLDER = SECTOR_FOLDER + "Probabilistic_" + std::to_string(modes->get_p_gen()*100) + "_Traffic/";
 			break;
 		default:
-			TRAFFIC_FOLDER = "UNKNOWN";
+			TRAFFIC_FOLDER = "UNKNOWN/";
 			break;
 		}
 
 		std::string CAPACITY_FOLDER = TRAFFIC_FOLDER + std::to_string(modes->get_flat_capacity()) + "_Capacity/"; // assume uniform sector capacity
-		std::string REWARD_FOLDER = CAPACITY_FOLDER + modes->getRewardModeName() + "_Reward/";
+		std::string REWARD_TYPE_FOLDER;
+		switch(modes->_reward_type_mode){
+		case UTMModes::RewardType::CONFLICTS:
+			REWARD_TYPE_FOLDER = CAPACITY_FOLDER + "Conflict_Reward/";
+			break;
+		case UTMModes::RewardType::DELAY:
+			REWARD_TYPE_FOLDER = CAPACITY_FOLDER + "Delay_Reward/";
+			break;
+		default:
+			REWARD_TYPE_FOLDER = "UNKNOWN/";
+			break;
+		}
+		std::string REWARD_FOLDER = REWARD_TYPE_FOLDER + modes->getRewardModeName() + "_Reward/";
 
 		_mkdir(EXPERIMENT_FOLDER.c_str());
 		_mkdir(SECTOR_FOLDER.c_str());
 		_mkdir(TRAFFIC_FOLDER.c_str());
 		_mkdir(CAPACITY_FOLDER.c_str());
+		_mkdir(REWARD_TYPE_FOLDER.c_str());
 		_mkdir(REWARD_FOLDER.c_str());
 
 		return REWARD_FOLDER; // returns the full directory path just generated
+	}
+
+	std::string createDomainDirectory(){
+		std::string DOMAIN_FOLDER = "Domains/";
+		
 	}
 private:
 

@@ -1,5 +1,7 @@
 #include "TypeGraphManager.h"
 
+using namespace std;
+using namespace easymath;
 
 TypeGraphManager::TypeGraphManager(void)
 {
@@ -14,10 +16,12 @@ TypeGraphManager::TypeGraphManager(int n_types, std::vector<Edge> edges, vector<
 TypeGraphManager::TypeGraphManager(string edgesFile, string verticesFile, int n_types):
 	n_types(n_types)
 {
-	vector<XY> agentLocs;
+	//vector<XY> agentLocs;
 	// Read in files for sector management
-	FileIn::loadVariable(agentLocs, verticesFile);
-	FileIn::loadVariable(edges, edgesFile);
+	vector<XY> agentLocs = FileIn::read_pairs<XY>(verticesFile);
+	//FileIn::loadVariable(agentLocs, verticesFile);
+	edges = FileIn::read_pairs<Edge>(edgesFile);
+	//FileIn::loadVariable(edges, edgesFile);
 
 	
 	for (unsigned int i=0; i<agentLocs.size(); i++){

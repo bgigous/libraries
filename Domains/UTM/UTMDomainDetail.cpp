@@ -10,14 +10,11 @@ UTMDomainDetail::UTMDomainDetail():
 	if (params==NULL) params = new UTMModes(); // use all defaults
 	if (filehandler==NULL) filehandler = new UTMFileNames(params);
 
-	Matrix<int,2> * membership_map = new Matrix<int,2>(1,1);
-	FileIn::loadVariable(&membership_map,"agent_map/membership_map.csv");
-	
-
-	FileIn::loadVariable(fix_locs,"agent_map/fixes.csv");
+	matrix2d membership_map = FileIn::read2<double>("agent_map/membership_map.csv");
+	fix_locs = FileIn::read_pairs<XY>("agent_map/fixes.csv");
 	
 	// Planning
-	lowGraph = new SectorGraphManager(*membership_map,highGraph->getEdges());
+	lowGraph = new SectorGraphManager(membership_map,highGraph->getEdges());
 		
 	// initialize fixes
 	fixes->clear();
@@ -34,7 +31,6 @@ void UTMDomainDetail::loadMaps(){
 
 UTMDomainDetail::~UTMDomainDetail(void)
 {
-	//delete conflict_count_map;
 }
 
 
@@ -71,20 +67,20 @@ unsigned int UTMDomainDetail::getSector(easymath::XY p){
 
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
 void UTMDomainDetail::getPathPlans(){
-	for (std::shared_ptr<UAV> &u : UAVs){
+	for (UAV_ptr &u : UAVs){
 		u->planDetailPath(); // sets own next waypoint
 	}
 }
 
-void UTMDomainDetail::getPathPlans(std::list<std::shared_ptr<UAV> > &new_UAVs){
-	for (std::shared_ptr<UAV> &u : new_UAVs){
+void UTMDomainDetail::getPathPlans(std::list<UAV_ptr > &new_UAVs){
+	for (UAV_ptr &u : new_UAVs){
 		u->planDetailPath(); // sets own next waypoint
 	}
 }
 
 
 void UTMDomainDetail::incrementUAVPath(){
-	for (std::shared_ptr<UAV> &u: UAVs)
+	for (UAV_ptr &u: UAVs)
 		u->moveTowardNextWaypoint(); // moves toward next waypoint (next in low-level plan)
 	// IMPORTANT! At this point in the code, agent states may have changed
 }
@@ -103,8 +99,8 @@ void UTMDomainDetail::exportLog(std::string fid, double G){
 }
 
 void UTMDomainDetail::detectConflicts(){
-	for (list<std::shared_ptr<UAV> >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
-		for (list<std::shared_ptr<UAV> >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
+	for (list<UAV_ptr >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
+		for (list<UAV_ptr >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
 			
 			double d = easymath::distance((*u1)->loc,(*u2)->loc);
 

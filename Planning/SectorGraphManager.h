@@ -7,13 +7,15 @@
 class SectorGraphManager
 {
 public:
-	SectorGraphManager(Matrix<int,2> membership_map, vector<pair<int,int> > edges);
+	typedef pair<int,int> Edge;
+
+	SectorGraphManager(matrix2d membership_map, vector<Edge> edges);
 	~SectorGraphManager(void);
 
-	int getMembership(XY p);
-	vector<XY> astar(XY p1, XY p2);
+	int getMembership(easymath::XY p);
+	vector<easymath::XY> astar(XY p1, XY p2);
 
 private: 
-	Matrix<int, 2> membership_map;
+	matrix2d membership_map;
 	std::map<int,std::map<int,GridGraph*> > m2graph; // lets you know which A* to access
 };

@@ -22,6 +22,7 @@ void UAV::planAbstractPath(){
 	if (high_path_prev!=high_path){
 		pathChanged=true;
 		high_path_prev = high_path;
+		update_link_info();
 	} else {
 		pathChanged=false;
 	}

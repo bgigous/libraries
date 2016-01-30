@@ -1,12 +1,15 @@
 #pragma once
 
-#include "../NeuralNet/NeuralNet.h"
-#include "../IAgent.h"
 #include <set>
 #include <utility>
 #include <algorithm>
 #include <list>
 
+
+#include "../NeuralNet/NeuralNet.h"
+#include "../IAgent.h"
+#include "../../FileIO/FileIn.h"
+#include "../../FileIO/FileOut.h"
 
 class NeuroEvoParameters{
 public:
@@ -56,12 +59,11 @@ public:
 			nets.push_back(wt_info);
 		}
 
-		FileOut::print2D(nets,fileout);
+		FileOut::print_vector(nets,fileout);
 	}
 
 	void load(std::string filein){
-		matrix2d netinfo;
-		FileIn::loadVariable(&netinfo,filein);
+		matrix2d netinfo = FileIn::read2<double>(filein);
 
 		int i=0;
 		for (NeuralNet* p: population){

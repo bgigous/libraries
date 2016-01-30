@@ -1,7 +1,7 @@
 #include "Fix.h"
 
 
-
+using namespace easymath;
 
 Fix::Fix(XY loc, int ID_set, TypeGraphManager* highGraph, SectorGraphManager* lowGraph, vector<Fix>* fixes, UTMModes* params): 
 	highGraph(highGraph), lowGraph(lowGraph), fixes(fixes), ID(ID_set), loc(loc), params(params)
@@ -25,13 +25,13 @@ bool Fix::atDestinationFix(const UAV &u){
 	}
 }
 
-std::list<std::shared_ptr<UAV> > Fix::generateTraffic(int step){
+std::list<UAV_ptr > Fix::generateTraffic(int step){
 	// Creates a new UAV in the world
-	std::list<std::shared_ptr<UAV> > newTraffic;
+	std::list<UAV_ptr > newTraffic;
 
 	switch(params->_traffic_mode){
 	case UTMModes::PROBABILISTIC:
-		if (COIN_FLOOR0 > params->get_p_gen())	// Doesn't generate a UAV
+		if (double(rand())/double(RAND_MAX) > params->get_p_gen())	// Doesn't generate a UAV
 			return newTraffic;
 		break;
 	case UTMModes::DETERMINISTIC:
@@ -50,7 +50,7 @@ std::list<std::shared_ptr<UAV> > Fix::generateTraffic(int step){
 		end_loc = fixes->at(ID-1).loc; // go to previous
 
 	UTMModes::UAVType type_id_set = UTMModes::UAVType(step%int(UTMModes::UAVType::NTYPES)); // EVEN TYPE NUMBER
-	newTraffic.push_back(std::shared_ptr<UAV>(new UAV(loc,end_loc,type_id_set,highGraph,lowGraph)));
+	newTraffic.push_back(UAV_ptr(new UAV(loc,end_loc,type_id_set,highGraph,lowGraph)));
 
 	return newTraffic;
 }

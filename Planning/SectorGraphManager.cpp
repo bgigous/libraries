@@ -1,7 +1,8 @@
 #include "SectorGraphManager.h"
 
+using namespace easymath;
 
-SectorGraphManager::SectorGraphManager(Matrix<int,2> membership_map, vector<pair<int,int> > edges):
+SectorGraphManager::SectorGraphManager(matrix2d membership_map, vector<Edge> edges):
 	membership_map(membership_map)
 {
 	// Gets a grid map for each connection
@@ -16,7 +17,7 @@ SectorGraphManager::~SectorGraphManager(void)
 }
 
 int SectorGraphManager::getMembership(XY p){
-	return membership_map(Numeric_lib::Index(p.x),Numeric_lib::Index(p.y));
+	return membership_map[p.x][p.y];
 }
 
 vector<XY> SectorGraphManager::astar(XY p1, XY p2){

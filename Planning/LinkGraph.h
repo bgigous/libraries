@@ -1,37 +1,22 @@
 #pragma once
 
-// Boost includes
-#include <boost/graph/make_maximal_planar.hpp>
-#include <boost/graph/astar_search.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/random.hpp>
-#include <boost/random.hpp>
-#include <boost/graph/graphviz.hpp>
-
-// STL includes
-#include <time.h>
-#include <vector>
-#include <list>
-#include <iostream>
-#include <fstream>
-#include <math.h>    // for sqrt
-
 // library includes
 #include "../Math/easymath.h"
+#include "../FileIO/FileOut.h"
 
-using namespace boost;
-using namespace std;
-using namespace easymath;
+// Boost includes
+#include <boost/graph/astar_search.hpp>
+#include <boost/graph/adjacency_list.hpp>
 
 typedef double cost;
 
 // euclidean distance heuristic
 template <class Graph, class CostType>
-class distance_heuristic : public astar_heuristic<Graph, CostType>
+class distance_heuristic : public boost::astar_heuristic<Graph, CostType>
 {
 public:
-	typedef vector<XY> LocMap;
-	typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
+	typedef std::vector<easymath::XY> LocMap;
+	typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
 	distance_heuristic(LocMap locations, Vertex goal): 
 		m_location(locations),
 		m_goal(goal)
@@ -67,12 +52,12 @@ private:
 class LinkGraph
 {
 public:
-	typedef adjacency_list
-		<listS, // edge container
-		vecS,	// vertex container
-		directedS,	// graph type is directed: edge (u,v) can have a different weight than (v,u)
-		no_property,
-		property<edge_weight_t, cost> > mygraph_t;
+	typedef boost::adjacency_list
+		<boost::listS, // edge container
+		boost::vecS,	// vertex container
+		boost::directedS,	// graph type is directed: edge (u,v) can have a different weight than (v,u)
+		boost::no_property,
+		boost::property<boost::edge_weight_t, cost> > mygraph_t;
 	typedef mygraph_t::vertex_descriptor vertex; // vertex is an int: corresponds to number in the locations list
 	typedef mygraph_t::edge_descriptor edge_descriptor;
 	typedef mygraph_t::vertex_iterator vertex_iterator;
@@ -83,7 +68,7 @@ public:
 		return edge2Index[e];
 	}
 
-	LinkGraph(vector<XY> locations_set, vector<edge> &edge_array):
+	LinkGraph(std::vector<easymath::XY> locations_set, std::vector<edge> &edge_array):
 		locations(locations_set)
 	{
 		// create graph
@@ -95,26 +80,22 @@ public:
 			edge2Index[edge_array[j]] = j;
 		}
 
-		/*for (unsigned int i=0; i<locations.size(); i++){
-			loc2mem[locations[i]]=i; // add in reverse lookup
-		}*/
-
 		setWeights(matrix1d(edge_array.size(),1.0));
 	}
 
 	// WEIGHT MODIFICATIONS
 	matrix1d saved_weights; // for blocking and unblocking sectors
+	typedef boost::graph_traits<mygraph_t>::edge_iterator edge_iter;
 	void blockVertex(int vertexID){
 		// Makes it highly suboptimal to travel to a vertex
 		saved_weights = getWeights();
 
-		typedef graph_traits<mygraph_t>::edge_iterator edge_iter;
 		std::pair<edge_iter, edge_iter> ep;
 		edge_iter ei, ei_end;
 		int i=0;
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
 			if ((*ei).m_target==vertex(vertexID))
-				put(edge_weight,g,*ei,999999.99);
+				put(boost::edge_weight,g,*ei,999999.99);
 		}
 	}
 
@@ -124,26 +105,26 @@ public:
 
 	void setWeights(matrix1d weights){
 		// iterate over all edge descriptors...
-		typedef graph_traits<mygraph_t>::edge_iterator edge_iter;
+		typedef boost::graph_traits<mygraph_t>::edge_iterator edge_iter;
 		std::pair<edge_iter, edge_iter> ep;
 		edge_iter ei, ei_end;
 		int i=0;
 
 		matrix1d w = getWeights();
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
-			put(edge_weight,g,*ei,weights[i++]);
+			put(boost::edge_weight,g,*ei,weights[i++]);
 		}
 		w = getWeights();
 	}
 
 	matrix1d getWeights(){
 		// iterate over all edge descriptors...
-		typedef graph_traits<mygraph_t>::edge_iterator edge_iter;
+		typedef boost::graph_traits<mygraph_t>::edge_iterator edge_iter;
 		std::pair<edge_iter, edge_iter> ep;
 		edge_iter ei, ei_end;
 		matrix1d weights;
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
-			weights.push_back(get(edge_weight,g,*ei));
+			weights.push_back(get(boost::edge_weight,g,*ei));
 		}
 		return weights;
 	}
@@ -153,11 +134,10 @@ public:
 	
 	// A* fundamentals
 	mygraph_t g;
-	vector<XY> locations;
-	//map<XY, int> loc2mem;
+	std::vector<easymath::XY> locations;
 
-	list<int> vertex2int(list<vertex> vertexpath){
-		list<int> intpath;
+	std::list<int> vertex2int(std::list<vertex> vertexpath){
+		std::list<int> intpath;
 		while (vertexpath.size()){
 			intpath.push_back(vertexpath.front());
 			vertexpath.pop_front();
@@ -165,19 +145,19 @@ public:
 		return intpath;
 	}
 
-	list<int> astar(int start, int goal){
-		vector<mygraph_t::vertex_descriptor> p(num_vertices(g));
-		vector<cost> d(num_vertices(g));
+	std::list<int> astar(int start, int goal){
+		std::vector<mygraph_t::vertex_descriptor> p(num_vertices(g));
+		std::vector<cost> d(num_vertices(g));
 		try {
-			astar_search
+			boost::astar_search
 				(g, start,
 				distance_heuristic<mygraph_t,cost>(locations, goal),
-				predecessor_map(&p[0]).distance_map(&d[0]).
+				boost::predecessor_map(&p[0]).distance_map(&d[0]).
 				visitor(astar_goal_visitor<vertex>(goal)));
 
 		} catch(found_goal fg) { // found a path to the goal
 			(void)fg;
-			list<vertex> shortest_path;
+			std::list<vertex> shortest_path;
 			for(vertex v = goal;; v = p[v]) {
 				shortest_path.push_front(v);
 				if(p[v] == v)
@@ -185,7 +165,21 @@ public:
 			}
 			return vertex2int(shortest_path);
 		}
-		return list<int>(1,int(start)); // fail to find path: stay in one place
+		return std::list<int>(1,int(start)); // fail to find path: stay in one place
+	}
+
+	void print_graph_to_file(std::string file_path){
+		std::string CONNECTIONS_FILE = file_path + "edges.csv";
+		std::string NODES_FILE = file_path + "nodes.csv";
+
+		std::vector<std::vector<bool> > connections_matrix(locations.size(),std::vector<bool>(locations.size(),false));
+
+		edge_iter ei, ei_end;
+		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
+			connections_matrix[(*ei).m_source][(*ei).m_target]=true;
+
+		FileOut::print_pair_container(locations,NODES_FILE);
+		FileOut::print_vector(connections_matrix,CONNECTIONS_FILE);
 	}
 };
 

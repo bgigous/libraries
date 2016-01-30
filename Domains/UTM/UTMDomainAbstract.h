@@ -3,14 +3,11 @@
 
 #include "../IDomainStateful.h"
 #include "../../Math/easymath.h"
-#include "../../FileIO/easyio/easyio.h"
 #include "../../Planning/TypeGraphManager.h"
-#include "../../Math/Matrix.h"
 #include "UAV.h"
 #include "Sector.h"
 #include "Fix.h"
-
-typedef std::shared_ptr<UAV> UAV_ptr;
+#include "../../FileIO/FileOut.h"
 
 class IAgentManager{
 public:
@@ -20,7 +17,7 @@ public:
 		agentActions.push_back(agentStepActions);
 	}
 	void exportAgentActions(int fileID){
-		FileOut::print3D(agentActions,"visualization/actions"+to_string(fileID)+".csv");
+		FileOut::print_vector(agentActions,"visualization/actions"+to_string(fileID)+".csv");
 	}
 	
 };
@@ -120,7 +117,7 @@ public:
 	}
 	matrix2d UAVLocations; // UAVLocation is nUAVs*2 x nSteps long, with the first dimension being twice as long because there are x- and y-values
 	void exportUAVLocations(int fileID){
-		FileOut::print2D(UAVLocations,"visualization/locations"+to_string(fileID)+".csv");
+		FileOut::print_vector(UAVLocations,"visualization/locations"+to_string(fileID)+".csv");
 	}
 	void exportSectorLocations(int fileID){
 		matrix1d sectorLocations;
@@ -128,7 +125,7 @@ public:
 			sectorLocations.push_back(s.xy.x);
 			sectorLocations.push_back(s.xy.y);
 		}
-		FileOut::print1D(sectorLocations,"visualization/agent_locations"+to_string(fileID)+".csv");
+		FileOut::print_vector(sectorLocations,"visualization/agent_locations"+to_string(fileID)+".csv");
 	}
 
 	// Different from children
@@ -136,6 +133,7 @@ public:
 	virtual matrix1d getRewards();
 	virtual void incrementUAVPath();
 	virtual void detectConflicts();
+
 	virtual void getPathPlans();
 	virtual void getPathPlans(std::list<UAV_ptr> &new_UAVs);
 	virtual void reset();
@@ -154,4 +152,6 @@ public:
 
 	matrix2d linkConflicts;
 	matrix1d linkSteps;
+
+	double delay;
 };

@@ -1,6 +1,5 @@
 #include "SimTypeNE.h"
 
-using namespace easymath;
 using namespace std;
 
 matrix2d SimTypeNE::getActions(){

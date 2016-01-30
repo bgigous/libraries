@@ -3,12 +3,9 @@
 #include <iostream>
 #include <chrono>
 #include <random>
-
-#include "../../FileIO/easyio/easyio.h"
-
-typedef std::vector<std::vector<std::vector<double> > > matrix3d;
-typedef std::vector<std::vector<double> > matrix2d;
-typedef std::vector<double> matrix1d;
+#include "../../Math/MatrixTypes.h"
+#include "../../FileIO/FileIn.h"
+#include "../../FileIO/FileOut.h"
 
 class NeuralNet{
 public:

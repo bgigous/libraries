@@ -70,8 +70,7 @@ NeuralNet::NeuralNet(int nInputs, int nHidden, int nOutputs, double
 
 void NeuralNet::load(string filein){
 	// loads neural net specs
-	matrix2d wts;
-	FileIn::loadVariable(&wts,filein);
+	matrix2d wts = FileIn::read2<double>(filein);
 
 	// CURRENTLY HARDCODED TO ONLY ALLOW A SINGLE LAYER
 	
@@ -121,7 +120,7 @@ void NeuralNet::save(string fileout){
 			}
 		}
 	}
-	FileOut::print2D(outmatrix,fileout);
+	FileOut::print_vector(outmatrix,fileout);
 }
 
 void NeuralNet::load(matrix1d node_info, matrix1d wt_info){

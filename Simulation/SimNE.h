@@ -6,7 +6,6 @@
 #include <sstream>
 
 using namespace std;
-using namespace easymath;
 
 class SimNE: public ISimulator{
 public:
