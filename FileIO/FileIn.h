@@ -38,7 +38,10 @@ public:
 		std::vector<std::string> divided = Conversion::divide(file_name,".");
 		if (divided.back()=="csv") return ",";
 		else if (divided.back()=="xls") return "\t";
-		else FileErrors::unrecognized_extension(divided.back());
+		else {
+			FileErrors::unrecognized_extension(divided.back());
+			return "";
+		}
 	}
 
 	//! Reads in a 2D data file

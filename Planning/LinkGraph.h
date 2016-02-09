@@ -23,7 +23,7 @@ public:
 	{};
 	CostType operator()(Vertex u)
 	{
-		return CostType(easymath::distance(m_location[u],m_location[m_goal])); // euclidean cost heuristic
+		return CostType(easymath::euclidean_distance(m_location[u],m_location[m_goal])); // euclidean cost heuristic
 	}
 private:
 	LocMap m_location;
@@ -58,28 +58,17 @@ public:
 		boost::directedS,	// graph type is directed: edge (u,v) can have a different weight than (v,u)
 		boost::no_property,
 		boost::property<boost::edge_weight_t, cost> > mygraph_t;
+	// Note: m_edges is not populated
 	typedef mygraph_t::vertex_descriptor vertex; // vertex is an int: corresponds to number in the locations list
 	typedef mygraph_t::edge_descriptor edge_descriptor;
 	typedef mygraph_t::vertex_iterator vertex_iterator;
 	typedef std::pair<int, int> edge;
 
-	std::map<edge,int> edge2Index; // reverse lookup for edges
-	int getEdgeID(edge e){
-		return edge2Index[e];
-	}
-
 	LinkGraph(std::vector<easymath::XY> locations_set, std::vector<edge> &edge_array):
 		locations(locations_set)
 	{
 		// create graph
-		g = mygraph_t(locations.size());
-		for(std::size_t j = 0; j < edge_array.size(); ++j) {
-			edge_descriptor e;
-			bool inserted;
-			boost::tuples::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
-			edge2Index[edge_array[j]] = j;
-		}
-
+		g = mygraph_t(edge_array.begin(),edge_array.end(),locations.size());
 		setWeights(matrix1d(edge_array.size(),1.0));
 	}
 
@@ -90,9 +79,7 @@ public:
 		// Makes it highly suboptimal to travel to a vertex
 		saved_weights = getWeights();
 
-		std::pair<edge_iter, edge_iter> ep;
 		edge_iter ei, ei_end;
-		int i=0;
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
 			if ((*ei).m_target==vertex(vertexID))
 				put(boost::edge_weight,g,*ei,999999.99);
@@ -169,8 +156,9 @@ public:
 	}
 
 	void print_graph_to_file(std::string file_path){
-		std::string CONNECTIONS_FILE = file_path + "edges.csv";
+		std::string CONNECTIONS_FILE = file_path + "connections.csv";
 		std::string NODES_FILE = file_path + "nodes.csv";
+		std::string EDGES_FILE = file_path + "edges.csv";
 
 		std::vector<std::vector<bool> > connections_matrix(locations.size(),std::vector<bool>(locations.size(),false));
 
@@ -178,7 +166,13 @@ public:
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
 			connections_matrix[(*ei).m_source][(*ei).m_target]=true;
 
+		std::vector<std::pair<int,int> > my_edges;
+		for (boost::tie(ei,ei_end)=edges(g); ei != ei_end; ++ei){
+			my_edges.push_back(std::make_pair((*ei).m_source,(*ei).m_target));
+		}
+
 		FileOut::print_pair_container(locations,NODES_FILE);
+		FileOut::print_pair_container(my_edges,EDGES_FILE);
 		FileOut::print_vector(connections_matrix,CONNECTIONS_FILE);
 	}
 };

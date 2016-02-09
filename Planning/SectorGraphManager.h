@@ -7,13 +7,13 @@
 class SectorGraphManager
 {
 public:
-	typedef pair<int,int> Edge;
+	typedef std::pair<int,int> Edge;
 
-	SectorGraphManager(matrix2d membership_map, vector<Edge> edges);
+	SectorGraphManager(matrix2d membership_map, std::vector<Edge> &edges);
 	~SectorGraphManager(void);
 
-	int getMembership(easymath::XY p);
-	vector<easymath::XY> astar(XY p1, XY p2);
+	int getMembership(const easymath::XY &p);
+	std::vector<easymath::XY> astar(const easymath::XY &p1, const easymath::XY &p2);
 
 private: 
 	matrix2d membership_map;

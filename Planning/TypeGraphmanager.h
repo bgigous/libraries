@@ -1,8 +1,6 @@
 #pragma once
 #include "LinkGraph.h"
-//#include "GridGraph.h"
 #include "../FileIO/FileIn.h"
-#include <memory>
 #include "../Math/easymath.h"
 
 
@@ -14,11 +12,11 @@
 class TypeGraphManager
 {
 public:
-	typedef std::pair<int,int> Edge;
+	typedef std::pair<int,int> edge;
 	typedef std::vector<std::vector<bool> > barrier_grid;
 
 	TypeGraphManager(void);
-	TypeGraphManager(int n_types, std::vector<Edge> edges, std::vector<easymath::XY> verticesFile);
+	TypeGraphManager(int n_types, std::vector<edge> edges, std::vector<easymath::XY> verticesFile);
 	TypeGraphManager(std::string edgesFile, std::string verticesFile, int n_types);
 	TypeGraphManager(int n_vertices, int n_types, double gridSizeX, double gridSizeY);
 	~TypeGraphManager(void);
@@ -30,20 +28,21 @@ public:
 	// Accessor functions
 	int getMembership(easymath::XY pt);
 	easymath::XY getLocation(int sectorID);
-	std::vector<Edge> getEdges();
+	std::vector<edge> getEdges();
 	int getNVertices();
-	int getEdgeID(Edge e){
-		return Graph_highlevel[0]->getEdgeID(e);
+
+	void print_graph(std::string file_path){
+		Graph_highlevel[0]->print_graph_to_file(file_path);
 	}
 
 private: 
-	std::vector<Edge> edges;
+	std::vector<edge> edges;
 	int n_types;
 	std::map<easymath::XY, int> loc2mem; // maps location to membership
 	std::vector<LinkGraph*> Graph_highlevel;
 	
 	// Helpers/translators
-	bool intersectsExistingEdge(std::pair<int, int> candidate,std::vector<easymath::XY> agentLocs);
+	bool intersectsExistingEdge(edge candidate,std::vector<easymath::XY> agentLocs);
 	bool fullyConnected(std::vector<easymath::XY> agentLocs);
 	void initializeTypeLookupAndDirections(std::vector<easymath::XY> agentLocs);
 };

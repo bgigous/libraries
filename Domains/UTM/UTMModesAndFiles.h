@@ -1,16 +1,17 @@
 #pragma once
 #include <string>
 #include <direct.h>
+#include "../IDomainStateful.h"
 
 
-class UTMModes{
+class UTMModes: public IDomainStatefulParameters{
 public:
 	UTMModes():
 		// Defaults
 		_capacity_mode(0), // 0 is default parameter (variable value is not 0)
 		_nsectors_mode(3),
 		_reward_mode(GLOBAL),
-		_airspace_mode(GENERATED), // needs to be SAVED for detailed sim
+		_airspace_mode(SAVED), // needs to be SAVED for detailed sim
 		_arrival_mode(EXACT),
 		_traffic_mode(DETERMINISTIC),
 		_agent_defn_mode(LINK),
@@ -29,6 +30,24 @@ public:
 		int sector_num_trials[] = {20,30,40,50};
 		return sector_num_trials[_nsectors_mode];
 	}
+	int get_n_agents(){
+		if (_agent_defn_mode==UTMModes::SECTOR){
+			return get_n_sectors();
+		}
+		else if (_agent_defn_mode==UTMModes::LINK){
+			return get_n_links();
+		}
+		else {
+			printf("unrecognized agent mode!");
+			exit(1);
+		}
+	}
+
+	// This should be set after the graph is constructed!
+	int n_links;
+	int get_n_links(){
+		return n_links;
+	}
 
 	// REWARDS
 	static const enum RewardMode
@@ -37,6 +56,7 @@ public:
 		GLOBAL, 
 		DIFFERENCE_DOWNSTREAM,
 		DIFFERENCE_TOUCHED,
+		
 		DIFFERENCE_REALLOC,
 		DIFFERENCE_AVG,
 		// SQUARED REWARDS
@@ -115,7 +135,9 @@ public:
 
 class UTMFileNames{
 public:
-	UTMFileNames(UTMModes* modes):modes(modes){
+	UTMFileNames(UTMModes* modes_set=NULL):modes(modes_set){
+		if (modes_set==NULL)
+			modes = new UTMModes(); // Uses the default
 	}
 	~UTMFileNames(){
 		printf("dying");
@@ -128,7 +150,21 @@ public:
 		// Creates a directory for the experiment and then returns that as a string
 		// DIRECTORY HIERARCHY: EXPERIMENTS/NAGENTS/TRAFFIC/CAPACITY/REWARDTYPE/
 		// typehandling(file name).csv assumed
-		std::string SECTOR_FOLDER = EXPERIMENT_FOLDER+std::to_string(modes->get_n_sectors())+"_Sectors/";
+		std::string AGENTS_FOLDER;
+
+		switch(modes->_agent_defn_mode){
+		case UTMModes::AgentDefinition::LINK:
+			AGENTS_FOLDER = EXPERIMENT_FOLDER+"Link_agents/";
+			break;
+		case UTMModes::AgentDefinition::SECTOR:
+			AGENTS_FOLDER = EXPERIMENT_FOLDER+"Sector_agents/";
+			break;
+		default:
+			AGENTS_FOLDER = EXPERIMENT_FOLDER+"Unknown/";
+			break;
+		}
+
+		std::string SECTOR_FOLDER = AGENTS_FOLDER+std::to_string(modes->get_n_sectors())+"_Sectors/";
 		std::string TRAFFIC_FOLDER;
 		switch(modes->_traffic_mode){
 		case UTMModes::DETERMINISTIC:
@@ -158,6 +194,7 @@ public:
 		std::string REWARD_FOLDER = REWARD_TYPE_FOLDER + modes->getRewardModeName() + "_Reward/";
 
 		_mkdir(EXPERIMENT_FOLDER.c_str());
+		_mkdir(AGENTS_FOLDER.c_str());
 		_mkdir(SECTOR_FOLDER.c_str());
 		_mkdir(TRAFFIC_FOLDER.c_str());
 		_mkdir(CAPACITY_FOLDER.c_str());
@@ -167,10 +204,10 @@ public:
 		return REWARD_FOLDER; // returns the full directory path just generated
 	}
 
-	std::string createDomainDirectory(){
+	/*std::string createDomainDirectory(){
 		std::string DOMAIN_FOLDER = "Domains/";
 		
-	}
+	}*/
 private:
 
 };

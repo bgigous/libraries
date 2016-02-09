@@ -15,6 +15,7 @@ public:
 
 	static const int n_epochs=100; // testing parameter, changed from 500;
 	static const int n_trials=1;
+	int* step; // step counter for running the simulation
 
 	virtual void runExperiment();
 	virtual void epoch(int ep);

@@ -7,7 +7,7 @@ TypeGraphManager::TypeGraphManager(void)
 {
 }
 
-TypeGraphManager::TypeGraphManager(int n_types, std::vector<Edge> edges, vector<XY> agentLocs):
+TypeGraphManager::TypeGraphManager(int n_types, std::vector<edge> edges, vector<XY> agentLocs):
 	n_types(n_types),edges(edges)
 {
 	initializeTypeLookupAndDirections(agentLocs);
@@ -20,7 +20,8 @@ TypeGraphManager::TypeGraphManager(string edgesFile, string verticesFile, int n_
 	// Read in files for sector management
 	vector<XY> agentLocs = FileIn::read_pairs<XY>(verticesFile);
 	//FileIn::loadVariable(agentLocs, verticesFile);
-	edges = FileIn::read_pairs<Edge>(edgesFile);
+	edges = FileIn::read_pairs<edge>(edgesFile); // NOTE: this leaves to the user the task of making edges bidirectional
+
 	//FileIn::loadVariable(edges, edgesFile);
 
 	
@@ -48,8 +49,12 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX
 	}
 	random_shuffle(candidates.begin(), candidates.end());
 
-	for (pair<int,int> c: candidates){
-		if (!intersectsExistingEdge(c,agentLocs)) edges.push_back(c);
+	// Add as many edges as possible
+	for (edge c: candidates){
+		if (!intersectsExistingEdge(c,agentLocs)){
+			edges.push_back(c);
+			edges.push_back(make_pair(c.second,c.first));
+		}
 	}
 
 	bool isfullyconnected = fullyConnected(agentLocs);
@@ -62,14 +67,10 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX
 }
 
 
-bool TypeGraphManager::intersectsExistingEdge(pair<int, int> candidate, vector<XY> agentLocs){
-	for (pair<int,int> e:edges){
-		if (candidate.first==e.first 
-			|| candidate.first == e.second 
-			|| candidate.second == e.first 
-			|| candidate.second == e.second)
-			return false;
-		else if (intersects(pair<XY,XY>(agentLocs[e.first],agentLocs[e.second]),pair<XY,XY>(agentLocs[candidate.first],agentLocs[candidate.second])))
+bool TypeGraphManager::intersectsExistingEdge(edge candidate, vector<XY> agentLocs){
+	for (edge e:edges){
+		if (intersects_in_center(line_segment(agentLocs[e.first],agentLocs[e.second]),
+			line_segment(agentLocs[candidate.first],agentLocs[candidate.second])))
 			return true;
 	}
 	return false;
@@ -120,7 +121,7 @@ XY TypeGraphManager::getLocation(int sectorID){
 	return Graph_highlevel[0]->locations[sectorID];
 }
 
-vector<TypeGraphManager::Edge> TypeGraphManager::getEdges(){
+vector<TypeGraphManager::edge> TypeGraphManager::getEdges(){
 	return edges;
 }
 

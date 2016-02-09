@@ -1,6 +1,8 @@
 #pragma once
 
 #include "MatrixTypes.h"
+#include <queue>
+#include <utility>
 
 namespace easymath{
 	class XY: public std::pair<double,double>{
@@ -22,16 +24,27 @@ namespace easymath{
 		friend bool operator==(const XY &lhs, const XY &rhs){
 			return lhs.x==rhs.x && lhs.y==rhs.y;
 		}
+		friend XY operator*(const XY &lhs,double rhs){
+			return XY(lhs.x*rhs,lhs.y*rhs);
+		}
+		friend double operator*(const XY &U, const XY &V){ // dot product
+			return U.x*V.x+U.y*V.y;
+		}
+		friend XY operator+(const XY &lhs, const XY &rhs){
+			return XY(lhs.x+rhs.x,lhs.y+rhs.y);
+		}
 	};
 
+	void clear(std::queue<XY> &q);
+
 	double manhattan_distance(const XY &p1, const XY &p2);
-	double distance(const XY &p1, const XY &p2);
-	void discretizeSegment(std::vector<XY>::iterator iter_begin, std::vector<XY> myvec, int n_even_segments);
-	int cardinalDirection(const XY &dx_dy);
+	double euclidean_distance(const XY &p1, const XY &p2);
+	void discretize_segment(std::vector<XY>::iterator iter_begin, std::vector<XY> myvec, int n_even_segments);
+	int cardinal_direction(const XY &dx_dy);
 	double cross(const XY &U, const XY &V);
 
 	typedef std::pair<XY,XY> line_segment;
 
-	bool intersects(line_segment edge1, line_segment edge2);
+	bool intersects_in_center(line_segment edge1, line_segment edge2);
 }
 

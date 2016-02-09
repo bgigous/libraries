@@ -1,8 +1,9 @@
 #include "SectorGraphManager.h"
 
 using namespace easymath;
+using namespace std;
 
-SectorGraphManager::SectorGraphManager(matrix2d membership_map, vector<Edge> edges):
+SectorGraphManager::SectorGraphManager(matrix2d membership_map, vector<Edge> &edges):
 	membership_map(membership_map)
 {
 	// Gets a grid map for each connection
@@ -16,11 +17,11 @@ SectorGraphManager::~SectorGraphManager(void)
 {
 }
 
-int SectorGraphManager::getMembership(XY p){
-	return membership_map[p.x][p.y];
+int SectorGraphManager::getMembership(const XY &p){
+	return (int)membership_map[unsigned int(p.x)][unsigned int(p.y)];
 }
 
-vector<XY> SectorGraphManager::astar(XY p1, XY p2){
+vector<XY> SectorGraphManager::astar(const XY &p1, const XY &p2){
 	int memstart = getMembership(p1);
 	int memnext = getMembership(p2);
 	return m2graph[memstart][memnext]->astar(p1,p2);

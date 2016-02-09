@@ -3,12 +3,13 @@
 //libraries includes
 #include "../../Planning/TypeGraphManager.h"
 #include "../../Planning/SectorGraphManager.h"
-#include "../../Math/easymath.h"
 #include "UTMModesAndFiles.h"
 
 // STL includes
 #include <queue>
 #include <list>
+#include <set>
+#include <memory>
 
 class UAV{
 	/*
@@ -16,7 +17,8 @@ class UAV{
 	environment through planning. Planning is done through boost. 
 	*/
 public:
-	UAV(easymath::XY start_loc, easymath::XY end_loc, UTMModes::UAVType t, TypeGraphManager* highGraph, SectorGraphManager* lowGraph);
+	UAV(easymath::XY start_loc, easymath::XY end_loc, UTMModes::UAVType t, TypeGraphManager* highGraph, 
+		std::map<std::pair<int,int>,int>* linkIDs, SectorGraphManager* lowGraph=NULL);
 
 	~UAV(){}
 
@@ -35,70 +37,53 @@ public:
 	bool pathChanged;
 	easymath::XY end_loc;
 	std::queue<easymath::XY> target_waypoints; // target waypoints, low-level
-	list<int> high_path_prev; // saves the high level path
+	std::list<int> high_path_prev; // saves the high level path
+	std::map<std::pair<int,int>,int> *linkIDs;
 
 	int next_link_ID;
 	int cur_link_ID;
 	
 	//! Triggered when a UAV moves. This sets the 'next sector ID' and 'current sector ID' values
-	void update_link_info(){
-		next_link_ID = nextLinkID();
-		cur_link_ID = curLinkID();
-	}
+	void update_link_info();
 
 	//! Gets the sector ID from the location
-	int nextSectorID(int n=1){
-		// Returns the nth sector ID from the current sector, or as far as it can go
-		if (!high_path_prev.size())
-			return curSectorID();
-		
-		int increment = high_path_prev.size()>n?n:(high_path_prev.size()-1);
-		return *std::next(high_path_prev.begin(),increment);
-	}
-
+	
+	int nextSectorID(int n=1);
+	
 	//! Gets the link ID from the location and desired next loction
-	int curLinkID(){
-		pair<int,int> link(curSectorID(), nextSectorID());
-		return highGraph->getEdgeID(link);
-	}
+	int curLinkID();
 
 	//! Gets the link ID of the next 'hop', or returns the current link if terminal
-	int nextLinkID(){
-		if (nextSectorID(1)==nextSectorID(2)) return curLinkID();
-		else {
-			pair<int,int> link(nextSectorID(1),nextSectorID(2));
-			return highGraph->getEdgeID(link);
-		}
-	}
-
+	int nextLinkID();
+	
 	//! Gets the sector ID from the location
-	int curSectorID(){
-		if (lowGraph==NULL)
-			return highGraph->getMembership(loc); // return current sector
-		else 
-			return lowGraph->getMembership(loc);
-	}
+	int curSectorID();
 
 	//! Gets the sector ID for the desired end location
-	int endSectorID(){
-		return highGraph->getMembership(end_loc);
-	}
-
+	int endSectorID();
+	
 	SectorGraphManager* lowGraph;
 
 	// Delay modeling/abstraction mode
 	int t;
 
 	// Reward calculation stuff
-	set<int> sectors_touched; // the sectors that the UAV has touched...
-	set<int> links_touched; // the sectors that the UAV has touched...
+	std::set<int> sectors_touched; // the sectors that the UAV has touched...
+	std::set<int> links_touched; // the sectors that the UAV has touched...
+
+	bool currently_in_conflict;
 private:
 	TypeGraphManager* highGraph; // shared with the simulator (for now);
 };
 
-
 typedef std::shared_ptr<UAV> UAV_ptr;
 
-static bool at_destination(UAV_ptr u){
-	return  (u->loc==u->end_loc);
+//! Checks if delay term is complete. If not, iterates delay.
+static bool delay_complete(UAV_ptr u){
+	if (u->t<=0){
+		return true;
+	} else {
+		u->t--;
+		return false;
+	}
 }

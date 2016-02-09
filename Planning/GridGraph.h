@@ -1,29 +1,28 @@
 #pragma once
 
+// from libraries
+#include "../../libraries/Math/easymath.h"
 
+// from boost
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/grid_graph.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/variate_generator.hpp>
+//#include <boost/lexical_cast.hpp>
+//#include <boost/random/mersenne_twister.hpp>
+//#include <boost/random/uniform_int.hpp>
+//#include <boost/random/variate_generator.hpp>
 #include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
-#include <ctime>
-#include <iostream>
-#include <limits>
-#include "../../libraries/Math/easymath.h"
-#include <sstream>
+//#include <boost/unordered_set.hpp>
+//#include <ctime>
+//#include <iostream>
+//#include <limits>
+//#include <sstream>
 #include <fstream>
-
-using namespace easymath;
-using namespace std;
 
 class mt{ // "my types"
 public:
 	// Distance traveled in the GridGraph
-	typedef pair<int,int> Edge;
+	typedef std::pair<int,int> Edge;
 	typedef std::vector<std::vector<bool> > barrier_grid;
 
 	typedef double distance;
@@ -44,7 +43,7 @@ public:
 	};
 
 	typedef boost::unordered_set<vertex_descriptor, vertex_hash> vertex_set;
-	typedef vector<vertex_descriptor> vertex_vector;
+	typedef std::vector<vertex_descriptor> vertex_vector;
 	typedef boost::vertex_subset_complement_filter<grid, vertex_set>::type
 		filtered_grid;
 
@@ -104,8 +103,8 @@ public:
 		m_barrier_grid(create_barrier_grid())
 	{
 		int v_index = 0;
-		for (int y=0; y<obstacle_map[0].size(); y++){
-			for (int x=0; x<obstacle_map.size(); x++){
+		for (unsigned int y=0; y<obstacle_map[0].size(); y++){
+			for (unsigned int x=0; x<obstacle_map.size(); x++){
 				if (obstacle_map[x][y]){ // there is an obstacle!
 					mt::vertex_descriptor u = vertex(v_index,m_grid);
 					m_barriers.insert(u); // insert a barrier!
@@ -120,8 +119,8 @@ public:
 		m_barrier_grid(create_barrier_grid())
 	{
 		mt::barrier_grid obstacle_map(members.size(),std::vector<bool>(members[0].size(),false));
-		for (int i=0; i<members.size(); i++){
-			for (int j=0; j<members[i].size(); j++){
+		for (unsigned int i=0; i<members.size(); i++){
+			for (unsigned int j=0; j<members[i].size(); j++){
 				obstacle_map[i][j] = members[i][j]<0;
 			}
 		}
@@ -129,8 +128,8 @@ public:
 		// This map only shows grid cells of membership m1 and m2 as passable. Others are barriers.
 		// Backflow (travel from m2 to m1) is allowed but will tend to be suboptimal, so is improbable.
 		int v_index = 0;
-		for (int y=0; y<obstacle_map[0].size(); y++){
-			for (int x=0; x<obstacle_map.size(); x++){
+		for (unsigned int y=0; y<obstacle_map[0].size(); y++){
+			for (unsigned int x=0; x<obstacle_map.size(); x++){
 				if (obstacle_map[x][y] || 
 					(members[x][y]!=m1 && members[x][y]!=m2)){ // there is an obstacle, or wrong membership
 						mt::vertex_descriptor u = vertex(v_index,m_grid);
@@ -214,9 +213,9 @@ public:
 	mt::distance m_solution_length;
 
 	void printMap(std::string dir, int label1, int label2){
-		stringstream ss;
+		std::stringstream ss;
 		ss << dir << label1 << "-" <<label2 << ".csv";
-		ofstream output(ss.str());
+		std::ofstream output(ss.str());
 
 
 		for (unsigned int i = 0; i<length(0); i++){

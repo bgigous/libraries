@@ -1,18 +1,24 @@
 #include "SimNE.h"
 
 SimNE::SimNE(IDomainStateful* domain):
-	ISimulator(domain, new MultiagentNE(domain->n_agents, new NeuroEvoParameters(domain->n_state_elements,domain->n_control_elements)))
+	ISimulator(domain, 
+	new MultiagentNE(domain->n_agents, 
+	new NeuroEvoParameters(domain->n_state_elements,domain->n_control_elements))),
+	step(new int(0))
 {
+	domain->synch_step(step);
 }
 
 // FOR DEBUGGING
 SimNE::SimNE(IDomainStateful* domain, MultiagentNE* MAS):
-	ISimulator(domain, MAS)
+	ISimulator(domain, MAS),step(new int(0))
 {
+	domain->step = step;
 }
 
 SimNE::~SimNE(void)
 {
+	delete step;
 	delete ((MultiagentNE*)MAS)->NE_params;
 	delete MAS;
 }
@@ -36,11 +42,11 @@ void SimNE::epoch(int ep){
 		matrix2d Rtrials; // Trial average reward
 		for (int t=0; t<n_trials; t++){
 			clock_t tref = clock();
-			for (int s=0; s<domain->n_steps; s++){
+			for ((*step)=0; (*step)<domain->n_steps; (*step)++){
 				//printf("Step %i\n",s);
 				matrix2d A = this->getActions(); // must be called by 'this' in order to access potential child class overload
-				domain->simulateStep(A,s);
-				domain->logStep(s);
+				domain->simulateStep(A);
+				domain->logStep();
 			}
 			t= clock();
 			printf("t=%f\n",float(t-tref)/CLOCKS_PER_SEC);

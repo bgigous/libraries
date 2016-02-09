@@ -37,8 +37,8 @@ public:
 	vector<easymath::XY> fix_locs;
 	
 	void addConflict(UAV_ptr u1, UAV_ptr u2){
-		sectors->at(getSector(u1->loc)).conflicts[u1->type_ID]+=0.5;
-		sectors->at(getSector(u2->loc)).conflicts[u2->type_ID]+=0.5;
+		agents->metrics.at(u1->curSectorID()).local[u1->type_ID]+=0.5;
+		agents->metrics.at(u2->curSectorID()).local[u2->type_ID]+=0.5;
 	}
 	unsigned int getSector(easymath::XY p);
 };

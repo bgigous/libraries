@@ -17,11 +17,12 @@ UTMDomainDetail::UTMDomainDetail():
 	lowGraph = new SectorGraphManager(membership_map,highGraph->getEdges());
 		
 	// initialize fixes
-	fixes->clear();
+	fixes.clear();
+	// Get link IDs for fix generation
 	for (unsigned int i=0; i<fix_locs.size(); i++){
-		fixes->push_back(Fix(fix_locs[i],i,highGraph,lowGraph,fixes, params));
+		fixes.push_back(Fix_ptr(new Fix(fix_locs[i],i,highGraph,lowGraph,&fixes, params,linkIDs)));
 	}
-	
+
 	//conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
 }
 
@@ -35,7 +36,8 @@ UTMDomainDetail::~UTMDomainDetail(void)
 
 
 vector<double> UTMDomainDetail::getPerformance(){
-	return matrix1d(sectors->size(),-conflict_count);
+	return zeros(1);
+	//return matrix1d(sectors.size(),-conflict_count);
 }
 
 
@@ -43,7 +45,8 @@ vector<double> UTMDomainDetail::getRewards(){
 	// MAY WANT TO ADD SWITCH HERE
 
 	// DELAY REWARD
-	return matrix1d(sectors->size(), -conflict_count);
+	return zeros(1);
+	//return matrix1d(sectors.size(), -conflict_count);
 	
 	// LINEAR REWARD
 	//return matrix1d(sectors->size(),-conflict_count); // linear reward
@@ -87,7 +90,7 @@ void UTMDomainDetail::incrementUAVPath(){
 
 void UTMDomainDetail::reset(){
 	UAVs.clear();
-	conflict_count = 0;
+//	conflict_count = 0;
 	//(*conflict_count_map) = ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
 }
 
@@ -102,11 +105,11 @@ void UTMDomainDetail::detectConflicts(){
 	for (list<UAV_ptr >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
 		for (list<UAV_ptr >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
 			
-			double d = easymath::distance((*u1)->loc,(*u2)->loc);
+			double d = easymath::euclidean_distance((*u1)->loc,(*u2)->loc);
 
 			if (d>params->get_conflict_thresh()) continue; // No conflict!
 
- 			conflict_count++;
+// 			conflict_count++;
 
 			int midx = ((int)(*u1)->loc.x+(int)(*u2)->loc.x)/2;
 			int midy = ((int)(*u1)->loc.y+(int)(*u2)->loc.y)/2;
@@ -114,10 +117,6 @@ void UTMDomainDetail::detectConflicts(){
 
 			addConflict(*u1, *u2);
 		}
-	}
-
-	for (unsigned int i=0; i<sectors->size(); i++){
-		sectors->at(i).steps++;
 	}
 
 	//printf("UAVs=%i\n",UAVs.size());
