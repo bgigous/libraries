@@ -5,7 +5,7 @@ using namespace easymath;
 
 UTMDomainAbstract::UTMDomainAbstract(UTMModes* params):
 	IDomainStateful(params),
-	filehandler(new UTMFileNames()),
+	filehandler(new UTMFileNames(params)),
 	params(params)
 {
 	// Parameters construction
@@ -22,8 +22,6 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params):
 	case UTMModes::GENERATED:
 		n_sectors = params->get_n_sectors();
 		highGraph = new TypeGraphManager(n_sectors,n_types,200.0,200.0);
-		highGraph->print_graph("");
-		exit(1);
 		break;
 	default:
 		printf("Bad airspace mode. Aborting.");
@@ -45,7 +43,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params):
 		int cardinal_dir = cardinal_direction(source_loc - target_loc);
 
 		links.push_back(Link_ptr(new Link(links.size(),source,source_loc,target,target_loc,
-			manhattan_distance(source_loc,target_loc),
+			manhattan_distance(source_loc,target_loc)/10.0,
 			matrix1d(n_types,params->get_flat_capacity()),cardinal_dir)));
 		linkIDs->insert(make_pair((make_pair(source,target)),links.size()-1));
 
@@ -226,8 +224,13 @@ void UTMDomainAbstract::incrementUAVPath(){
 		// Only those that cannot move are left in eligible
 		for (UAV_ptr &u:eligible){
 			agents->add_delay(u);	// adds delay for each eligible UAV not able to move
-			agents->add_downstream_delay_counterfactual(u);
-			agents->add_average_counterfactual();
+			
+			// counterfactuals
+			if (params->_reward_mode==UTMModes::DIFFERENCE_AVG)
+				agents->add_average_counterfactual();
+			else if (params->_reward_mode==UTMModes::DIFFERENCE_DOWNSTREAM)
+				agents->add_downstream_delay_counterfactual(u);
+			else continue;
 		}
 
 	}
@@ -253,6 +256,7 @@ void UTMDomainAbstract::try_to_move(vector<UAV_ptr> & eligible_to_move){
 
 				// Add the traffic to the new link
 				links[n]->traffic[t].push_back(u);
+				u->moveTowardNextWaypoint();
 
 				// remove the traffic from the old link
 				auto blah = find(links[c]->traffic[t].begin(),links[c]->traffic[t].end(),u);
@@ -498,9 +502,14 @@ void UTMDomainAbstract::reset(){
 }
 
 void UTMDomainAbstract::absorbUAVTraffic(){
-	UAVs.remove_if([](const UAV_ptr &u){
+	UAVs.erase(remove_if(UAVs.begin(),UAVs.end(),[](const UAV_ptr &u){
+		/*if (u->loc==u->end_loc){
+			printf("Got to destination!");
+			system("pause");
+		}*/
 		return u->loc==u->end_loc;
-	});
+	}),UAVs.end());
+	//printf("%i\n",UAVs.size());
 }
 
 

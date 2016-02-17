@@ -13,7 +13,7 @@ SimNE::SimNE(IDomainStateful* domain):
 SimNE::SimNE(IDomainStateful* domain, MultiagentNE* MAS):
 	ISimulator(domain, MAS),step(new int(0))
 {
-	domain->step = step;
+	domain->synch_step(step);
 }
 
 SimNE::~SimNE(void)

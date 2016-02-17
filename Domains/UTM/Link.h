@@ -26,6 +26,23 @@ public:
 	matrix1d capacity;
 	std::vector<std::vector<UAV_ptr> > traffic;
 
+	// Returns the predicted amount of time it would take to cross the node if the UAV got there immediately
+	matrix1d predicted_traversal_time(){
+		matrix1d predicted(traffic.size());
+		for (int i=0; i<traffic.size(); i++){
+			matrix1d waits; // the wait time for each traffic bit
+			for(UAV_ptr u : traffic[i]){
+				waits.push_back(u->t);
+			}
+			std::sort(waits.begin(),waits.end(),std::greater<double>());
+			if (waits.size()-capacity[i] >= 0 )
+				waits.resize(waits.size()-capacity[i]);	// drop the last [capacity[i]] elements
+			predicted[i] = time + easymath::sum(waits);
+		}
+		return predicted;
+	}
+
+
 	bool at_capacity(int UAV_type){
 		return capacity[UAV_type]-traffic[UAV_type].size() <= 0;
 	}
@@ -48,9 +65,10 @@ public:
 	virtual matrix2d actions2weights(matrix2d agent_actions){
 		matrix2d weights = easymath::zeros(n_types,n_edges);
 
-		for (int t=0; t<n_types; t++){
-			for (int i=0; i<n_edges; i++){
-				weights[t][i] = agent_actions[i][t];
+		for (int i=0; i<n_edges; i++){
+			matrix1d predicted = links.at(i)->predicted_traversal_time();
+			for (int t=0; t<n_types; t++){
+				weights[t][i] = predicted[t] + agent_actions[i][t];
 			}
 		}
 		return weights;

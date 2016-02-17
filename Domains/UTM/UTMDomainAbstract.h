@@ -17,8 +17,10 @@ public:
 	UTMDomainAbstract(UTMModes* params=NULL);
 	~UTMDomainAbstract(void);
 
-	void synch_step(int* step_set){
+	virtual void synch_step(int* step_set){
 		step = step_set;
+		agents->steps = step_set;
+		printf("set the step\n");
 	}
 
 	UTMModes* params;

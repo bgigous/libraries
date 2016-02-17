@@ -11,7 +11,7 @@ public:
 		_capacity_mode(0), // 0 is default parameter (variable value is not 0)
 		_nsectors_mode(3),
 		_reward_mode(GLOBAL),
-		_airspace_mode(SAVED), // needs to be SAVED for detailed sim
+		_airspace_mode(GENERATED), // needs to be SAVED for detailed sim
 		_arrival_mode(EXACT),
 		_traffic_mode(DETERMINISTIC),
 		_agent_defn_mode(LINK),

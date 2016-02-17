@@ -53,9 +53,10 @@ namespace easymath{
 	}
 
 	template<typename T>
-	std::vector<T> operator/(std::vector<T> a, const int & b){
+	std::vector<T> operator/(std::vector<T> a, int b){
 		for (T &el: a){
-			el = el/double(b);
+			if (b !=0)
+				el = el/double(b);	// don't divide by 0!
 		}
 		return a;
 	}
