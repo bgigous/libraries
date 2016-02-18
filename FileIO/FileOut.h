@@ -10,8 +10,13 @@ class FileOut{
 public:
 	//! Output function for 1d vector, list, etc: anything that can be iterated over
 	template<class T>
-	static void print_vector(std::vector<T> &output, std::string file_name, std::string separator=","){
-		std::ofstream file(file_name.c_str());
+	static void print_vector(std::vector<T> &output, std::string file_name, bool overwrite=true,  std::string separator=","){
+		std::ofstream file;
+		if (overwrite) file.open(file_name.c_str(),std::ofstream::out | std::ofstream::trunc);
+		else file.open(file_name.c_str(),std::ofstream::out | std::ofstream::app);
+		
+		if (!overwrite) file << '\n';
+
 		if (file.is_open()){
 			print_vector(output, file,separator);
 			file.close();
@@ -22,8 +27,13 @@ public:
 
 	//! Output function for 2d vector, list, etc: anything that can be iterated over
 	template<class T>
-	static void print_vector(std::vector<std::vector<T> > &output, std::string file_name, std::string separator=","){
-		std::ofstream file(file_name.c_str());
+	static void print_vector(std::vector<std::vector<T> > &output, std::string file_name,  bool overwrite=true, std::string separator=","){
+		std::ofstream file;
+		if (overwrite) file.open(file_name.c_str(),std::ofstream::out | std::ofstream::trunc);
+		else file.open(file_name.c_str(),std::ofstream::out | std::ofstream::app);
+
+		if (!overwrite) file << '\n';
+
 		if (file.is_open()){
 			for (std::vector<T> outer: output){
 				print_vector(outer, file, separator);
@@ -38,8 +48,13 @@ public:
 
 	//! Output function for 3d vector, list, etc: anything that can be iterated over
 	template <class T>
-	static void print_vector(std::vector<std::vector<std::vector<T> > > &output, std::string file_name, std::string separator=","){
-		std::ofstream file(file_name.c_str());
+	static void print_vector(std::vector<std::vector<std::vector<T> > > &output, std::string file_name, bool overwrite=true, std::string separator=","){
+		std::ofstream file;
+		if (overwrite) file.open(file_name.c_str(),std::ofstream::out | std::ofstream::trunc);
+		else file.open(file_name.c_str(),std::ofstream::out | std::ofstream::app);
+
+		if (!overwrite) file << '\n';
+
 		if (file.is_open()){
 			for (std::vector<std::vector<T> > outer: output){
 				print_vector(outer, file, separator);
@@ -53,8 +68,13 @@ public:
 
 	//! Print-to-file for a 1D container of pairs (also works with maps).
 	template<class T>
-	static void print_pair_container(T data, std::string file_name,std::string separator=","){
-		std::ofstream file(file_name.c_str());
+	static void print_pair_container(T data, std::string file_name, bool overwrite=true, std::string separator=","){
+		std::ofstream file;
+		if (overwrite) file.open(file_name.c_str(),std::ofstream::out | std::ofstream::trunc);
+		else file.open(file_name.c_str(),std::ofstream::out | std::ofstream::app);
+
+		if (!overwrite) file << '\n';
+
 		if (file.is_open()){
 			for (auto it:data){
 				file << it.first << separator << it.second << separator << "\n";

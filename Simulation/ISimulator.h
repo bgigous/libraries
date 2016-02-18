@@ -25,12 +25,12 @@ public:
 	void outputRewardLog(std::string reward_file){
 		FileOut::print_vector(reward_log, reward_file);
 	}
-	void outputMetricLog(std::string metric_file){
+	void outputMetricLog(std::string metric_file, int run=0){
 		// Prints out log of performance metric/epoch
 		std::string filepath = domain->createExperimentDirectory();
-		FileOut::print_vector(metric_log,filepath+metric_file);
+		bool overwrite = (run==0); // overwrite if the first run
+		FileOut::print_vector(metric_log,filepath+metric_file+".csv",overwrite);
 	}
-
 	std::vector<double> reward_log;
 	std::vector<double> metric_log;
 };

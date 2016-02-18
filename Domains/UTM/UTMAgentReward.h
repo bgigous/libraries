@@ -48,9 +48,7 @@ public:
 	double global(){
 		double sum=0.0;
 		for (Reward_Metrics r:metrics){
-			for (double val:r.local){
-				sum+=val;
-			}
+			sum += easymath::sum(r.local);
 		}
 		return sum;
 	}

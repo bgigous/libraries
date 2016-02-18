@@ -68,7 +68,7 @@ public:
 				exit(1);
 		}
 		else{
-			for (int i=0; i<metrics.size(); i++){
+			for (size_t i=0; i<metrics.size(); i++){
 				if (u->sectors_touched.count(i)==0){
 					metrics[i].G_minus_downstream[u->type_ID]++;
 				} else {
@@ -79,7 +79,7 @@ public:
 	}
 	void detect_conflicts(){
 		// all links going TO the sector are considered to contribute to its conflict
-		for (int s=0; s<sectors.size(); s++){
+		for (size_t s=0; s<sectors.size(); s++){
 			std::vector<Link_ptr> toward = links_toward_sector[s];
 
 			// also defined by link capacities
@@ -87,16 +87,16 @@ public:
 				params->_reward_mode==UTMModes::DIFFERENCE_DOWNSTREAM_SQ ||
 				params->_reward_mode==UTMModes::DIFFERENCE_REALLOC_SQ ||
 				params->_reward_mode==UTMModes::GLOBAL_SQ){
-					for (int i=0; i<toward.size(); i++){
-						for (int j=0; j<toward[i]->traffic.size(); j++){
+					for (size_t i=0; i<toward.size(); i++){
+						for (size_t j=0; j<toward[i]->traffic.size(); j++){
 							int over_capacity = toward[i]->traffic[j].size()-toward[i]->capacity[j];
 							if (over_capacity>0)
 								metrics[i].local[j]+=over_capacity*over_capacity;
 						}
 					}
 			} else {
-				for (int i=0; i<toward.size(); i++){
-					for (int j=0; j<toward[i]->traffic.size(); j++){
+				for (size_t i=0; i<toward.size(); i++){
+					for (size_t j=0; j<toward[i]->traffic.size(); j++){
 						int over_capacity = toward[i]->traffic[j].size()-toward[i]->capacity[j];
 						if (over_capacity>0)
 							metrics[i].local[j]+=over_capacity;

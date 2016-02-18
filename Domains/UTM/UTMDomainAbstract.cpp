@@ -44,7 +44,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params):
 
 		links.push_back(Link_ptr(new Link(links.size(),source,source_loc,target,target_loc,
 			manhattan_distance(source_loc,target_loc)/10.0,
-			matrix1d(n_types,params->get_flat_capacity()),cardinal_dir)));
+			matrix1d(n_types,double(params->get_flat_capacity())),double(cardinal_dir))));
 		linkIDs->insert(make_pair((make_pair(source,target)),links.size()-1));
 
 		connections[source].push_back(target);
@@ -220,6 +220,10 @@ void UTMDomainAbstract::incrementUAVPath(){
 		}
 		return;
 	} else {
+		for (Link_ptr l:links){
+			printf("%i, ",l->traffic.size());
+		}
+		printf("\n");
 		try_to_move(eligible); // This moves all UAVs that are eligible and not blocked
 		// Only those that cannot move are left in eligible
 		for (UAV_ptr &u:eligible){

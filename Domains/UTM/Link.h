@@ -29,14 +29,14 @@ public:
 	// Returns the predicted amount of time it would take to cross the node if the UAV got there immediately
 	matrix1d predicted_traversal_time(){
 		matrix1d predicted(traffic.size());
-		for (int i=0; i<traffic.size(); i++){
+		for (unsigned int i=0; i<traffic.size(); i++){
 			matrix1d waits; // the wait time for each traffic bit
 			for(UAV_ptr u : traffic[i]){
 				waits.push_back(u->t);
 			}
 			std::sort(waits.begin(),waits.end(),std::greater<double>());
-			if (waits.size()-capacity[i] >= 0 )
-				waits.resize(waits.size()-capacity[i]);	// drop the last [capacity[i]] elements
+			if (double(waits.size())-capacity[i] >= 0.0 )
+				waits.resize(double(waits.size())-capacity[i]);	// drop the last [capacity[i]] elements
 			predicted[i] = time + easymath::sum(waits);
 		}
 		return predicted;
@@ -93,7 +93,7 @@ public:
 				exit(1);
 		}
 		else{
-			for (int i=0; i<metrics.size(); i++){
+			for (size_t i=0; i<metrics.size(); i++){
 				if (u->links_touched.count(i)==0){
 					metrics[i].G_minus_downstream[u->type_ID]++;
 				} else {
@@ -108,16 +108,16 @@ public:
 			params->_reward_mode==UTMModes::DIFFERENCE_DOWNSTREAM_SQ ||
 			params->_reward_mode==UTMModes::DIFFERENCE_REALLOC_SQ ||
 			params->_reward_mode==UTMModes::GLOBAL_SQ){
-				for (int i=0; i<links.size(); i++){
-					for (int j=0; j<links[i]->traffic.size(); j++){
+				for (size_t i=0; i<links.size(); i++){
+					for (size_t j=0; j<links[i]->traffic.size(); j++){
 						int over_capacity = links[i]->traffic[j].size()-links[i]->capacity[j];
 						if (over_capacity>0)
 							metrics[i].local[j]+=over_capacity*over_capacity;
 					}
 				}
 		} else {
-			for (int i=0; i<links.size(); i++){
-				for (int j=0; j<links[i]->traffic.size(); j++){
+			for (size_t i=0; i<links.size(); i++){
+				for (size_t j=0; j<links[i]->traffic.size(); j++){
 					int over_capacity = links[i]->traffic[j].size()-links[i]->capacity[j];
 					if (over_capacity>0)
 						metrics[i].local[j]+=over_capacity;

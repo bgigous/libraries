@@ -43,7 +43,6 @@ void SimNE::epoch(int ep){
 		for (int t=0; t<n_trials; t++){
 			clock_t tref = clock();
 			for ((*step)=0; (*step)<domain->n_steps; (*step)++){
-				//printf("Step %i\n",s);
 				matrix2d A = this->getActions(); // must be called by 'this' in order to access potential child class overload
 				domain->simulateStep(A);
 				domain->logStep();
@@ -58,16 +57,8 @@ void SimNE::epoch(int ep){
 			double avg_G = easymath::mean(R);
 			double avg_perf = easymath::mean(perf);
 
-			// note: things here get specific to the utm domain
-			if (avg_G>best_run) { // NOTE: STILL SORTED BY BEST RUN, NOT BEST PERFORMANCE!
+			if (avg_G>best_run) {
 				best_run = avg_G;
-				/*best_run_performance = avg_perf; // average of the performance metrics
-				if (ep==0){
-					domain->exportLog("stat_results/conflict_map-0-", ep); // blatant abuse of exportlog
-				}
-				if (ep==99){
-					domain->exportLog("stat_results/conflict_map-99-",ep);
-				}*/
 			}
 			if (avg_perf>best_run_performance){
 				best_run_performance = avg_perf;
@@ -75,14 +66,12 @@ void SimNE::epoch(int ep){
 
 			printf("NN#%i, %f, %f, %f\n",n, best_run_performance, best_run, avg_perf);
 
-			//printf(".");
 			ostringstream epi,ni,ti;
 			epi << ep;
 			ni << n;
 			ti << t;
 			
 			Rtrials.push_back(R);
-			//system("pause");
 			
 
 			domain->reset();

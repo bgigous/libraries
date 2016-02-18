@@ -14,7 +14,7 @@ public:
 		_airspace_mode(GENERATED), // needs to be SAVED for detailed sim
 		_arrival_mode(EXACT),
 		_traffic_mode(DETERMINISTIC),
-		_agent_defn_mode(LINK),
+		_agent_defn_mode(SECTOR),
 		_reward_type_mode(DELAY)
 	{};
 	~UTMModes(){};
@@ -125,7 +125,7 @@ public:
 	int get_n_control_elements(){
 		return get_n_state_elements()*NTYPES;
 	}
-	int get_n_steps(){return 100;};
+	int get_n_steps(){return 1;};
 	int get_n_types(){return NTYPES;};
 	double get_p_gen(){return 0.5;};
 	int get_gen_rate(){return 10;};
