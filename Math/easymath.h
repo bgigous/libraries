@@ -46,5 +46,17 @@ namespace easymath{
 	typedef std::pair<XY,XY> line_segment;
 
 	bool intersects_in_center(line_segment edge1, line_segment edge2);
+
+	template <class STL_Container, class UnaryPredicate>
+	void remove_erase_if(STL_Container stl, UnaryPredicate pred){
+		STL_Container::iterator it = stl.begin();
+		while (it!=stl.end()){
+			if (!pred(*it)){
+				stl.erase(it++);
+			} else {
+				it++;
+			}
+		}
+	}
 }
 

@@ -73,4 +73,5 @@ public:
 
 	//! Moves all it can in the list. Those eligible to move but who are blocked are left after the function.
 	void try_to_move(std::vector<UAV_ptr> & eligible_to_move);
+	void move_UAV_to_link(UAV_ptr &u, Link_ptr &cur_link, Link_ptr &new_link); // handles motion of the UAV in the simulation, also includes logging
 };

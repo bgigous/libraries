@@ -49,6 +49,7 @@ public:
 		double sum=0.0;
 		for (Reward_Metrics r:metrics){
 			sum += easymath::sum(r.local);
+			r.local;
 		}
 		return sum;
 	}

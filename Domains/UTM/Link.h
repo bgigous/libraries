@@ -13,7 +13,7 @@ public:
 		time(time),
 		cardinal_dir(cardinal_dir),
 		capacity(capacity),
-		traffic(UTMModes::NTYPES,std::vector<UAV_ptr>())
+		traffic(UTMModes::NTYPES,std::list<UAV_ptr>())
 	{
 	}
 	const int ID;
@@ -24,7 +24,13 @@ public:
 	const int time;		// Amount of time it takes to travel across link
 	const int cardinal_dir;
 	matrix1d capacity;
-	std::vector<std::vector<UAV_ptr> > traffic;
+	std::vector<std::list<UAV_ptr> > traffic;
+
+	void reset(){
+		for (std::list<UAV_ptr> &t:traffic){
+			t.clear();
+		}
+	}
 
 	// Returns the predicted amount of time it would take to cross the node if the UAV got there immediately
 	matrix1d predicted_traversal_time(){
@@ -45,6 +51,26 @@ public:
 
 	bool at_capacity(int UAV_type){
 		return capacity[UAV_type]-traffic[UAV_type].size() <= 0;
+	}
+
+
+	//! Grabs the UAV u from link l
+	void move_from(UAV_ptr u, std::shared_ptr<Link> l){
+		// Add to other list (u is temporarily duplicated)
+		add(u);
+
+		// Remove from previous node (l)
+		l->remove(u);
+	}
+
+	//! Also sets the time
+	void add(UAV_ptr u){
+		u->t = time;
+		traffic.at(size_t(u->type_ID)).push_back(u);
+	}
+
+	void remove(UAV_ptr u){
+		traffic[u->type_ID].erase(std::find(traffic[u->type_ID].begin(),traffic[u->type_ID].end(),u));
 	}
 };
 
@@ -126,4 +152,6 @@ public:
 		}
 
 	}
+
+
 };

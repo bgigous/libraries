@@ -208,7 +208,14 @@ matrix1d UTMDomainAbstract::getRewards(){
 
 void UTMDomainAbstract::incrementUAVPath(){
 	vector<UAV_ptr> eligible; // Eligible to move to the next link
-	copy_if(UAVs.begin(),UAVs.end(),back_inserter(eligible),delay_complete);
+	copy_if(UAVs.begin(),UAVs.end(),back_inserter(eligible),[](UAV_ptr u){
+		if (u->t<=0){
+			return true;
+		} else {
+			u->t--;	
+			return false;
+		}
+	});
 	
 	if (eligible.empty())
 		return;
@@ -220,10 +227,6 @@ void UTMDomainAbstract::incrementUAVPath(){
 		}
 		return;
 	} else {
-		for (Link_ptr l:links){
-			printf("%i, ",l->traffic.size());
-		}
-		printf("\n");
 		try_to_move(eligible); // This moves all UAVs that are eligible and not blocked
 		// Only those that cannot move are left in eligible
 		for (UAV_ptr &u:eligible){
@@ -236,41 +239,33 @@ void UTMDomainAbstract::incrementUAVPath(){
 				agents->add_downstream_delay_counterfactual(u);
 			else continue;
 		}
-
 	}
 }
 
 void UTMDomainAbstract::try_to_move(vector<UAV_ptr> & eligible_to_move){
 	random_shuffle(eligible_to_move.begin(),eligible_to_move.end());
-
+	
 	int el_size;
 	do {
 		vector<UAV_ptr>::iterator it = eligible_to_move.begin();
 		el_size = eligible_to_move.size();
-		
-		while (it!=eligible_to_move.end()){
-			UAV_ptr u = *it;
-			int n = u->next_link_ID;
-			int c = u->cur_link_ID;
-			int t = u->type_ID;
 
-			if (!links[n]->at_capacity(t)){
-				// Set the new time to wait
-				u->t = links[n]->time;
-
-				// Add the traffic to the new link
-				links[n]->traffic[t].push_back(u);
-				u->moveTowardNextWaypoint();
-
-				// remove the traffic from the old link
-				auto blah = find(links[c]->traffic[t].begin(),links[c]->traffic[t].end(),u);
-				links[c]->traffic[t].erase(blah,links[c]->traffic[t].end());
-				
-				it = eligible_to_move.erase(it);
-			} else{
-				++it;
-			}
+		vector<Link_ptr> L = links;
+		eligible_to_move.erase(
+			remove_if(eligible_to_move.begin(),eligible_to_move.end(),
+			[L](UAV_ptr u){
+				int n = u->next_link_ID;
+				int c = u->cur_link_ID;
+				int t = u->type_ID;
+				if (!L[n]->at_capacity(t)){
+					L[n]->move_from(u,L[c]);
+					return true;
+				} else {
+					return false;
+				}
 		}
+		),eligible_to_move.end());
+
 	} while(el_size != eligible_to_move.size());
 }
 
@@ -501,30 +496,41 @@ void UTMDomainAbstract::getPathPlans(std::list<UAV_ptr > &new_UAVs){
 void UTMDomainAbstract::reset(){
 	UAVs.clear();
 	UAVLocations.clear();
+	for (Link_ptr l:links){
+		l->reset();
+	}
+
 	agents->agentActions.clear();
 	agents->reset();
 }
 
 void UTMDomainAbstract::absorbUAVTraffic(){
-	UAVs.erase(remove_if(UAVs.begin(),UAVs.end(),[](const UAV_ptr &u){
-		/*if (u->loc==u->end_loc){
-			printf("Got to destination!");
-			system("pause");
-		}*/
-		return u->loc==u->end_loc;
-	}),UAVs.end());
-	//printf("%i\n",UAVs.size());
+	// Deletes UAVs
+	remove_erase_if(UAVs,[](UAV_ptr u){return u->loc==u->end_loc;});
+	for (Link_ptr l:links){
+		for (list<UAV_ptr> &t:l->traffic){
+			remove_erase_if(t,[](UAV_ptr u){return u->loc==u->end_loc;});
+		}
+	}
 }
 
 
 void UTMDomainAbstract::getNewUAVTraffic(){
-
 	// Generates (with some probability) plane traffic for each sector
-	list<UAV_ptr> all_new_UAVs;
+	
+	int traffic_sum = 0;
+	for (int i=0; i<links.size(); i++){
+		for (int t=0; t<links[i]->traffic.size(); t++){
+			int tsize = links[i]->traffic[t].size();
+			traffic_sum += links[i]->traffic[t].size();
+		}
+	}
+	
 	for (Fix_ptr &f: fixes){
 		list<UAV_ptr> new_UAVs = f->generateTraffic(*step);
-		all_new_UAVs.splice(all_new_UAVs.end(),new_UAVs);
+		for (UAV_ptr &u: new_UAVs){
+			UAVs.push_back(u);
+			links.at(u->cur_link_ID)->add(u);
+		}
 	}
-
-	UAVs.splice(UAVs.end(),all_new_UAVs);
 }
