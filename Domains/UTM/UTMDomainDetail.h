@@ -23,7 +23,7 @@ public:
 	virtual matrix1d getRewards();
 	virtual matrix1d getPerformance();
 	virtual void getPathPlans(); // note: when is this event?
-	virtual void getPathPlans(std::list<UAV_ptr> &new_UAVs);
+	virtual void getPathPlans(std::list<UAV*> &new_UAVs);
 	virtual void exportLog(std::string fid, double G);
 	virtual void detectConflicts();
 	virtual void incrementUAVPath();
@@ -36,7 +36,7 @@ public:
 	//std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
 	vector<easymath::XY> fix_locs;
 	
-	void addConflict(UAV_ptr u1, UAV_ptr u2){
+	void addConflict(UAV* u1, UAV* u2){
 		agents->metrics.at(u1->curSectorID()).local[u1->type_ID]+=0.5;
 		agents->metrics.at(u2->curSectorID()).local[u2->type_ID]+=0.5;
 	}

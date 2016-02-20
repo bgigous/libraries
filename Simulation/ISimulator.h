@@ -18,7 +18,7 @@ public:
 	{
 
 	}
-	virtual ~ISimulator(void){};
+	~ISimulator(void){};
 	IDomainStateful* domain;
 	IMultiagentSystem* MAS;
 	virtual void runExperiment(void)=0; // run the experiment

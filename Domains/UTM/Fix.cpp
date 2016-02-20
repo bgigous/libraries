@@ -5,13 +5,13 @@ using namespace easymath;
 using namespace std;
 
 Fix::Fix(XY loc, int ID_set, TypeGraphManager* highGraph, SectorGraphManager* lowGraph, 
-		 vector<Fix_ptr>* fixes, UTMModes* params,std::map<std::pair<int,int>,int> *linkIDs): 
+		 vector<Fix*>* fixes, UTMModes* params,std::map<std::pair<int,int>,int> *linkIDs): 
 highGraph(highGraph), lowGraph(lowGraph), fixes(fixes), 
 	ID(ID_set), loc(loc), params(params),linkIDs(linkIDs)
 {
 }
 
-bool Fix::atDestinationFix(const UAV &u){
+bool Fix::atDestinationFix(UAV &u){
 	switch(params->_arrival_mode){
 	case UTMModes::EXACT:
 		return u.end_loc == u.loc;
@@ -28,9 +28,9 @@ bool Fix::atDestinationFix(const UAV &u){
 	}
 }
 
-std::list<UAV_ptr > Fix::generateTraffic(int step){
+std::list<UAV* > Fix::generateTraffic(int step){
 	// Creates a new UAV in the world
-	std::list<UAV_ptr > newTraffic;
+	std::list<UAV* > newTraffic;
 
 	switch(params->_traffic_mode){
 	case UTMModes::PROBABILISTIC:
@@ -53,7 +53,7 @@ std::list<UAV_ptr > Fix::generateTraffic(int step){
 		end_loc = fixes->at(ID-1)->loc; // go to previous
 
 	UTMModes::UAVType type_id_set = UTMModes::UAVType(step%int(UTMModes::UAVType::NTYPES)); // EVEN TYPE NUMBER
-	newTraffic.push_back(UAV_ptr(new UAV(loc,end_loc,type_id_set,highGraph,linkIDs,lowGraph)));
+	newTraffic.push_back(new UAV(loc,end_loc,type_id_set,highGraph,linkIDs,lowGraph));
 
 	return newTraffic;
 }

@@ -18,23 +18,23 @@ public:
 	const easymath::XY xy; // sector center
 };
 
-
-typedef std::shared_ptr<Sector> Sector_ptr;
-
 //! Class that manages sectors as agents
 class SectorAgentManager: public IAgentManager{
 public:
-	SectorAgentManager(std::vector<Link_ptr> links, int n_types, std::vector<Sector_ptr> sectors, UTMModes* params):
-		links(links),n_types(n_types),sectors(sectors),IAgentManager(params)
+	SectorAgentManager(std::vector<Link*> links_set, int n_types_set, std::vector<Sector*> sectors_set, UTMModes* params):
+		IAgentManager(params),n_types(n_types_set)
 	{
-		for (Link_ptr l:links){
+		links = links_set;
+		sectors = sectors_set;
+
+		for (Link* l:links){
 			links_toward_sector[l->target].push_back(l);
 		}
 	};
 	~SectorAgentManager(){};
 
-	std::vector<Link_ptr> links; // links in the entire system
-	std::map<int,std::vector<Link_ptr> > links_toward_sector;
+	std::vector<Link*> links; // links in the entire system
+	std::map<int,std::vector<Link*> > links_toward_sector;
 	const int n_types;
 
 	virtual matrix2d actions2weights(matrix2d agent_actions){
@@ -50,12 +50,12 @@ public:
 		}
 		return weights;
 	}
-	std::vector<Sector_ptr> sectors;
+	std::vector<Sector*> sectors;
 
-	void add_delay(const UAV_ptr &u){
+	void add_delay(UAV* u){
 		metrics.at(u->curSectorID()).local[u->type_ID]++;
 	}
-	void add_downstream_delay_counterfactual(const UAV_ptr &u){
+	void add_downstream_delay_counterfactual(UAV* u){
 				// remove the effects of the UAV for the counterfactual..
 		// calculate the G that means that the UAV's impact is removed...
 
@@ -80,7 +80,7 @@ public:
 	void detect_conflicts(){
 		// all links going TO the sector are considered to contribute to its conflict
 		for (size_t s=0; s<sectors.size(); s++){
-			std::vector<Link_ptr> toward = links_toward_sector[s];
+			std::vector<Link*> toward = links_toward_sector[s];
 
 			// also defined by link capacities
 			if (params->_reward_mode==UTMModes::DIFFERENCE_AVG_SQ ||

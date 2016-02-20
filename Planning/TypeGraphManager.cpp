@@ -92,6 +92,9 @@ bool TypeGraphManager::fullyConnected(vector<XY> agentLocs){
 
 TypeGraphManager::~TypeGraphManager(void)
 {
+	for (int i=0; i<n_types; i++){
+		delete Graph_highlevel[i];
+	}
 }
 
 

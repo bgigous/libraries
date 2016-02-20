@@ -4,16 +4,17 @@
 #include "../Math/easymath.h"
 #include <limits>
 #include <sstream>
+#include <time.h>
 
 using namespace std;
 
 class SimNE: public ISimulator{
 public:
-	SimNE(IDomainStateful* domain);
+	//SimNE(IDomainStateful* domain);
 	SimNE(IDomainStateful* domain, MultiagentNE* MAS);
-	~SimNE(void);
+	virtual ~SimNE(void);
 
-	static const int n_epochs=100; // testing parameter, changed from 500;
+	static const int n_epochs=1; // testing parameter, changed from 500;
 	static const int n_trials=1;
 	int* step; // step counter for running the simulation
 

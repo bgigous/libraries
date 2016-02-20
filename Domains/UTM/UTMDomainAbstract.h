@@ -34,14 +34,14 @@ public:
 	IAgentManager* agents;
 
 	// Moving parts
-	std::vector<Sector_ptr> sectors;
-	std::vector<Link_ptr> links;
-	std::vector<Fix_ptr> fixes;
+	std::vector<Sector*> sectors;
+	std::vector<Link*> links;
+	std::vector<Fix*> fixes;
 	std::map<std::pair<int,int>,int> *linkIDs;
 
 
 	// Traffic
-	std::list<UAV_ptr> UAVs;
+	std::list<UAV*> UAVs;
 	void getNewUAVTraffic();
 	void absorbUAVTraffic();
 
@@ -67,11 +67,11 @@ public:
 	virtual void detectConflicts();
 
 	virtual void getPathPlans();
-	virtual void getPathPlans(std::list<UAV_ptr> &new_UAVs);
+	virtual void getPathPlans(std::list<UAV*> &new_UAVs);
 	virtual void reset();
 
 
 	//! Moves all it can in the list. Those eligible to move but who are blocked are left after the function.
-	void try_to_move(std::vector<UAV_ptr> & eligible_to_move);
-	void move_UAV_to_link(UAV_ptr &u, Link_ptr &cur_link, Link_ptr &new_link); // handles motion of the UAV in the simulation, also includes logging
+	void try_to_move(std::vector<UAV*> & eligible_to_move);
+	void move_UAV_to_link(UAV* u, Link* cur_link, Link* new_link); // handles motion of the UAV in the simulation, also includes logging
 };

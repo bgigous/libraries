@@ -11,7 +11,7 @@ public:
 		_capacity_mode(0), // 0 is default parameter (variable value is not 0)
 		_nsectors_mode(3),
 		_reward_mode(GLOBAL),
-		_airspace_mode(GENERATED), // needs to be SAVED for detailed sim
+		_airspace_mode(SAVED),
 		_arrival_mode(EXACT),
 		_traffic_mode(DETERMINISTIC),
 		_agent_defn_mode(SECTOR),
@@ -125,7 +125,7 @@ public:
 	int get_n_control_elements(){
 		return get_n_state_elements()*NTYPES;
 	}
-	int get_n_steps(){return 100;};
+	int get_n_steps(){return 1;};
 	int get_n_types(){return NTYPES;};
 	double get_p_gen(){return 0.5;};
 	int get_gen_rate(){return 10;};
@@ -136,14 +136,28 @@ public:
 class UTMFileNames{
 public:
 	UTMFileNames(UTMModes* modes_set=NULL):modes(modes_set){
-		if (modes_set==NULL)
+		if (modes_set==NULL){
 			modes = new UTMModes(); // Uses the default
+			kill_modes=true;
+		} else {
+			kill_modes = false;
+		}
 	}
 	~UTMFileNames(){
-		printf("dying");
+		if (kill_modes)
+			delete modes;
 	}
-
+	bool kill_modes;
 	UTMModes* modes;
+
+	std::string createDomainDirectory(){
+		// Saves the map information
+		std::string DOMAIN_FOLDER = "Domains/";
+		std::string SECTOR_FOLDER = DOMAIN_FOLDER+std::to_string(modes->get_n_sectors())+"_Sectors/";
+		_mkdir(DOMAIN_FOLDER.c_str());
+		_mkdir(SECTOR_FOLDER.c_str());
+		return SECTOR_FOLDER;
+	}
 	
 	std::string createExperimentDirectory(){
 		std::string EXPERIMENT_FOLDER = "Experiments/";
