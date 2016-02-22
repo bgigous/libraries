@@ -4,33 +4,20 @@ using namespace std;
 
 matrix2d SimTypeNE::getActions(){
 	matrix3d S = domain->getTypeStates(); // [agent id][type id][state element
-	
-	/*
-	int nnz = 0;
-	double sum = 0.0;
-	for (int i=0; i<S.size(); i++){
-		for (int j=0; j<S[i].size(); j++){
-			for (int k=0; k<S[i][j].size(); k++){
-				if (S[i][j][k]>0.0){
-					nnz++;
-				}
-				sum += S[i][j][k];
-			}
-		}
-	}
-
-	printf("%i, %f\n",nnz,sum);*/
-	
-
 	return ((MultiagentTypeNE*)MAS)->getActions(S);
 }
 
+/*
 SimTypeNE::SimTypeNE(IDomainStateful* domain, MultiagentTypeNE::TypeHandling type_mode):
-	SimNE(domain), type_mode(type_mode)
+	SimNE(domain),
+	type_mode(type_mode)//,
+	//NE_params(new NeuroEvoParameters(domain->n_state_elements,domain->n_control_elements))
 {
-	MAS = new MultiagentTypeNE(domain->n_agents,new NeuroEvoParameters(
-		domain->n_state_elements,domain->n_control_elements),type_mode,domain->n_types);
+	//MAS = new MultiagentTypeNE(domain->n_agents,NE_params,type_mode,domain->n_types);
 }
+
+removed -- this can cause memory leaks
+*/
 
 SimTypeNE::SimTypeNE(IDomainStateful *domain, MultiagentNE* MAS, MultiagentTypeNE::TypeHandling type_mode):
 	SimNE(domain, MAS), type_mode(type_mode)
@@ -40,9 +27,7 @@ SimTypeNE::SimTypeNE(IDomainStateful *domain, MultiagentNE* MAS, MultiagentTypeN
 
 SimTypeNE::~SimTypeNE(void)
 {
-	/*
-	delete sim_params;
-	delete ((MultiagentTypeNE*)MAS)->NE_params;
-	delete ((MultiagentTypeNE*)MAS);
-*/
+	
+	//delete NE_params;
+	//delete MAS;
 }

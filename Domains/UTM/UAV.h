@@ -76,5 +76,3 @@ public:
 private:
 	TypeGraphManager* highGraph; // shared with the simulator (for now);
 };
-
-typedef std::shared_ptr<UAV> UAV_ptr;

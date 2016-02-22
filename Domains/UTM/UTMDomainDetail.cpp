@@ -20,7 +20,7 @@ UTMDomainDetail::UTMDomainDetail():
 	fixes.clear();
 	// Get link IDs for fix generation
 	for (unsigned int i=0; i<fix_locs.size(); i++){
-		fixes.push_back(Fix_ptr(new Fix(fix_locs[i],i,highGraph,lowGraph,&fixes, params,linkIDs)));
+		fixes.push_back(new Fix(fix_locs[i],i,highGraph,lowGraph,&fixes, params,linkIDs));
 	}
 
 	//conflict_count_map = new ID_grid(planners->obstacle_map->dim1(), planners->obstacle_map->dim2());
@@ -70,20 +70,20 @@ unsigned int UTMDomainDetail::getSector(easymath::XY p){
 
 //HACK: ONLY GET PATH PLANS OF UAVS just generated
 void UTMDomainDetail::getPathPlans(){
-	for (UAV_ptr &u : UAVs){
+	for (UAV* u : UAVs){
 		u->planDetailPath(); // sets own next waypoint
 	}
 }
 
-void UTMDomainDetail::getPathPlans(std::list<UAV_ptr > &new_UAVs){
-	for (UAV_ptr &u : new_UAVs){
+void UTMDomainDetail::getPathPlans(std::list<UAV* > &new_UAVs){
+	for (UAV* u : new_UAVs){
 		u->planDetailPath(); // sets own next waypoint
 	}
 }
 
 
 void UTMDomainDetail::incrementUAVPath(){
-	for (UAV_ptr &u: UAVs)
+	for (UAV* u: UAVs)
 		u->moveTowardNextWaypoint(); // moves toward next waypoint (next in low-level plan)
 	// IMPORTANT! At this point in the code, agent states may have changed
 }
@@ -102,8 +102,8 @@ void UTMDomainDetail::exportLog(std::string fid, double G){
 }
 
 void UTMDomainDetail::detectConflicts(){
-	for (list<UAV_ptr >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
-		for (list<UAV_ptr >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
+	for (list<UAV* >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
+		for (list<UAV* >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
 			
 			double d = easymath::euclidean_distance((*u1)->loc,(*u2)->loc);
 

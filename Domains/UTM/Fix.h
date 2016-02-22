@@ -3,18 +3,17 @@
 #include "UAV.h"
 
 class Fix;
-typedef std::shared_ptr<Fix> Fix_ptr;
 
 class Fix{
 public:
 	Fix(easymath::XY loc, int ID, TypeGraphManager* highGraph, SectorGraphManager* lowGraph,
-		std::vector<Fix_ptr>* fixes, UTMModes* params, std::map<std::pair<int,int>,int> *linkIDs);
+		std::vector<Fix*>* fixes, UTMModes* params, std::map<std::pair<int,int>,int> *linkIDs);
 
 
 	~Fix(){};
 	UTMModes* params;
-	std::list<UAV_ptr> generateTraffic(int step);
-	bool atDestinationFix(const UAV &u);
+	std::list<UAV*> generateTraffic(int step);
+	bool atDestinationFix(UAV &u);
 	int ID;
 	easymath::XY loc;
 	std::map<std::pair<int,int>,int>* linkIDs;
@@ -23,5 +22,5 @@ public:
 private:
 	TypeGraphManager* highGraph;
 	SectorGraphManager* lowGraph;
-	std::vector<Fix_ptr>* fixes; // for generating destinations
+	std::vector<Fix*>* fixes; // for generating destinations
 };

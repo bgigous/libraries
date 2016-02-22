@@ -13,9 +13,9 @@ public:
 		time(time),
 		cardinal_dir(cardinal_dir),
 		capacity(capacity),
-		traffic(UTMModes::NTYPES,std::list<UAV_ptr>())
-	{
-	}
+		traffic(UTMModes::NTYPES,std::list<UAV*>())
+	{}
+
 	const int ID;
 	const int source;
 	const easymath::XY source_loc;
@@ -24,10 +24,10 @@ public:
 	const int time;		// Amount of time it takes to travel across link
 	const int cardinal_dir;
 	matrix1d capacity;
-	std::vector<std::list<UAV_ptr> > traffic;
+	std::vector<std::list<UAV*> > traffic;
 
 	void reset(){
-		for (std::list<UAV_ptr> &t:traffic){
+		for (std::list<UAV*> &t:traffic){
 			t.clear();
 		}
 	}
@@ -37,7 +37,7 @@ public:
 		matrix1d predicted(traffic.size());
 		for (unsigned int i=0; i<traffic.size(); i++){
 			matrix1d waits; // the wait time for each traffic bit
-			for(UAV_ptr u : traffic[i]){
+			for(UAV* u : traffic[i]){
 				waits.push_back(u->t);
 			}
 			std::sort(waits.begin(),waits.end(),std::greater<double>());
@@ -53,9 +53,8 @@ public:
 		return capacity[UAV_type]-traffic[UAV_type].size() <= 0;
 	}
 
-
 	//! Grabs the UAV u from link l
-	void move_from(UAV_ptr u, std::shared_ptr<Link> l){
+	void move_from(UAV* u, Link* l){//std::shared_ptr<Link> l){
 		// Add to other list (u is temporarily duplicated)
 		add(u);
 
@@ -64,25 +63,25 @@ public:
 	}
 
 	//! Also sets the time
-	void add(UAV_ptr u){
+	void add(UAV* u){
 		u->t = time;
 		traffic.at(size_t(u->type_ID)).push_back(u);
 	}
 
-	void remove(UAV_ptr u){
+	void remove(UAV* u){
 		traffic[u->type_ID].erase(std::find(traffic[u->type_ID].begin(),traffic[u->type_ID].end(),u));
 	}
 };
 
-typedef std::shared_ptr<Link> Link_ptr;
-
 class LinkAgentManager: public IAgentManager{
 public:
 	// The agent that communicates with others
-	LinkAgentManager(int n_edges, int n_types, std::vector<Link_ptr> links, UTMModes* params):
+	LinkAgentManager(int n_edges, int n_types, std::vector<Link*> links, UTMModes* params):
 		n_edges(n_edges),n_types(n_types), IAgentManager(params),links(links)
 	{};
-	~LinkAgentManager(){};
+	~LinkAgentManager(){
+		links.clear();
+	};
 	// weights are ntypesxnagents
 
 	const int n_edges;
@@ -100,13 +99,13 @@ public:
 		return weights;
 	}
 
-	std::vector<Link_ptr> links;
+	std::vector<Link*> links;
 	
-	void add_delay(const UAV_ptr &u){
+	void add_delay(UAV* u){
 		metrics.at(u->cur_link_ID).local[u->type_ID]++; // adds to the local delay
 	}
 
-	void add_downstream_delay_counterfactual(const UAV_ptr &u){
+	void add_downstream_delay_counterfactual(UAV* u){
 		// remove the effects of the UAV for the counterfactual..
 		// calculate the G that means that the UAV's impact is removed...
 

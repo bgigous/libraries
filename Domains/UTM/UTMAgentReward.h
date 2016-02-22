@@ -59,11 +59,11 @@ public:
 	}
 
 	std::vector<Reward_Metrics> metrics;
-	virtual void add_delay(const UAV_ptr &u)=0;
+	virtual void add_delay(UAV* u)=0;
 	virtual void detect_conflicts()=0;
 
 	void add_average_counterfactual();
-	virtual void add_downstream_delay_counterfactual(const UAV_ptr &u)=0;
+	virtual void add_downstream_delay_counterfactual(UAV* u)=0;
 	/*virtual void add_downstream_conflict_counterfactual()=0;
 	virtual void add_realloc_delay_counterfactual()=0;
 	virtual void add_realloc_conflict_counterfactual()=0;*/

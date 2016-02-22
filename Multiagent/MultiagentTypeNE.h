@@ -38,6 +38,15 @@ public:
 
 		return true;
 	}
+	std::string type_file_name(){
+		std::string typefilenames[MultiagentTypeNE::TypeHandling::NMODES] = {
+		"blind",
+		"weighted",
+		"crossweighted",
+		"multimind",
+	};
+		return typefilenames[type_mode];
+	}
 
 	virtual void selectSurvivors(){
 	// Specific to Evo: select survivors

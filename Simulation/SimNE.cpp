@@ -1,5 +1,7 @@
 #include "SimNE.h"
 
+/*
+removed - causes memory leak
 SimNE::SimNE(IDomainStateful* domain):
 	ISimulator(domain, 
 	new MultiagentNE(domain->n_agents, 
@@ -8,7 +10,7 @@ SimNE::SimNE(IDomainStateful* domain):
 {
 	domain->synch_step(step);
 }
-
+*/
 // FOR DEBUGGING
 SimNE::SimNE(IDomainStateful* domain, MultiagentNE* MAS):
 	ISimulator(domain, MAS),step(new int(0))
@@ -19,16 +21,25 @@ SimNE::SimNE(IDomainStateful* domain, MultiagentNE* MAS):
 SimNE::~SimNE(void)
 {
 	delete step;
-	delete ((MultiagentNE*)MAS)->NE_params;
-	delete MAS;
 }
 
 void SimNE::runExperiment(){
-	for (int ep=0; ep<n_epochs; ep++){
-		printf("Epoch %i\n",ep);
-		//printf(".");
+	int ep = 0;
+	int n_epochs = 1;
+	//for (int ep=0; ep<n_epochs; ep++){
+		
+		time_t epoch_start = time(NULL);
 		this->epoch(ep);
-	}
+		time_t epoch_end = time(NULL);
+		time_t epoch_time = epoch_end - epoch_start;
+		time_t run_time_left = (time_t(n_epochs-ep))*epoch_time;
+		time_t run_end_time = epoch_end + run_time_left;
+
+		char end_clock_time[26];
+		ctime_s(end_clock_time, sizeof(end_clock_time), &run_end_time);
+		printf("Epoch %i took %i seconds.\n",ep,epoch_time);
+		cout << "Estimated run end time: " << end_clock_time << endl;
+	//}
 }
 
 void SimNE::epoch(int ep){
@@ -47,9 +58,9 @@ void SimNE::epoch(int ep){
 				domain->simulateStep(A);
 				domain->logStep();
 			}
-			t= clock();
-			printf("t=%f\n",float(t-tref)/CLOCKS_PER_SEC);
-			tref=t;
+			//t= clock();
+			//printf("t=%f\n",float(t-tref)/CLOCKS_PER_SEC);
+			//tref=t;
 
 			matrix1d R = domain->getRewards();
 			matrix1d perf = domain->getPerformance();
