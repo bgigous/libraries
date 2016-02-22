@@ -13,6 +13,7 @@ public:
 		metrics(std::vector<Reward_Metrics>(params->get_n_agents(),Reward_Metrics(params->get_n_types())))
 	{
 	}
+	virtual ~IAgentManager()=0;
 
 	UTMModes* params;
 	virtual matrix2d actions2weights(matrix2d agent_actions)=0;

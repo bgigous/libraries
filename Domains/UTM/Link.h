@@ -14,7 +14,9 @@ public:
 		cardinal_dir(cardinal_dir),
 		capacity(capacity),
 		traffic(UTMModes::NTYPES,std::list<UAV*>())
-	{}
+	{
+		printf("blah");
+		}
 
 	const int ID;
 	const int source;
@@ -80,7 +82,7 @@ public:
 		n_edges(n_edges),n_types(n_types), IAgentManager(params),links(links)
 	{};
 	~LinkAgentManager(){
-		links.clear();
+		for (Link* l:links) delete l;
 	};
 	// weights are ntypesxnagents
 

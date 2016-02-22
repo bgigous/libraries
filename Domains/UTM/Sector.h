@@ -31,7 +31,13 @@ public:
 			links_toward_sector[l->target].push_back(l);
 		}
 	};
-	~SectorAgentManager(){};
+	~SectorAgentManager(){
+		for (Link* l:links){
+			for (Link* t: links_toward_sector[l->target])
+				delete t;
+			delete l;
+		}
+	};
 
 	std::vector<Link*> links; // links in the entire system
 	std::map<int,std::vector<Link*> > links_toward_sector;

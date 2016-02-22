@@ -293,7 +293,13 @@ void UTMDomainAbstract::try_to_move(vector<UAV*> & eligible_to_move){
 
 matrix2d UTMDomainAbstract::getStates(){
 	// States: delay assignments for UAVs that need routing
+	
+	
+	
+	
 	matrix2d allStates(n_agents,matrix1d(n_state_elements,0.0));
+
+
 
 	/* "NORMAL POLARITY" state
 	for (UAV* u : UAVs){
