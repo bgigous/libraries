@@ -53,7 +53,7 @@ std::list<UAV* > Fix::generateTraffic(int step){
 		end_loc = fixes->at(ID-1)->loc; // go to previous
 
 	UTMModes::UAVType type_id_set = UTMModes::UAVType(step%int(UTMModes::UAVType::NTYPES)); // EVEN TYPE NUMBER
-	newTraffic.push_back(new UAV(loc,end_loc,type_id_set,highGraph,linkIDs,lowGraph));
+	newTraffic.push_back(new UAV(loc,end_loc,type_id_set,highGraph,linkIDs,params,lowGraph));
 
 	return newTraffic;
 }

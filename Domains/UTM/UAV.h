@@ -18,10 +18,12 @@ class UAV{
 	*/
 public:
 	UAV(easymath::XY start_loc, easymath::XY end_loc, UTMModes::UAVType t, TypeGraphManager* highGraph, 
-		std::map<std::pair<int,int>,int>* linkIDs, SectorGraphManager* lowGraph=NULL);
+		std::map<std::pair<int,int>,int>* linkIDs, UTMModes* params, SectorGraphManager* lowGraph=NULL);
 
 	~UAV(){
 	}
+
+	UTMModes* params;
 
 	int getDirection(); // gets the cardinal direction of the UAV
 	void moveTowardNextWaypoint(); // takes a time increment to move over

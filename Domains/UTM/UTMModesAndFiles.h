@@ -15,13 +15,20 @@ public:
 		_arrival_mode(EXACT),
 		_traffic_mode(DETERMINISTIC),
 		_agent_defn_mode(SECTOR),
-		_reward_type_mode(DELAY)
+		_reward_type_mode(DELAY),
+		_search_type_mode(ASTAR)
 	{};
 	~UTMModes(){};
 
 	// OPTION HERE FOR ONE AGENT PER LINK
 	enum AgentDefinition{SECTOR,LINK};
 	AgentDefinition _agent_defn_mode;
+
+	// CHANGES HERE
+	enum SearchDefinition{ASTAR,RAGS};
+	SearchDefinition _search_type_mode;
+	//	END CHANGES HERE
+
 
 	// NUMBER OF SECTORS
 	static const int NSECTORNUMBERS = 4;

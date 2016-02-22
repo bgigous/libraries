@@ -5,8 +5,8 @@ using namespace easymath;
 using namespace std;
 
 UAV::UAV(XY start_loc, XY end_loc, UTMModes::UAVType t, TypeGraphManager* highGraph,
-		 map<pair<int,int>,int>* linkIDs, SectorGraphManager* lowGraph):
-	highGraph(highGraph),lowGraph(lowGraph),loc(start_loc), end_loc(end_loc), type_ID(t),speed(1.0), linkIDs(linkIDs)
+		 map<pair<int,int>,int>* linkIDs, UTMModes* params, SectorGraphManager* lowGraph):
+	highGraph(highGraph),lowGraph(lowGraph),loc(start_loc), end_loc(end_loc), type_ID(t),speed(1.0), linkIDs(linkIDs),params(params)
 {
 	static int calls=0;
 	ID = calls++;
@@ -68,8 +68,13 @@ void UAV::planAbstractPath(){
 	if (cur_link_ID!=-1) links_touched.insert(cur_link_ID);
 	sectors_touched.insert(curSectorID());
 	
+	list<int> high_path;
+	if (params->_search_type_mode==UTMModes::ASTAR){
+		high_path = highGraph->astar(curSectorID(), endSectorID(), type_ID);
+	} else {
+		// RAGS
+	}
 	
-	list<int> high_path = highGraph->astar(curSectorID(), endSectorID(), type_ID);
 	if (high_path_prev!=high_path){
 		pathChanged=true;
 		high_path_prev = high_path;
@@ -82,6 +87,7 @@ void UAV::planAbstractPath(){
 			}
 		}
 		update_link_info();
+		// ERROR CONDITION: SHOULD NEVER BE HIT, FOR DEBUGGING
 		if (high_path_prev.size()==1){
 			printf("blah");
 			highGraph->astar(curSectorID(),endSectorID(),type_ID);
