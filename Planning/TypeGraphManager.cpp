@@ -107,6 +107,10 @@ list<int> TypeGraphManager::astar(int mem1, int mem2, int type_ID){
 	return Graph_highlevel[type_ID]->astar(mem1,mem2);
 }
 
+list<int> TypeGraphManager::RAGS(int mem1, int mem2, int type_ID){
+	return Graph_highlevel[type_ID]->RAGS(mem1,mem2);
+}
+
 int TypeGraphManager::getMembership(easymath::XY pt){
 	if (loc2mem.find(pt)!=loc2mem.end()) {
 		return loc2mem[pt];

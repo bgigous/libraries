@@ -24,6 +24,7 @@ public:
 	// A* modification functions
 	void setCostMaps(matrix2d agent_actions);
 	std::list<int> astar(int mem1, int mem2, int type_ID);
+	std::list<int> RAGS(int mem1, int mem2, int type_ID);
 	
 	// Accessor functions
 	int getMembership(easymath::XY pt);
