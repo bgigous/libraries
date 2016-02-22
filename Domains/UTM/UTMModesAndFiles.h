@@ -16,7 +16,7 @@ public:
 		_traffic_mode(DETERMINISTIC),
 		_agent_defn_mode(SECTOR),
 		_reward_type_mode(DELAY),
-                _search_type_mode(ASTAR)
+		_search_type_mode(ASTAR)
 	{};
 	~UTMModes(){};
 
@@ -25,6 +25,12 @@ public:
 	AgentDefinition _agent_defn_mode;
         enum SearchDefinition(ASTAR, RAGS);
         searchDefinition _search_type_mode;
+
+	// CHANGES HERE
+	enum SearchDefinition{ASTAR,RAGS};
+	SearchDefinition _search_type_mode;
+	//	END CHANGES HERE
+
 
 	// NUMBER OF SECTORS
 	static const int NSECTORNUMBERS = 4;
