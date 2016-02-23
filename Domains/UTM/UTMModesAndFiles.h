@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
+//if windows use direct.h, if linux use unistd.h
 #include <direct.h>
+//#include <unistd.h>
 #include "../IDomainStateful.h"
 
 
@@ -62,10 +64,10 @@ public:
 	static const enum RewardMode
 	{
 		// LINEAR REWARDS
-		GLOBAL, 
+		GLOBAL,
 		DIFFERENCE_DOWNSTREAM,
 		DIFFERENCE_TOUCHED,
-		
+
 		DIFFERENCE_REALLOC,
 		DIFFERENCE_AVG,
 		// SQUARED REWARDS
@@ -79,7 +81,7 @@ public:
 	RewardMode _reward_mode;
 	std::string getRewardModeName(){
 		std::string reward_names[RewardMode::NMODES] = {
-			"GLOBAL", 
+			"GLOBAL",
 			"DIFFERENCE_DOWNSTREAM",
 			"DIFFERENCE_TOUCHED",
 			"DIFFERENCE_REALLOC",
@@ -120,9 +122,9 @@ public:
 	enum ArrivalMode{EXACT, THRESHOLD};
 	ArrivalMode _arrival_mode;
 
-	
+
 	// UAV types
-	
+
 	const enum UAVType{SLOW, FAST, NTYPES=1};
 	//const enum UAVType{SLOW,NTYPES};
 
@@ -167,7 +169,7 @@ public:
 		_mkdir(SECTOR_FOLDER.c_str());
 		return SECTOR_FOLDER;
 	}
-	
+
 	std::string createExperimentDirectory(){
 		std::string EXPERIMENT_FOLDER = "Experiments/";
 		// Creates a directory for the experiment and then returns that as a string
@@ -229,7 +231,7 @@ public:
 
 	/*std::string createDomainDirectory(){
 		std::string DOMAIN_FOLDER = "Domains/";
-		
+
 	}*/
 private:
 
