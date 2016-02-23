@@ -4,6 +4,7 @@
 #include <queue>
 #include <utility>
 
+
 namespace easymath{
 	class XY: public std::pair<double,double>{
 	public:
@@ -58,5 +59,6 @@ namespace easymath{
 			}
 		}
 	}
-}
 
+	double erfc(double x);
+}

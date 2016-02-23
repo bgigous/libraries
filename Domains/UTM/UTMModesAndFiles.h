@@ -25,13 +25,9 @@ public:
 	// OPTION HERE FOR ONE AGENT PER LINK
 	enum AgentDefinition{SECTOR,LINK};
 	AgentDefinition _agent_defn_mode;
-        enum SearchDefinition(ASTAR, RAGS);
-        searchDefinition _search_type_mode;
 
-	// CHANGES HERE
 	enum SearchDefinition{ASTAR,RAGS};
 	SearchDefinition _search_type_mode;
-	//	END CHANGES HERE
 
 
 	// NUMBER OF SECTORS
@@ -136,7 +132,7 @@ public:
 	int get_n_control_elements(){
 		return get_n_state_elements()*NTYPES;
 	}
-	int get_n_steps(){return 1;};
+	int get_n_steps(){return 100;};
 	int get_n_types(){return NTYPES;};
 	double get_p_gen(){return 0.5;};
 	int get_gen_rate(){return 10;};

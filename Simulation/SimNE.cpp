@@ -24,9 +24,7 @@ SimNE::~SimNE(void)
 }
 
 void SimNE::runExperiment(){
-	int ep = 0;
-	int n_epochs = 1;
-	//for (int ep=0; ep<n_epochs; ep++){
+	for (int ep=0; ep<n_epochs; ep++){
 		
 		time_t epoch_start = time(NULL);
 		this->epoch(ep);
@@ -39,7 +37,7 @@ void SimNE::runExperiment(){
 		ctime_s(end_clock_time, sizeof(end_clock_time), &run_end_time);
 		printf("Epoch %i took %i seconds.\n",ep,epoch_time);
 		cout << "Estimated run end time: " << end_clock_time << endl;
-	//}
+	}
 }
 
 void SimNE::epoch(int ep){
