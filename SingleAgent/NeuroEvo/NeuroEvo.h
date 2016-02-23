@@ -16,7 +16,7 @@ public:
 	NeuroEvoParameters(int inputSet, int outputSet);
 	static const int nHidden = 50;
 	static const int popSize=10; // surviving population size
-
+	
 	int nInput;
 	int nOutput;
 	double epsilon; // for epsilon-greedy selection: currently unused

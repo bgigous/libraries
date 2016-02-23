@@ -10,7 +10,6 @@ double NeuralNet::randAddFanIn(double fan_in){
 	} else {
 		// FOR MUTATION
 		std::default_random_engine generator;
-		generator.seed(unsigned long(time(NULL)));
 		std::normal_distribution<double> distribution(0.0,mutStd);
 		return distribution(generator);
 	}
@@ -26,7 +25,7 @@ double NeuralNet::randSetFanIn(double fan_in){
 void NeuralNet::mutate(){
 	for (unsigned int i=0; i<Wbar.size(); i++){
 		for (unsigned int j=0; j<Wbar[i].size(); j++){
-#pragma parallel omp for
+//#pragma parallel omp for
 			for (unsigned int k=0; k<Wbar[i][j].size(); k++){
 				double fan_in = double(Wbar[i].size());
 				Wbar[i][j][k] += randAddFanIn(fan_in);

@@ -15,22 +15,15 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set):
 	// Airspace construction
 	int n_sectors;
 	std::string domain_dir = filehandler->createDomainDirectory();
-	switch (params->_airspace_mode){
-	case UTMModes::SAVED:
-		//highGraph = new TypeGraphManager("edges.csv","nodes.csv",n_types);
+	if (params->_airspace_mode==UTMModes::SAVED){
+		// Access already saved airspace
 		highGraph = new TypeGraphManager(domain_dir+"edges.csv",domain_dir+"nodes.csv",n_types);
 		n_sectors = highGraph->getNVertices();
-		break;
-	case UTMModes::GENERATED:
+	} else {
+		// Generate a new airspace
 		n_sectors = params->get_n_sectors();
-		highGraph = new TypeGraphManager(n_sectors,n_types,200.0,200.0);
+		highGraph = new TypeGraphManager(n_sectors,n_types,200.0,2000);
 		highGraph->print_graph(domain_dir); // saves the graph
-		break;
-	default:
-		printf("Bad airspace mode. Aborting.");
-		system("pause");
-		exit(0);
-		break;
 	}
 	params->n_links = highGraph->getEdges().size(); // Must be set after graph created
 	n_agents = params->get_n_agents();
@@ -48,8 +41,8 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set):
 
 		links.push_back(
 			new Link(links.size(),source,source_loc,target,target_loc, 
-			manhattan_distance(source_loc,target_loc)/10.0,
-			matrix1d(n_types,double(params->get_flat_capacity())),double(cardinal_dir)));
+			int(manhattan_distance(source_loc,target_loc)/10.0),
+			matrix1d(n_types,double(params->get_flat_capacity())),cardinal_dir));
 		linkIDs->insert(make_pair((make_pair(source,target)),links.size()-1));
 
 		connections[source].push_back(target);
@@ -79,43 +72,21 @@ UTMDomainAbstract::~UTMDomainAbstract(void)
 	delete highGraph;
 	delete agents;
 
-	for (int i=0; i<links.size(); i++){
-		delete links[i];
-	}
-	for (int i=0; i<sectors.size(); i++){
-		delete sectors[i];
-	}
-	for (int i=0; i<fixes.size(); i++){
-		delete fixes[i];
-	}
-	for (UAV* u: UAVs){
+	for (Link* l:links)
+		delete l;
+
+	for (Sector* s:sectors)
+		delete s;
+
+	for (Fix* f:fixes)
+		delete f;
+
+	for (UAV* u: UAVs)
 		delete u;
-	}
 }
 
 double UTMDomainAbstract::getGlobalReward(){
 	return -agents->global();
-	// NEED TO REDO REWARD STUFF
-/*
-if (params->_agent_defn_mode==UTMModes::SECTOR)
-		if (params->_reward_type_mode==UTMModes::RewardType::CONFLICTS)
-			return -conflict_count;
-		else
-			return -delay;
-	else if (params->_agent_defn_mode==UTMModes::LINK)
-		if (params->_reward_type_mode==UTMModes::RewardType::CONFLICTS){
-			double G = 0.0;
-			for (Link* l: links){
-				G+=l->conflict_local;
-			}
-		}
-		else 
-			return -delay;
-	else{
-		printf("No _agent_defn_mode set!");
-		exit(1000);
-	}
-	*/
 }
 
 matrix1d UTMDomainAbstract::getPerformance(){
@@ -292,14 +263,7 @@ void UTMDomainAbstract::try_to_move(vector<UAV*> & eligible_to_move){
 }
 
 matrix2d UTMDomainAbstract::getStates(){
-	// States: delay assignments for UAVs that need routing
-	
-	
-	
-	
 	matrix2d allStates(n_agents,matrix1d(n_state_elements,0.0));
-
-
 
 	/* "NORMAL POLARITY" state
 	for (UAV* u : UAVs){
@@ -332,19 +296,35 @@ matrix2d UTMDomainAbstract::getStates(){
 			allStates[u->curLinkID()][u->type_ID]++;
 	}
 
+
+	agents->agentStates.push_back(allStates);
+
 	return allStates;
 }
 
 
 void UTMDomainAbstract::simulateStep(matrix2d agent_actions){
+	// Alter the cost maps (agent actions)
 	agents->logAgentActions(agent_actions);
-	highGraph->setCostMaps(agents->actions2weights(agent_actions));
-	getNewUAVTraffic();
-	getPathPlans();
-	incrementUAVPath();
+	bool action_changed = agents->last_action_different();
+
+	if (action_changed)
+		highGraph->setCostMaps(agents->actions2weights(agent_actions));
+
+	// Make UAVs reach their destination
 	absorbUAVTraffic();
+
+	// Plan over new cost maps
+	if (action_changed)
+		getPathPlans();
+
+	// UAVs move
+	incrementUAVPath();
 	if (params->_reward_type_mode==UTMModes::CONFLICTS)
 		detectConflicts();
+
+	// New UAVs appear
+	getNewUAVTraffic();
 }
 
 
@@ -354,17 +334,15 @@ void UTMDomainAbstract::logStep(){
 
 matrix3d UTMDomainAbstract::getTypeStates(){
 	matrix3d allStates = zeros(n_agents,n_types,n_state_elements);
-
+	
+	matrix2d state_printout = zeros(n_agents,n_state_elements);
 	if (params->_agent_defn_mode==UTMModes::SECTOR){
 		for (UAV* u: UAVs){
 			int a = u->curSectorID();
 			int id = u->type_ID;
 			int dir = u->getDirection();
-			if (a<0){
-				printf("UAV %i at location %f,%f is in an obstacle.!", u->ID,u->loc.x,u->loc.y);
-				system("pause");
-			}
 			allStates[a][id][dir]+=1.0;
+			state_printout[a][dir]++;
 		}
 	}
 	else {
@@ -373,9 +351,10 @@ matrix3d UTMDomainAbstract::getTypeStates(){
 			int a = u->cur_link_ID;
 			int id = u->type_ID;
 			allStates[a][id][0]+=1.0;
+			state_printout[a][0]++;
 		}
 	}
-
+	agents->agentStates.push_back(state_printout);
 	return allStates;
 }
 
@@ -504,7 +483,7 @@ void UTMDomainAbstract::detectConflicts(){
 		for (unsigned int j=0; j<cap_i.size(); j++)
 			for (unsigned int k=0; k<cap_i[j].size(); k++)
 				if (cap_i[j][k]<0)
-					link_conflict_random_reallocation[i]++;
+					link_conflict_(om_reallocation[i]++;
 	}
 	*/
 }
@@ -522,13 +501,17 @@ void UTMDomainAbstract::getPathPlans(std::list<UAV* > &new_UAVs){
 }
 
 void UTMDomainAbstract::reset(){
-	UAVs.clear();
+	while (!UAVs.empty()){
+		delete UAVs.back();
+		UAVs.pop_back();
+	}
+
+
 	UAVLocations.clear();
 	for (Link* l:links){
 		l->reset();
 	}
 
-	agents->agentActions.clear();
 	agents->reset();
 }
 
@@ -544,7 +527,9 @@ void UTMDomainAbstract::absorbUAVTraffic(){
 	});
 	for (Link* l:links){
 		for (list<UAV*> &t:l->traffic){
-			remove_erase_if(t,[](UAV* u){return u->loc==u->end_loc;});
+			remove_erase_if(t,[](UAV* u){
+				return u==NULL;
+			});
 		}
 	}
 }
@@ -552,15 +537,6 @@ void UTMDomainAbstract::absorbUAVTraffic(){
 
 void UTMDomainAbstract::getNewUAVTraffic(){
 	// Generates (with some probability) plane traffic for each sector
-	
-	int traffic_sum = 0;
-	for (int i=0; i<links.size(); i++){
-		for (int t=0; t<links[i]->traffic.size(); t++){
-			int tsize = links[i]->traffic[t].size();
-			traffic_sum += links[i]->traffic[t].size();
-		}
-	}
-	
 	for (Fix* f: fixes){
 		list<UAV*> new_UAVs = f->generateTraffic(*step);
 		for (UAV* u: new_UAVs){

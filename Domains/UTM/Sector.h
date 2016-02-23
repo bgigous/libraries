@@ -31,13 +31,7 @@ public:
 			links_toward_sector[l->target].push_back(l);
 		}
 	};
-	~SectorAgentManager(){
-		for (Link* l:links){
-			for (Link* t: links_toward_sector[l->target])
-				delete t;
-			delete l;
-		}
-	};
+	~SectorAgentManager(){};
 
 	std::vector<Link*> links; // links in the entire system
 	std::map<int,std::vector<Link*> > links_toward_sector;
@@ -95,7 +89,7 @@ public:
 				params->_reward_mode==UTMModes::GLOBAL_SQ){
 					for (size_t i=0; i<toward.size(); i++){
 						for (size_t j=0; j<toward[i]->traffic.size(); j++){
-							int over_capacity = toward[i]->traffic[j].size()-toward[i]->capacity[j];
+							int over_capacity = toward[i]->number_over_capacity(j);
 							if (over_capacity>0)
 								metrics[i].local[j]+=over_capacity*over_capacity;
 						}
@@ -103,7 +97,7 @@ public:
 			} else {
 				for (size_t i=0; i<toward.size(); i++){
 					for (size_t j=0; j<toward[i]->traffic.size(); j++){
-						int over_capacity = toward[i]->traffic[j].size()-toward[i]->capacity[j];
+						int over_capacity = toward[i]->number_over_capacity(j);
 						if (over_capacity>0)
 							metrics[i].local[j]+=over_capacity;
 					}

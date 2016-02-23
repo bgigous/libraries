@@ -13,16 +13,33 @@ public:
 		metrics(std::vector<Reward_Metrics>(params->get_n_agents(),Reward_Metrics(params->get_n_types())))
 	{
 	}
-	virtual ~IAgentManager()=0;
+	~IAgentManager(){
+	//	static int calls = 0;
+	//	exportAgentActions(calls++);
+	};
+
+
 
 	UTMModes* params;
 	virtual matrix2d actions2weights(matrix2d agent_actions)=0;
 	matrix3d agentActions;
+	matrix3d agentStates;
 	void logAgentActions(matrix2d agentStepActions){
 		agentActions.push_back(agentStepActions);
 	}
+	bool last_action_different(){
+		if (agentActions.size()>1){
+			matrix2d last_action = agentActions.back();
+			matrix2d cur_action = agentActions[agentActions.size()-2];
+
+			return last_action != cur_action;
+		}
+		return true;
+	}
+
 	void exportAgentActions(int fileID){
-		FileOut::print_vector(agentActions,"visualization/actions"+std::to_string(fileID)+".csv");
+		FileOut::print_vector(agentActions,"actions-"+std::to_string(fileID)+".csv");
+		FileOut::print_vector(agentStates,"states-"+std::to_string(fileID)+".csv");
 	}
 
 	//! Metrics relating to a reward. Each of these maps to an agent.
@@ -56,6 +73,11 @@ public:
 	}
 
 	void reset(){
+		//static int calls = 0;
+		//exportAgentActions(calls++);
+		//system("pause");
+		agentActions.clear();
+		agentStates.clear();
 		metrics = std::vector<Reward_Metrics>(params->get_n_agents(),Reward_Metrics(params->get_n_types()));
 	}
 
