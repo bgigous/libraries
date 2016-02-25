@@ -12,7 +12,7 @@
 
 using namespace std;
 
-class UTMDomainDetail: 
+class UTMDomainDetail:
 	public UTMDomainAbstract
 {
 public:
@@ -28,18 +28,18 @@ public:
 	virtual void detectConflicts();
 	virtual void incrementUAVPath();
 	virtual void reset();
-		
+
 	// maps/Graph
 	SectorGraphManager* lowGraph;
 	void loadMaps();
 	//Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later	//backend
 	//std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
 	vector<easymath::XY> fix_locs;
-	
+
 	void addConflict(UAV* u1, UAV* u2){
 		agents->metrics.at(u1->curSectorID()).local[u1->type_ID]+=0.5;
 		agents->metrics.at(u2->curSectorID()).local[u2->type_ID]+=0.5;
 	}
-	unsigned int getSector(easymath::XY p);
+	uint getSector(easymath::XY p);
 };
 

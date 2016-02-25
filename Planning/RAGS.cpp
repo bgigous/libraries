@@ -416,7 +416,7 @@ double ComputeImprovementProbability(Vertex * A, Vertex * B)
 				double mu_Aj = ANodes[j]->GetMeanCTG() ;
 				double sig_Aj = ANodes[j]->GetVarCTG() ;
 				if (j != i)
-					p_cA2 *= 0.5*erfc((x[k]-mu_Aj)/(sig_Aj*sqrt(2))) ;
+					p_cA2 *= 0.5*easymath::erfc((x[k]-mu_Aj)/(sig_Aj*sqrt(2))) ;
 			}
 			p_cAi += p_cA1*p_cA2 ;
 		}
@@ -425,7 +425,7 @@ double ComputeImprovementProbability(Vertex * A, Vertex * B)
 		{
 			double mu_Bi = BNodes[i]->GetMeanCTG() ;
 			double sig_Bi = BNodes[i]->GetVarCTG() ;
-			p_cBi *= 0.5*erfc((x[k]-(c_B0-c_A0)-mu_Bi)/(sig_Bi*sqrt(2))) ;
+			p_cBi *= 0.5*easymath::erfc((x[k]-(c_B0-c_A0)-mu_Bi)/(sig_Bi*sqrt(2))) ;
 		}
 		pImprove += (p_cAi)*(1-p_cBi)*dx ;
 	}
@@ -506,8 +506,8 @@ XY RAGS::SearchGraph(Vertex * start, Vertex * goal, vector<double> &weights)
 
 	// Flag and return if current vertex does not match start vertex
 	if (!(itsVert == start)){
-		printf("\nERROR: input start vertex (%f,%f) does not match stored vertex (%f,%f)", 
-			start->GetX(), start->GetY(), itsVert->GetX(), itsVert->GetY()) ; 
+		printf("\nERROR: input start vertex (%f,%f) does not match stored vertex (%f,%f)",
+			start->GetX(), start->GetY(), itsVert->GetX(), itsVert->GetY()) ;
 		XY s = XY(start->GetX(),start->GetY()) ;
 		return s ;
 	}

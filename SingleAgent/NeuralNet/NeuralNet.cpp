@@ -24,10 +24,10 @@ double NeuralNet::randSetFanIn(double fan_in){
 }
 
 void NeuralNet::mutate(){
-	for (unsigned int i=0; i<Wbar.size(); i++){
-		for (unsigned int j=0; j<Wbar[i].size(); j++){
+	for (uint i=0; i<Wbar.size(); i++){
+		for (uint j=0; j<Wbar[i].size(); j++){
 //#pragma parallel omp for
-			for (unsigned int k=0; k<Wbar[i][j].size(); k++){
+			for (uint k=0; k<Wbar[i][j].size(); k++){
 				double fan_in = double(Wbar[i].size());
 				Wbar[i][j][k] += randAddFanIn(fan_in);
 			}
@@ -57,7 +57,7 @@ void NeuralNet::setRandomWeights(){
 	};
 }
 
-NeuralNet::NeuralNet(int nInputs, int nHidden, int nOutputs, double 
+NeuralNet::NeuralNet(int nInputs, int nHidden, int nOutputs, double
 					 gamma):nodes_(vector<int>(3)),gamma_(gamma),
 	evaluation(0),mutationRate(0.5),mutStd(1.0){
 	nodes_[0] = nInputs;
@@ -73,7 +73,7 @@ void NeuralNet::load(string filein){
 	matrix2d wts = FileIn::read2<double>(filein);
 
 	// CURRENTLY HARDCODED TO ONLY ALLOW A SINGLE LAYER
-	
+
 	/// TOP CONTAINS TOPOLOGY INFORMATION
 	nodes_ = vector<int>(3);
 	nodes_[0] = int(wts[0][0]);
@@ -106,7 +106,7 @@ void NeuralNet::load(string filein){
 void NeuralNet::save(string fileout){
 
 	matrix2d outmatrix(2);
-	for (unsigned int i=0; i<nodes_.size(); i++){
+	for (uint i=0; i<nodes_.size(); i++){
 		outmatrix[0].push_back(double(nodes_[i]));
 	}
 
@@ -125,7 +125,7 @@ void NeuralNet::save(string fileout){
 
 void NeuralNet::load(matrix1d node_info, matrix1d wt_info){
 	// CURRENTLY HARDCODED TO ONLY ALLOW A SINGLE LAYER
-	
+
 	/// TOP CONTAINS TOPOLOGY INFORMATION
 	nodes_ = vector<int>(3);
 	nodes_[0] = int(node_info[0]);
@@ -158,10 +158,10 @@ void NeuralNet::load(matrix1d node_info, matrix1d wt_info){
 
 
 void NeuralNet::save(matrix1d &node_info, matrix1d &wt_info){
-	
+
 	node_info = matrix1d(nodes_.size());
-	
-	for (unsigned int i=0; i<nodes_.size(); i++){
+
+	for (uint i=0; i<nodes_.size(); i++){
 		node_info[i] = double(nodes_[i]);
 	}
 
@@ -217,7 +217,7 @@ void NeuralNet::train(matrix2d &observations, matrix2d &T, double epsilon, int i
 	if (iterations==0){
 		while(err>=epsilon){
 			matrix1d errs;
-			for (unsigned int i=0; i<observations.size();  i++){
+			for (uint i=0; i<observations.size();  i++){
 				errs.push_back(backProp(observations[i],T[i]));
 			}
 			err = sum(errs);
@@ -226,7 +226,7 @@ void NeuralNet::train(matrix2d &observations, matrix2d &T, double epsilon, int i
 	} else {
 		while(err>=epsilon && iterations>=step){
 			matrix1d errs;
-			for (unsigned int i=0; i<observations.size();  i++){
+			for (uint i=0; i<observations.size();  i++){
 				errs.push_back(backProp(observations[i],T[i]));
 			}
 			err = sum(errs);
@@ -265,7 +265,7 @@ matrix1d NeuralNet::predictContinuous(matrix1d observations){
 
 matrix2d NeuralNet::batchPredictBinary(matrix2d &observations){
 	matrix2d out;
-	for (unsigned int i=0; i<observations.size(); i++){
+	for (uint i=0; i<observations.size(); i++){
 		out.push_back(predictBinary(observations[i]));
 	}
 	return out;
@@ -273,7 +273,7 @@ matrix2d NeuralNet::batchPredictBinary(matrix2d &observations){
 
 matrix2d NeuralNet::batchPredictContinuous(matrix2d &observations){
 	matrix2d out;
-	for (unsigned int i=0; i<observations.size(); i++){
+	for (uint i=0; i<observations.size(); i++){
 		out.push_back(predictContinuous(observations[i]));
 	}
 	return out;
@@ -281,7 +281,7 @@ matrix2d NeuralNet::batchPredictContinuous(matrix2d &observations){
 
 double NeuralNet::sum(matrix1d &myVector){
 	double mySum = 0.0;
-	for (unsigned int i=0; i<myVector.size(); i++){
+	for (uint i=0; i<myVector.size(); i++){
 		mySum+=myVector[i];
 	}
 	return mySum;
@@ -289,7 +289,7 @@ double NeuralNet::sum(matrix1d &myVector){
 
 double NeuralNet::SSE(matrix1d &myVector){
 	double err = 0.0;
-	for (unsigned int i=0; i<myVector.size(); i++){
+	for (uint i=0; i<myVector.size(); i++){
 		err += myVector[i]*myVector[i];
 	}
 	return err;
@@ -310,7 +310,7 @@ double NeuralNet::backProp(matrix1d &observations, matrix1d &t){
 	feedForward(observations,Ohat,D);
 
 	matrix1d e(Ohat.back().size()-1,0.0); // "stored derivatives of the quadratic deviations"
-	for (unsigned int i=0; i<Ohat.back().size()-1; i++){
+	for (uint i=0; i<Ohat.back().size()-1; i++){
 		e[i] = (Ohat.back()[i]-t[i]);
 	}
 
@@ -322,14 +322,15 @@ double NeuralNet::backProp(matrix1d &observations, matrix1d &t){
 	delta.back() = matrixMultiply(D.back(),e); // output layer delta
 
 	for (int connection=connections()-2; connection>=0; connection--){ // back propagation
-		delta[connection]=matrixMultiply(matrixMultiply(D[connection],W[connection+1]),delta[connection+1]);
+		matrix2d mult = matrixMultiply(D[connection],W[connection+1]);
+		delta[connection]=matrixMultiply(mult,delta[connection+1]);
 	}
 
 	// Corrections to weights
 	for (int connection=0; connection<connections(); connection++){
 		matrix2d DeltaWbarT = matrixMultiply(delta[connection],Ohat[connection]);
-		for (unsigned int i=0; i<Wbar[connection].size(); i++){
-			for (unsigned int j=0; j<Wbar[connection][i].size(); j++){
+		for (uint i=0; i<Wbar[connection].size(); i++){
+			for (uint j=0; j<Wbar[connection][i].size(); j++){
 				Wbar[connection][i][j] -= gamma_*DeltaWbarT[j][i]; // ji because it's transpose :)
 			}
 		}
@@ -370,10 +371,10 @@ matrix2d NeuralNet::matrixMultiply(matrix2d &A, matrix2d &B){
 	cmp_int_fatal(A[0].size(), B.size());
 
 	matrix2d C(A.size());
-	for (unsigned int row=0;	row<A.size(); row++){
+	for (uint row=0;	row<A.size(); row++){
 		C[row] = matrix1d(B[0].size(),0.0);
-		for (unsigned int col=0; col<B[0].size(); col++){
-			for (unsigned int inner=0; inner<B.size(); inner++){
+		for (uint col=0; col<B[0].size(); col++){
+			for (uint inner=0; inner<B.size(); inner++){
 				C[row][col] += A[row][inner]*B[inner][col];
 			}
 		}
@@ -386,9 +387,9 @@ matrix2d NeuralNet::matrixMultiply(matrix1d &A, matrix1d &B){
 	// returns a A.size()xB.size() matrix
 
 	matrix2d C(A.size());
-	for (unsigned int row=0;	row<A.size(); row++){
+	for (uint row=0;	row<A.size(); row++){
 		C[row] = matrix1d(B.size(),0.0);
-		for (unsigned int col=0; col<B.size(); col++){
+		for (uint col=0; col<B.size(); col++){
 			C[row][col] += A[row]*B[col];
 		}
 	}
@@ -403,8 +404,8 @@ matrix1d NeuralNet::matrixMultiply(matrix2d &A, matrix1d &B){
 	cmp_int_fatal(A[0].size(),B.size());
 
 	matrix1d C(A.size(),0.0);
-	for (unsigned int row=0;	row<A.size(); row++){
-		for (unsigned int inner=0; inner<B.size(); inner++){
+	for (uint row=0;	row<A.size(); row++){
+		for (uint inner=0; inner<B.size(); inner++){
 			C[row] += A[row][inner]*B[inner];
 		}
 	}
@@ -423,8 +424,8 @@ matrix1d NeuralNet::matrixMultiply(matrix1d &A, matrix2d &B){
 
 	// MODIFY TO MATCH1
 	matrix1d C(B[0].size(),0.0);
-	for (unsigned int col=0; col<B[0].size(); col++){
-		for (unsigned int inner=0; inner<B.size(); inner++){
+	for (uint col=0; col<B[0].size(); col++){
+		for (uint inner=0; inner<B.size(); inner++){
 			C[col] += A[inner]*B[inner][col];
 		}
 	}
@@ -445,16 +446,16 @@ void  NeuralNet::matrixMultiply(matrix1d &A, matrix2d &B, matrix1d &C){
 	}
 
 	// MODIFY TO MATCH1
-	for (unsigned int col=0; col<B[0].size(); col++){
+	for (uint col=0; col<B[0].size(); col++){
 		C[col] = 0.0;
-		for (unsigned int inner=0; inner<B.size(); inner++){
+		for (uint inner=0; inner<B.size(); inner++){
 			C[col] += A[inner]*B[inner][col];
 		}
 	}
 };
 
 void NeuralNet::sigmoid(matrix1d &myVector){
-	for (unsigned int i=0; i<myVector.size(); i++){
+	for (uint i=0; i<myVector.size(); i++){
 		myVector[i] = 1/(1+exp(-myVector[i]));
 	}
 }

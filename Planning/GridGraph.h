@@ -18,6 +18,7 @@
 //#include <limits>
 //#include <sstream>
 #include <fstream>
+#include <float.h>
 
 class mt{ // "my types"
 public:
@@ -103,8 +104,8 @@ public:
 		m_barrier_grid(create_barrier_grid())
 	{
 		int v_index = 0;
-		for (unsigned int y=0; y<obstacle_map[0].size(); y++){
-			for (unsigned int x=0; x<obstacle_map.size(); x++){
+		for (uint y=0; y<obstacle_map[0].size(); y++){
+			for (uint x=0; x<obstacle_map.size(); x++){
 				if (obstacle_map[x][y]){ // there is an obstacle!
 					mt::vertex_descriptor u = vertex(v_index,m_grid);
 					m_barriers.insert(u); // insert a barrier!
@@ -119,8 +120,8 @@ public:
 		m_barrier_grid(create_barrier_grid())
 	{
 		mt::barrier_grid obstacle_map(members.size(),std::vector<bool>(members[0].size(),false));
-		for (unsigned int i=0; i<members.size(); i++){
-			for (unsigned int j=0; j<members[i].size(); j++){
+		for (uint i=0; i<members.size(); i++){
+			for (uint j=0; j<members[i].size(); j++){
 				obstacle_map[i][j] = members[i][j]<0;
 			}
 		}
@@ -128,9 +129,9 @@ public:
 		// This map only shows grid cells of membership m1 and m2 as passable. Others are barriers.
 		// Backflow (travel from m2 to m1) is allowed but will tend to be suboptimal, so is improbable.
 		int v_index = 0;
-		for (unsigned int y=0; y<obstacle_map[0].size(); y++){
-			for (unsigned int x=0; x<obstacle_map.size(); x++){
-				if (obstacle_map[x][y] || 
+		for (uint y=0; y<obstacle_map[0].size(); y++){
+			for (uint x=0; x<obstacle_map.size(); x++){
+				if (obstacle_map[x][y] ||
 					(members[x][y]!=m1 && members[x][y]!=m2)){ // there is an obstacle, or wrong membership
 						mt::vertex_descriptor u = vertex(v_index,m_grid);
 						m_barriers.insert(u); // insert a barrier!
@@ -218,8 +219,8 @@ public:
 		std::ofstream output(ss.str());
 
 
-		for (unsigned int i = 0; i<length(0); i++){
-			for (unsigned int j = 0; j < length(1); j++) {
+		for (uint i = 0; i<length(0); i++){
+			for (uint j = 0; j < length(1); j++) {
 				// Put the character representing this point in the AStarGrid grid.
 				mt::vertex_descriptor u = {{i, j}};
 				if (solution_contains(u))
@@ -245,7 +246,7 @@ private:
 	mt::filtered_grid create_barrier_grid() {
 		return boost::make_vertex_subset_complement_filter(m_grid, m_barriers);
 	}
-	
+
 	mt::grid m_grid; // The grid underlying the AStarGrid
 	mt::filtered_grid m_barrier_grid; // The underlying AStarGrid grid with barrier vertices filtered out
 	mt::vertex_set m_barriers; // The barriers in the AStarGrid

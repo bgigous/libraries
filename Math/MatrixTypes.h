@@ -2,6 +2,10 @@
 #include <vector>
 #include <algorithm>
 
+#ifdef _WIN32
+typedef unsigned int uint;
+#endif
+
 
 //! A file for containing matrix types.
 

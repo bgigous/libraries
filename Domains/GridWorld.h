@@ -1,7 +1,7 @@
 #pragma once
-#include "../EnvironmentBounds/EnvironmentBounds.h"
-#include "../State/State.h"
-#include "../../Point2D.h"
+#include "EnvironmentBounds.h"
+//#include "../State/State.h"
+#include "Point2D.h"
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -56,18 +56,18 @@ public:
 
 	double gridDistance(double x1, double y1, double x2, double y2);
 	double gridDistance(Point2D &r1, Point2D &r2);
-	
+
 	EnvironmentBounds bounds;
 	std::vector<GridRover> rovers;
 	std::vector<std::vector<char> > positionData; // deprecated?
 
-	
+
 	// REWARD STRUCTURES
 	virtual double getLocalReward(int me)=0;
 	virtual double getGlobalReward()=0;
 	virtual std::vector<double> getDifferenceReward()=0;
 
-	
+
 	// Walking functions
 	void roverRandomWalk();
 

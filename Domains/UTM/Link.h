@@ -3,7 +3,7 @@
 
 class Link{
 public:
-	Link(int ID, int source, easymath::XY source_loc, int target, easymath::XY target_loc, 
+	Link(int ID, int source, easymath::XY source_loc, int target, easymath::XY target_loc,
 		int time, matrix1d capacity, int cardinal_dir):
 	ID(ID),
 		source(source),
@@ -16,7 +16,7 @@ public:
 		traffic(UTMModes::NTYPES,std::list<UAV*>())
 	{}
 
-	//! 
+	//!
 	bool at_capacity(int UAV_type){
 		return number_over_capacity(UAV_type) <= 0;
 	}
@@ -26,23 +26,23 @@ public:
 	}
 	std::vector<std::list<UAV*> > traffic;
 
-	
+
 	//! Returns the predicted amount of time it would take to cross the node if the UAV got there immediately
 	matrix1d predicted_traversal_time(){
 		matrix1d predicted(traffic.size());
-		for (unsigned int i=0; i<traffic.size(); i++){
+		for (uint i=0; i<traffic.size(); i++){
 			matrix1d waits; // the wait time for each traffic bit
 			for(UAV* u : traffic[i]){
 				waits.push_back(u->t);
 			}
 			std::sort(waits.begin(),waits.end(),std::greater<double>());
 			if (double(waits.size())-capacity[i] >= 0.0 )
-				waits.resize(unsigned int(double(waits.size())-capacity[i]));	// drop the last [capacity[i]] elements
+				waits.resize(uint(double(waits.size())-capacity[i]));	// drop the last [capacity[i]] elements
 			predicted[i] = time + easymath::sum(waits);
 		}
 		return predicted;
 	}
-	
+
 	//! Grabs the UAV u from link l
 	void move_from(UAV* u, Link* l){//std::shared_ptr<Link> l){
 		// Add to other list (u is temporarily duplicated)
@@ -70,7 +70,7 @@ public:
 			t.clear();
 		}
 	}
-	
+
 
 private:
 
@@ -78,10 +78,10 @@ private:
 	const easymath::XY source_loc;
 	const easymath::XY target_loc;
 	const int time;		// Amount of time it takes to travel across link
-	
+
 	matrix1d capacity;
 
-	
+
 
 };
 
@@ -137,7 +137,7 @@ public:
 				}
 			}
 		}
-	} 
+	}
 
 	void detect_conflicts(){
 		if (params->_reward_mode==UTMModes::DIFFERENCE_AVG_SQ ||
