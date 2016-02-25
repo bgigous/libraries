@@ -103,7 +103,8 @@ public:
 		for (int i=0; i<n_edges; i++){
 			matrix1d predicted = links.at(i)->predicted_traversal_time();
 			for (int t=0; t<n_types; t++){
-				weights[t][i] = predicted[t] + agent_actions[i][t];
+				//weights[t][i] = predicted[t] + agent_actions[i][t];
+				weights[t][i] = agent_actions[i][t]*1000.0;
 			}
 		}
 		return weights;

@@ -15,8 +15,10 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set):
 	// Airspace construction
 	int n_sectors;
 	std::string domain_dir = filehandler->createDomainDirectory();
-	if (params->_airspace_mode==UTMModes::SAVED){
-		// Access already saved airspace
+	ifstream edgefile(domain_dir+"edges.csv");
+	bool fileExists = edgefile;
+	edgefile.close();
+	if (params->_airspace_mode==UTMModes::SAVED && fileExists){
 		highGraph = new TypeGraphManager(domain_dir+"edges.csv",domain_dir+"nodes.csv",n_types);
 		n_sectors = highGraph->getNVertices();
 	} else {
@@ -307,6 +309,9 @@ void UTMDomainAbstract::simulateStep(matrix2d agent_actions){
 	// Alter the cost maps (agent actions)
 	agents->logAgentActions(agent_actions);
 	bool action_changed = agents->last_action_different();
+	
+	// New UAVs appear
+	getNewUAVTraffic();
 
 	if (action_changed)
 		highGraph->setCostMaps(agents->actions2weights(agent_actions));
@@ -323,8 +328,6 @@ void UTMDomainAbstract::simulateStep(matrix2d agent_actions){
 	if (params->_reward_type_mode==UTMModes::CONFLICTS)
 		detectConflicts();
 
-	// New UAVs appear
-	getNewUAVTraffic();
 }
 
 

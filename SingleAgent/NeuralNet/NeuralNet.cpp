@@ -10,6 +10,7 @@ double NeuralNet::randAddFanIn(double fan_in){
 	} else {
 		// FOR MUTATION
 		std::default_random_engine generator;
+		generator.seed(time(NULL));
 		std::normal_distribution<double> distribution(0.0,mutStd);
 		return distribution(generator);
 	}

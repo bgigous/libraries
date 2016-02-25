@@ -21,10 +21,6 @@ matrix1d NeuroEvo::getAction(matrix1d state){
 }
 
 matrix1d NeuroEvo::getAction(matrix2d state){
-	/*printf("error here: if using 2d state please specify handling in child class, or rewrite neuroevo to override.");
-	system("pause");
-	exit(10);
-	return matrix1d();*/
 	matrix1d stateSum(state[0].size(),0.0);
 	for (unsigned int i=0; i<state.size(); i++){ // state[type][state_element] -- specifies combination for state
 		for (unsigned int j=0; j<state[i].size(); j++){
@@ -103,7 +99,7 @@ void NeuroEvo::selectSurvivors(){
 	}
 	//random_shuffle(population.begin(),population.end());
 	listPointerShuffle(population);
-
+	
 	pop_member_active = population.begin();
 }
 

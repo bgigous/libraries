@@ -7,16 +7,16 @@
 class UTMModes: public IDomainStatefulParameters{
 public:
 	UTMModes():
-		// Defaults
-		_capacity_mode(0), // 0 is default parameter (variable value is not 0)
-		_nsectors_mode(3),
+		// Mode defaults
 		_reward_mode(GLOBAL),
 		_airspace_mode(SAVED),
 		_arrival_mode(EXACT),
 		_traffic_mode(DETERMINISTIC),
 		_agent_defn_mode(SECTOR),
 		_reward_type_mode(DELAY),
-		_search_type_mode(ASTAR)
+		_search_type_mode(ASTAR),
+		// Constants defaults
+		n_sectors(20)
 	{};
 	~UTMModes(){};
 
@@ -29,12 +29,12 @@ public:
 
 
 	// NUMBER OF SECTORS
-	static const int NSECTORNUMBERS = 4;
-	int _nsectors_mode;
+	int n_sectors;
 	int get_n_sectors(){
-		int sector_num_trials[] = {20,30,40,50};
-		return sector_num_trials[_nsectors_mode];
+		return n_sectors;
 	}
+
+	// Agents
 	int get_n_agents(){
 		if (_agent_defn_mode==UTMModes::SECTOR){
 			return get_n_sectors();
@@ -53,7 +53,7 @@ public:
 	int get_n_links(){
 		return n_links;
 	}
-
+	
 	// REWARDS
 	static const enum RewardMode
 	{
@@ -98,12 +98,7 @@ public:
 
 
 	// CAPACITIES
-	static const int NCAPACITYMODES = 4;
-	int _capacity_mode;
-	int get_flat_capacity(){
-		int capacity_trials[] = {2,4,6,8};
-		return capacity_trials[_capacity_mode];
-	}
+	int get_flat_capacity(){ return 2;};
 
 
 	// AIRSPACE
@@ -130,7 +125,7 @@ public:
 	int get_n_control_elements(){
 		return get_n_state_elements()*NTYPES;
 	}
-	int get_n_steps(){return 100;};
+	int get_n_steps(){return 200;};
 	int get_n_types(){return NTYPES;};
 	double get_p_gen(){return 0.5;};
 	int get_gen_rate(){return 10;};
@@ -184,6 +179,20 @@ public:
 		}
 
 		std::string SECTOR_FOLDER = AGENTS_FOLDER+std::to_string(modes->get_n_sectors())+"_Sectors/";
+		std::string TRAFFIC_FOLDER = SECTOR_FOLDER + "Rate_" + std::to_string(modes->get_gen_rate())+"/";
+		std::string STEPS_FOLDER = TRAFFIC_FOLDER + std::to_string(modes->get_n_steps())+ "_Steps/";
+		std::string TYPES_FOLDER = STEPS_FOLDER + std::to_string(modes->get_n_types())+"_Types/";
+		std::string REWARD_FOLDER = TYPES_FOLDER + modes->getRewardModeName() + "_Reward/";
+
+		_mkdir(EXPERIMENT_FOLDER.c_str());
+		_mkdir(AGENTS_FOLDER.c_str());
+		_mkdir(SECTOR_FOLDER.c_str());
+		_mkdir(TRAFFIC_FOLDER.c_str());
+		_mkdir(STEPS_FOLDER.c_str());
+		_mkdir(TYPES_FOLDER.c_str());
+		_mkdir(REWARD_FOLDER.c_str());
+
+		/*
 		std::string TRAFFIC_FOLDER;
 		switch(modes->_traffic_mode){
 		case UTMModes::DETERMINISTIC:
@@ -218,7 +227,7 @@ public:
 		_mkdir(TRAFFIC_FOLDER.c_str());
 		_mkdir(CAPACITY_FOLDER.c_str());
 		_mkdir(REWARD_TYPE_FOLDER.c_str());
-		_mkdir(REWARD_FOLDER.c_str());
+		_mkdir(REWARD_FOLDER.c_str());*/
 
 		return REWARD_FOLDER; // returns the full directory path just generated
 	}
