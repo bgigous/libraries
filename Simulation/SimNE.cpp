@@ -1,10 +1,11 @@
 #include "SimNE.h"
+#include "float.h"
 
 /*
 removed - causes memory leak
 SimNE::SimNE(IDomainStateful* domain):
-	ISimulator(domain, 
-	new MultiagentNE(domain->n_agents, 
+	ISimulator(domain,
+	new MultiagentNE(domain->n_agents,
 	new NeuroEvoParameters(domain->n_state_elements,domain->n_control_elements))),
 	step(new int(0))
 {
@@ -25,7 +26,7 @@ SimNE::~SimNE(void)
 
 void SimNE::runExperiment(){
 	for (int ep=0; ep<n_epochs; ep++){
-		
+
 		time_t epoch_start = time(NULL);
 		this->epoch(ep);
 		time_t epoch_end = time(NULL);
@@ -34,7 +35,10 @@ void SimNE::runExperiment(){
 		time_t run_end_time = epoch_end + run_time_left;
 
 		char end_clock_time[26];
+		#ifdef OS_WINDOWS
 		ctime_s(end_clock_time, sizeof(end_clock_time), &run_end_time);
+		#endif
+
 		printf("Epoch %i took %i seconds.\n",ep,epoch_time);
 		cout << "Estimated run end time: " << end_clock_time << endl;
 	}
@@ -79,9 +83,9 @@ void SimNE::epoch(int ep){
 			epi << ep;
 			ni << n;
 			ti << t;
-			
+
 			Rtrials.push_back(R);
-			
+
 
 			domain->reset();
 		}

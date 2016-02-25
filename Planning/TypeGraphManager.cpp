@@ -11,7 +11,7 @@ TypeGraphManager::TypeGraphManager(int n_types, std::vector<edge> edges, vector<
 	n_types(n_types),edges(edges)
 {
 	initializeTypeLookupAndDirections(agentLocs);
-}	
+}
 
 TypeGraphManager::TypeGraphManager(string edgesFile, string verticesFile, int n_types):
 	n_types(n_types)
@@ -24,8 +24,8 @@ TypeGraphManager::TypeGraphManager(string edgesFile, string verticesFile, int n_
 
 	//FileIn::loadVariable(edges, edgesFile);
 
-	
-	for (unsigned int i=0; i<agentLocs.size(); i++){
+
+	for (uint i=0; i<agentLocs.size(); i++){
 		loc2mem[agentLocs[i]]=i; // add in reverse lookup
 	}
 
@@ -41,8 +41,8 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX
 	}
 
 	vector<pair<int,int> > candidates;
-	for (unsigned int i=0; i<agentLocs.size(); i++){
-		for (unsigned int j=0; j<agentLocs.size(); j++){
+	for (uint i=0; i<agentLocs.size(); i++){
+		for (uint j=0; j<agentLocs.size(); j++){
 			if (i==j) continue;
 			candidates.push_back(make_pair(i,j));
 		}
@@ -59,7 +59,7 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX
 
 	bool isfullyconnected = fullyConnected(agentLocs);
 
-	for (unsigned int i=0; i<agentLocs.size(); i++){
+	for (uint i=0; i<agentLocs.size(); i++){
 		loc2mem[agentLocs[i]]=i; // add in reverse lookup
 	}
 
@@ -79,8 +79,8 @@ bool TypeGraphManager::intersectsExistingEdge(edge candidate, vector<XY> agentLo
 bool TypeGraphManager::fullyConnected(vector<XY> agentLocs){
 	LinkGraph a = LinkGraph(agentLocs,edges);
 
-	for (unsigned int i=0; i<agentLocs.size(); i++){
-		for (unsigned int j=0; j<agentLocs.size(); j++){
+	for (uint i=0; i<agentLocs.size(); i++){
+		for (uint j=0; j<agentLocs.size(); j++){
 			if (i==j) continue;
 			list<int> path = a.astar(i,j);
 			if (path.size()==1) return false;
@@ -99,8 +99,8 @@ TypeGraphManager::~TypeGraphManager(void)
 
 
 void TypeGraphManager::setCostMaps(matrix2d agent_actions){
-	
-	for (unsigned int i=0; i<Graph_highlevel.size(); i++){
+
+	for (uint i=0; i<Graph_highlevel.size(); i++){
 		Graph_highlevel[i]->setWeights(agent_actions[i]);
 	}
 }

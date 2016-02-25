@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <string>
+#include <fstream>
 
 /*!
 A static class for common errors related to opening files.
@@ -14,7 +15,7 @@ public:
 		std::printf("Variable %s not found!\n",var_name.c_str());
 		std::system("pause");
 	}
-	
+
 	//! Error that prints when a file was not opened.
 	static void failed_file(std::string file_name){
 		std::printf("Failed to open %s.\n",file_name.c_str());
@@ -36,7 +37,7 @@ public:
 
 private:
 	//! Error codes for the different fatal failures.
-	static const enum ErrorCodes{
+	enum ErrorCodes{
 		UNRECOGNIZED_EXTENSION,
 		NOT_PAIR
 	};

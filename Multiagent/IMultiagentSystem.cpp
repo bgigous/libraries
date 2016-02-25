@@ -16,14 +16,14 @@ matrix2d IMultiagentSystem::getActions(matrix2d S){
 	}
 	matrix2d A(agents.size());
 	// get all actions, given a list of states
-	for (unsigned int i=0; i<agents.size(); i++){
+	for (uint i=0; i<agents.size(); i++){
 		A[i] = agents[i]->getAction(S[i]);
 	}
 	return A;
 }
 
 void IMultiagentSystem::updatePolicyValues(matrix1d R){
-	for (unsigned int i=0; i<agents.size(); i++){
+	for (uint i=0; i<agents.size(); i++){
 		agents[i]->updatePolicyValues(R[i]);
 	}
 }

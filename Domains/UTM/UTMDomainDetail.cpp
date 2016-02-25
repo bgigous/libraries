@@ -12,14 +12,14 @@ UTMDomainDetail::UTMDomainDetail():
 
 	matrix2d membership_map = FileIn::read2<double>("agent_map/membership_map.csv");
 	fix_locs = FileIn::read_pairs<XY>("agent_map/fixes.csv");
-	
+
 	// Planning
 	lowGraph = new SectorGraphManager(membership_map,highGraph->getEdges());
-		
+
 	// initialize fixes
 	fixes.clear();
 	// Get link IDs for fix generation
-	for (unsigned int i=0; i<fix_locs.size(); i++){
+	for (uint i=0; i<fix_locs.size(); i++){
 		fixes.push_back(new Fix(fix_locs[i],i,highGraph,lowGraph,&fixes, params,linkIDs));
 	}
 
@@ -47,7 +47,7 @@ vector<double> UTMDomainDetail::getRewards(){
 	// DELAY REWARD
 	return zeros(1);
 	//return matrix1d(sectors.size(), -conflict_count);
-	
+
 	// LINEAR REWARD
 	//return matrix1d(sectors->size(),-conflict_count); // linear reward
 
@@ -63,7 +63,7 @@ vector<double> UTMDomainDetail::getRewards(){
 	return matrix1d(sectors->size(),-conflict_sum);*/
 }
 
-unsigned int UTMDomainDetail::getSector(easymath::XY p){
+uint UTMDomainDetail::getSector(easymath::XY p){
 	// tests membership for sector, given a location
 	return lowGraph->getMembership(p);
 }
@@ -104,7 +104,7 @@ void UTMDomainDetail::exportLog(std::string fid, double G){
 void UTMDomainDetail::detectConflicts(){
 	for (list<UAV* >::iterator u1=UAVs.begin(); u1!=UAVs.end(); u1++){
 		for (list<UAV* >::iterator u2=std::next(u1); u2!=UAVs.end(); u2++){
-			
+
 			double d = easymath::euclidean_distance((*u1)->loc,(*u2)->loc);
 
 			if (d>params->get_conflict_thresh()) continue; // No conflict!

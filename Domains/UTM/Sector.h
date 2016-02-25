@@ -41,7 +41,7 @@ public:
 		// Converts format of agent output to format of A* weights
 
 		matrix2d weights = easymath::zeros(n_types,links.size());;
-		for (unsigned int i=0; i<links.size(); i++){
+		for (uint i=0; i<links.size(); i++){
 			for (int j=0; j<n_types; j++){
 				int s = links[i]->source;
 				int d = j*(n_types-1) + links[i]->cardinal_dir; // type/direction combo

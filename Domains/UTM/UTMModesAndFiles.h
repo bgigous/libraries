@@ -1,8 +1,11 @@
 #pragma once
 #include <string>
 //if windows use direct.h, if linux use unistd.h
+#ifdef OS_WINDOWS
 #include <direct.h>
-//#include <unistd.h>
+#else
+#include <sys/stat.h>
+#endif
 #include "../IDomainStateful.h"
 
 
@@ -57,7 +60,7 @@ public:
 	}
 
 	// REWARDS
-	static const enum RewardMode
+	enum RewardMode
 	{
 		// LINEAR REWARDS
 		GLOBAL,
@@ -91,7 +94,7 @@ public:
 		return reward_names[_reward_mode];
 	}
 
-	static const enum RewardType{	// this is which types of environment variable is counted
+	enum RewardType{	// this is which types of environment variable is counted
 		CONFLICTS,
 		DELAY,
 		NREWARDTYPES
@@ -121,7 +124,7 @@ public:
 
 	// UAV types
 
-	const enum UAVType{SLOW, FAST, NTYPES=1};
+	enum UAVType{SLOW, FAST, NTYPES=1};
 	//const enum UAVType{SLOW,NTYPES};
 
 	// CONSTANTS
@@ -161,8 +164,13 @@ public:
 		// Saves the map information
 		std::string DOMAIN_FOLDER = "Domains/";
 		std::string SECTOR_FOLDER = DOMAIN_FOLDER+std::to_string(modes->get_n_sectors())+"_Sectors/";
+		#ifdef OS_WINDOWS
 		_mkdir(DOMAIN_FOLDER.c_str());
 		_mkdir(SECTOR_FOLDER.c_str());
+		#else
+		mkdir(DOMAIN_FOLDER.c_str(), ACCESSPERMS);
+		mkdir(SECTOR_FOLDER.c_str(), ACCESSPERMS);
+		#endif // OS_WINDOWSs
 		return SECTOR_FOLDER;
 	}
 
@@ -214,6 +222,7 @@ public:
 		}
 		std::string REWARD_FOLDER = REWARD_TYPE_FOLDER + modes->getRewardModeName() + "_Reward/";
 
+        #ifdef OS_WINDOWS
 		_mkdir(EXPERIMENT_FOLDER.c_str());
 		_mkdir(AGENTS_FOLDER.c_str());
 		_mkdir(SECTOR_FOLDER.c_str());
@@ -221,6 +230,15 @@ public:
 		_mkdir(CAPACITY_FOLDER.c_str());
 		_mkdir(REWARD_TYPE_FOLDER.c_str());
 		_mkdir(REWARD_FOLDER.c_str());
+		#else
+        mkdir(EXPERIMENT_FOLDER.c_str(), ACCESSPERMS);
+		mkdir(AGENTS_FOLDER.c_str(), ACCESSPERMS);
+		mkdir(SECTOR_FOLDER.c_str(), ACCESSPERMS);
+		mkdir(TRAFFIC_FOLDER.c_str(), ACCESSPERMS);
+		mkdir(CAPACITY_FOLDER.c_str(), ACCESSPERMS);
+		mkdir(REWARD_TYPE_FOLDER.c_str(), ACCESSPERMS);
+		mkdir(REWARD_FOLDER.c_str(), ACCESSPERMS);
+		#endif
 
 		return REWARD_FOLDER; // returns the full directory path just generated
 	}

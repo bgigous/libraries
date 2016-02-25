@@ -37,7 +37,7 @@ MultiagentTypeNE::~MultiagentTypeNE(void){
 
 matrix2d MultiagentTypeNE::getActions(matrix3d state){
 	matrix2d actions(state.size()); // get an action vector for each agent
-	for (unsigned int i=0; i<agents.size(); i++){
+	for (uint i=0; i<agents.size(); i++){
 		actions[i] = agents[i]->getAction(state[i]);
 	}
 	return actions;
@@ -47,7 +47,7 @@ matrix2d MultiagentTypeNE::getActions(matrix3d state){
 /*
 MultiagentTypeNE::MultiagentTypeNE(void){};
 
-MultiagentTypeNE::MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params, TypeHandling type_mode, int n_types): 
+MultiagentTypeNE::MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params, TypeHandling type_mode, int n_types):
 MultiagentNE(n_agents, NE_params), type_mode(type_mode), n_types(n_types)
 {
 switch (type_mode){
