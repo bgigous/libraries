@@ -23,6 +23,10 @@ public:
 	~UAV(){
 	}
 
+	void set_cur_link_ID(int link_ID){
+		cur_link_ID = link_ID;
+	}
+
 	UTMModes* params;
 
 	int getDirection(); // gets the cardinal direction of the UAV
@@ -46,8 +50,8 @@ public:
 	int next_link_ID;
 	int cur_link_ID;
 	
-	//! Triggered when a UAV moves. This sets the 'next sector ID' and 'current sector ID' values
-	void update_link_info();
+	//! Triggered when a UAV moves. This sets the 'next link ID' and 'current link ID' values
+	//void update_link_info();
 
 	//! Gets the sector ID from the location
 	

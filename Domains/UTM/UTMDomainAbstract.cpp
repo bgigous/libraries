@@ -240,6 +240,8 @@ void UTMDomainAbstract::incrementUAVPath(){
 void UTMDomainAbstract::try_to_move(vector<UAV*> & eligible_to_move){
 	random_shuffle(eligible_to_move.begin(),eligible_to_move.end());
 
+	printf("%i",links[79]->traffic[0].size());
+
 	int el_size;
 	do {
 		vector<UAV*>::iterator it = eligible_to_move.begin();
@@ -295,7 +297,7 @@ matrix2d UTMDomainAbstract::getStates(){
 		}
 	} else {
 		for (UAV* u : UAVs)
-			allStates[u->curLinkID()][u->type_ID]++;
+			allStates[u->cur_link_ID][u->type_ID]++;
 	}
 
 
@@ -493,7 +495,8 @@ void UTMDomainAbstract::detectConflicts(){
 
 void UTMDomainAbstract::getPathPlans(){
 	for (UAV* u : UAVs){
-		u->planAbstractPath();
+		if (u->t<=0)	// enforces commitment to link
+			u->planAbstractPath();
 	}
 }
 
@@ -522,6 +525,7 @@ void UTMDomainAbstract::absorbUAVTraffic(){
 	// Deletes UAVs
 	remove_erase_if(UAVs,[](UAV* u){
 		if (u->loc==u->end_loc){
+			printf("%i died",u->ID);
 			delete u;
 			return true;
 		} else {
@@ -544,6 +548,7 @@ void UTMDomainAbstract::getNewUAVTraffic(){
 		list<UAV*> new_UAVs = f->generateTraffic(*step);
 		for (UAV* u: new_UAVs){
 			UAVs.push_back(u);
+			u->set_cur_link_ID(u->curLinkID());
 			links.at(u->cur_link_ID)->add(u);
 		}
 	}

@@ -56,6 +56,7 @@ public:
 	void add(UAV* u){
 		u->t = time;
 		traffic.at(size_t(u->type_ID)).push_back(u);
+		u->cur_link_ID = ID;
 	}
 
 	void remove(UAV* u){
