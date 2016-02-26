@@ -165,7 +165,7 @@ public:
 #else
 		mkdir(DOMAIN_FOLDER.c_str(), ACCESSPERMS);
 		mkdir(SECTOR_FOLDER.c_str(), ACCESSPERMS);
-#endif // OS_WINDOWSs
+#endif
 		return SECTOR_FOLDER;
 	}
 

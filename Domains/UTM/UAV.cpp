@@ -15,7 +15,7 @@ UAV::UAV(XY start_loc, XY end_loc, UTMModes::UAVType t, TypeGraphManager* highGr
 	// Get initial plan and update
 	planAbstractPath();
 
-	printf("ID = %i, l next = %i\n",ID,next_link_ID);
+	//printf("ID = %i, l next = %i\n",ID,next_link_ID);
 };
 
 
@@ -56,7 +56,8 @@ int UAV::endSectorID(){
 }
 
 int UAV::nextLinkID(){
-	if (nextSectorID(1)==nextSectorID(2)) return cur_link_ID;
+	if (nextSectorID(1)==nextSectorID(2)) 
+		return curLinkID();
 	else {
 		pair<int,int> link(nextSectorID(1),nextSectorID(2));
 		return linkIDs->at(link);
@@ -93,10 +94,7 @@ void UAV::planAbstractPath(){
 		pathChanged=false;
 	}
 
-	
 	next_link_ID = nextLinkID();
-
-	printf("blah");
 }
 
 void UAV::planDetailPath(){

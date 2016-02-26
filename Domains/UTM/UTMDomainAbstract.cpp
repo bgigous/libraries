@@ -239,9 +239,7 @@ void UTMDomainAbstract::incrementUAVPath(){
 
 void UTMDomainAbstract::try_to_move(vector<UAV*> & eligible_to_move){
 	random_shuffle(eligible_to_move.begin(),eligible_to_move.end());
-
-	printf("%i",links[79]->traffic[0].size());
-
+	
 	int el_size;
 	do {
 		vector<UAV*>::iterator it = eligible_to_move.begin();

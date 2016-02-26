@@ -35,7 +35,7 @@ void SimNE::runExperiment(){
 		time_t run_end_time = epoch_end + run_time_left;
 
 		char end_clock_time[26];
-		#ifdef OS_WINDOWS
+		#ifdef _WIN32
 		ctime_s(end_clock_time, sizeof(end_clock_time), &run_end_time);
 		#endif
 
