@@ -210,7 +210,8 @@ void UTMDomainAbstract::incrementUAVPath(){
 				return false;
 			} else return true;			// At end of non-destination link
 		} else {
-			u->t--;						// Not yet at end of link. Decrement time.
+			for (int i=0; i<=u->type_ID;i++)	// TYPE IMPLEMENTATION
+				u->t--;						// Not yet at end of link. Decrement time.
 			return false;
 		}
 	});
@@ -357,7 +358,6 @@ matrix3d UTMDomainAbstract::getTypeStates(){
 			int a = u->cur_link_ID;
 			int id = u->type_ID;
 			allStates[a][id][0]+=1.0;
-			state_printout[a][0]++;
 		}
 	}
 	agents->agentStates.push_back(state_printout);
