@@ -18,7 +18,7 @@ public:
 
 	//!
 	bool at_capacity(int UAV_type){
-		return number_over_capacity(UAV_type) <= 0;
+		return number_over_capacity(UAV_type) >= 0;
 	}
 
 	int number_over_capacity(int type_ID){
@@ -35,9 +35,9 @@ public:
 			for(UAV* u : traffic[i]){
 				waits.push_back(u->t);
 			}
-			std::sort(waits.begin(),waits.end(),std::greater<double>());
+			std::sort(waits.begin(),waits.end(),std::less<double>());
 			if (double(waits.size())-capacity[i] >= 0.0 )
-				waits.resize(uint(double(waits.size())-capacity[i]));	// drop the last [capacity[i]] elements
+				waits.resize(uint(double(waits.size())-(capacity[i]-1)));	// drop the last [capacity[i]] elements
 			predicted[i] = time + easymath::sum(waits);
 		}
 		return predicted;
@@ -57,6 +57,7 @@ public:
 		u->t = time;
 		traffic.at(size_t(u->type_ID)).push_back(u);
 		u->cur_link_ID = ID;
+		u->loc = source_loc;
 	}
 
 	void remove(UAV* u){
@@ -114,6 +115,7 @@ public:
 	std::vector<Link*> links;
 
 	void add_delay(UAV* u){
+		//printf("#%i delayed",u->ID);
 		metrics.at(u->cur_link_ID).local[u->type_ID]++; // adds to the local delay
 	}
 

@@ -53,6 +53,9 @@ public:
 	std::vector<Sector*> sectors;
 
 	void add_delay(UAV* u){
+		//double tt = links.at(u->next_link_ID)->predicted_traversal_time()[0];
+		//printf("at link %i: %fs to wait ", u->next_link_ID,tt);
+		//system("pause");
 		metrics.at(u->curSectorID()).local[u->type_ID]++;
 	}
 	void add_downstream_delay_counterfactual(UAV* u){
