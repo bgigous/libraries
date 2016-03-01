@@ -18,7 +18,7 @@ public:
 		_arrival_mode(EXACT),
 		_traffic_mode(DETERMINISTIC),
 		_agent_defn_mode(SECTOR),
-		_reward_type_mode(DELAY),
+		_reward_type_mode(LINK),
 		_search_type_mode(ASTAR),
 		// Constants defaults
 		n_sectors(20)
@@ -119,7 +119,7 @@ public:
 
 	// UAV types
 
-	enum UAVType{SLOW, FAST, NTYPES=1};
+	enum UAVType{SLOW, FAST, NTYPES=4};
 	//const enum UAVType{SLOW,NTYPES};
 
 	// CONSTANTS
@@ -133,7 +133,7 @@ public:
 	int get_n_steps(){return 200;};
 	int get_n_types(){return NTYPES;};
 	double get_p_gen(){return 0.5;};
-	int get_gen_rate(){return 10;};
+	int get_gen_rate(){return 50;};
 	double get_dist_thresh(){return 2.0;};
 	double get_conflict_thresh(){return 2.0;};
 };
@@ -165,7 +165,7 @@ public:
 #else
 		mkdir(DOMAIN_FOLDER.c_str(), ACCESSPERMS);
 		mkdir(SECTOR_FOLDER.c_str(), ACCESSPERMS);
-#endif // OS_WINDOWSs
+#endif
 		return SECTOR_FOLDER;
 	}
 

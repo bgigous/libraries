@@ -65,10 +65,14 @@ public:
 
 	double global(){
 		double sum=0.0;
+		
 		for (Reward_Metrics r:metrics){
 			sum += easymath::sum(r.local);
-			r.local;
+			//r.local;
+			//std::printf("%.3f,",easymath::sum(r.local));
 		}
+		//std::printf("=%.3f\n",sum);
+		//system("pause");
 		return sum;
 	}
 

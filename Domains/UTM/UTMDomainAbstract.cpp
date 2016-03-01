@@ -202,20 +202,23 @@ matrix1d UTMDomainAbstract::getRewards(){
 
 
 void UTMDomainAbstract::incrementUAVPath(){
-	vector<UAV*> eligible; // Eligible to move to the next link
+	vector<UAV*> eligible;				// UAVs eligible to move to the next link
 	copy_if(UAVs.begin(),UAVs.end(),back_inserter(eligible),[](UAV* u){
 		if (u->t<=0){
-			return true;
+			if (u->nextLinkID()==u->cur_link_ID){
+				u->loc = u->end_loc;	// At destination. Moves to end of link.
+				return false;
+			} else return true;			// At end of non-destination link
 		} else {
-			u->t--;
+			for (int i=0; i<=u->type_ID;i++)	// TYPE IMPLEMENTATION
+				u->t--;						// Not yet at end of link. Decrement time.
 			return false;
 		}
 	});
 
-	if (eligible.empty())
+	if (eligible.empty()){
 		return;
-
-	if (params->_reward_type_mode==UTMModes::CONFLICTS){
+	} else if (params->_reward_type_mode==UTMModes::CONFLICTS){
 		for (UAV* u : eligible){
 			u->high_path_prev.pop_front();
 			u->loc = sectors[u->high_path_prev.front()]->xy;
@@ -224,6 +227,7 @@ void UTMDomainAbstract::incrementUAVPath(){
 	} else {
 		try_to_move(eligible); // This moves all UAVs that are eligible and not blocked
 		// Only those that cannot move are left in eligible
+		//std::printf("%i UAVs delayed. \n",eligible.size());
 		for (UAV* u:eligible){
 			agents->add_delay(u);	// adds delay for each eligible UAV not able to move
 
@@ -239,7 +243,7 @@ void UTMDomainAbstract::incrementUAVPath(){
 
 void UTMDomainAbstract::try_to_move(vector<UAV*> & eligible_to_move){
 	random_shuffle(eligible_to_move.begin(),eligible_to_move.end());
-
+	
 	int el_size;
 	do {
 		vector<UAV*>::iterator it = eligible_to_move.begin();
@@ -295,7 +299,7 @@ matrix2d UTMDomainAbstract::getStates(){
 		}
 	} else {
 		for (UAV* u : UAVs)
-			allStates[u->curLinkID()][u->type_ID]++;
+			allStates[u->cur_link_ID][u->type_ID]++;
 	}
 
 
@@ -354,7 +358,6 @@ matrix3d UTMDomainAbstract::getTypeStates(){
 			int a = u->cur_link_ID;
 			int id = u->type_ID;
 			allStates[a][id][0]+=1.0;
-			state_printout[a][0]++;
 		}
 	}
 	agents->agentStates.push_back(state_printout);
@@ -493,7 +496,8 @@ void UTMDomainAbstract::detectConflicts(){
 
 void UTMDomainAbstract::getPathPlans(){
 	for (UAV* u : UAVs){
-		u->planAbstractPath();
+		if (u->t<=0)	// enforces commitment to link
+			u->planAbstractPath();
 	}
 }
 
@@ -504,6 +508,8 @@ void UTMDomainAbstract::getPathPlans(std::list<UAV* > &new_UAVs){
 }
 
 void UTMDomainAbstract::reset(){
+	//printf("%i UAVs\n",UAVs.size());
+
 	while (!UAVs.empty()){
 		delete UAVs.back();
 		UAVs.pop_back();
@@ -520,14 +526,14 @@ void UTMDomainAbstract::reset(){
 
 void UTMDomainAbstract::absorbUAVTraffic(){
 	// Deletes UAVs
-	remove_erase_if(UAVs,[](UAV* u){
+	UAVs.erase(remove_if(UAVs.begin(),UAVs.end(),[](UAV* u){
 		if (u->loc==u->end_loc){
 			delete u;
 			return true;
 		} else {
 			return false;
 		}
-	});
+	}),UAVs.end());
 	for (Link* l:links){
 		for (list<UAV*> &t:l->traffic){
 			remove_erase_if(t,[](UAV* u){
@@ -544,6 +550,7 @@ void UTMDomainAbstract::getNewUAVTraffic(){
 		list<UAV*> new_UAVs = f->generateTraffic(*step);
 		for (UAV* u: new_UAVs){
 			UAVs.push_back(u);
+			u->set_cur_link_ID(u->curLinkID());
 			links.at(u->cur_link_ID)->add(u);
 		}
 	}
