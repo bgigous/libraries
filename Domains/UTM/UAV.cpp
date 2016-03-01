@@ -15,7 +15,7 @@ UAV::UAV(XY start_loc, XY end_loc, UTMModes::UAVType t, TypeGraphManager* highGr
 	// Get initial plan and update
 	planAbstractPath();
 	update_link_info();
-	
+
 };
 
 
@@ -43,7 +43,7 @@ int UAV::curLinkID(){
 int UAV::curSectorID(){
 	if (lowGraph==NULL)
 		return highGraph->getMembership(loc); // return current sector
-	else 
+	else
 		return lowGraph->getMembership(loc);
 }
 
@@ -67,14 +67,14 @@ void UAV::planAbstractPath(){
 	cur_link_ID = curLinkID();
 	if (cur_link_ID!=-1) links_touched.insert(cur_link_ID);
 	sectors_touched.insert(curSectorID());
-	
+
 	list<int> high_path;
 	if (params->_search_type_mode==UTMModes::ASTAR){
 		high_path = highGraph->astar(curSectorID(), endSectorID(), type_ID);
 	} else {
 		// RAGS
 	}
-	
+
 	if (high_path_prev!=high_path){
 		pathChanged=true;
 		high_path_prev = high_path;
@@ -121,7 +121,7 @@ int UAV::getDirection(){
 }
 
 void UAV::moveTowardNextWaypoint(){
-	if (!target_waypoints.size()) 
+	if (!target_waypoints.size())
 		return; // return if no waypoints
 
 	for (int i=0; i<speed; i++){

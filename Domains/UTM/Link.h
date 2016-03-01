@@ -43,6 +43,18 @@ public:
 		return predicted;
 	}
 
+	//! Returns the mean and variance of the cost associated with this link
+	std::vector<double> get_prob_dist(){
+        return probDist;
+	}
+
+	//! Calculates mean and variance
+	void calc_prob_dist(double link_cost){
+
+
+
+	}
+
 	//! Grabs the UAV u from link l
 	void move_from(UAV* u, Link* l){//std::shared_ptr<Link> l){
 		// Add to other list (u is temporarily duplicated)
@@ -78,6 +90,7 @@ private:
 	const easymath::XY source_loc;
 	const easymath::XY target_loc;
 	const int time;		// Amount of time it takes to travel across link
+	std::vector<double> probDist;
 
 	matrix1d capacity;
 
