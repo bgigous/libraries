@@ -1,5 +1,6 @@
 #pragma once
 #include "UTMAgentReward.h"
+#include <numeric>
 
 class Link{
 public:
@@ -54,6 +55,7 @@ public:
 
 		return predicted;
 	}
+
 
 	//! Grabs the UAV u from link l
 	void move_from(UAV* u, Link* l){//std::shared_ptr<Link> l){

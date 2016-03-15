@@ -17,7 +17,7 @@ class distance_heuristic : public boost::astar_heuristic<Graph, CostType>
 public:
 	typedef std::vector<easymath::XY> LocMap;
 	typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-	distance_heuristic(LocMap locations, Vertex goal): 
+	distance_heuristic(LocMap locations, Vertex goal):
 		m_location(locations),
 		m_goal(goal)
 	{};
@@ -118,7 +118,7 @@ public:
 
 
 	~LinkGraph(void){};
-	
+
 	// A* fundamentals
 	mygraph_t g;
 	std::vector<easymath::XY> locations;
@@ -176,4 +176,3 @@ public:
 		FileOut::print_vector(connections_matrix,CONNECTIONS_FILE);
 	}
 };
-

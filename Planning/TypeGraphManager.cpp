@@ -1,4 +1,5 @@
 #include "TypeGraphManager.h"
+#include "RAGS.h"
 
 using namespace std;
 using namespace easymath;
@@ -21,6 +22,9 @@ TypeGraphManager::TypeGraphManager(string edgesFile, string verticesFile, int n_
 	vector<XY> agentLocs = FileIn::read_pairs<XY>(verticesFile);
 	//FileIn::loadVariable(agentLocs, verticesFile);
 	edges = FileIn::read_pairs<edge>(edgesFile); // NOTE: this leaves to the user the task of making edges bidirectional
+	//rags_graph_data = std::vector<rags_info>(edges.size());
+	//weights = FileIn::read_pairs<XY>(weights);
+	RAGS my_rags = RAGS(agentLocs, edges);
 
 	//FileIn::loadVariable(edges, edgesFile);
 
@@ -98,10 +102,31 @@ TypeGraphManager::~TypeGraphManager(void)
 }
 
 
+//! Returns the mean and variance of the cost associated with this link
+std::vector<double> TypeGraphManager::rags_info::get_prob_dist(int type_id){
+       return probDist[type_id];
+}
+
+//! Calculates mean and variance
+void TypeGraphManager::rags_info::calc_prob_dist(double link_cost, int type_id){
+
+        double sum  = 0, mu = 0, sigma_sq = 0, sdev = 0, dev = 0;
+        sum = std::accumulate(points[type_id].begin(), points[type_id].end(), 0.0);
+        mu = sum / points.size();
+        sdev = std::inner_product(points[type_id].begin(), points[type_id].end(), points[type_id].begin(), 0.0);
+        sigma_sq = sdev/points[type_id].size() - mu*mu;
+        probDist[type_id].clear();
+        probDist[type_id].push_back(mu);
+        probDist[type_id].push_back(sigma_sq);
+}
+
 void TypeGraphManager::setCostMaps(matrix2d agent_actions){
 
 	for (uint i=0; i<Graph_highlevel.size(); i++){
 		Graph_highlevel[i]->setWeights(agent_actions[i]);
+		for (uint j=0; j<agent_actions[i].size(); j++){
+				rags_graph_data[j].calc_prob_dist(agent_actions[i][j], i);
+        }
 	}
 }
 

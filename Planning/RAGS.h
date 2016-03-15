@@ -36,7 +36,7 @@ class Vertex
     Vertex(double x, double y):
       itsX(x), itsY(y) {}
     ~Vertex() {}
-    
+
     double GetX() const {return itsX ;}
     void SetX(double x) {itsX = x ;}
     double GetY() const {return itsY ;}
@@ -47,7 +47,7 @@ class Vertex
     vector<Node *> GetNodes() {return itsNodes ;}
     void SetActualCost(double ac) {itsActualCost = ac;}
     double GetActualCost() const {return itsActualCost ;}
-    
+
     friend bool operator==(const Vertex &lhs, const Vertex &rhs){
       return lhs.GetX()==rhs.GetX() && lhs.GetY()==rhs.GetY();
     }
@@ -67,7 +67,7 @@ class Edge
     Edge(Vertex * v1, Vertex * v2, double cost, double var):
       itsVertex1(v1), itsVertex2(v2), itsMeanCost(cost), itsVarCost(var), itsMeanSearch(cost), itsVarSearch(var) {}
     ~Edge(){}
-    
+
     Vertex * GetVertex1() const {return itsVertex1 ;}
     Vertex * GetVertex2() const {return itsVertex2 ;}
     double GetMeanCost() const {return itsMeanCost ;}
@@ -101,7 +101,12 @@ class Graph
       itsVertices = GenerateVertices(locations) ;
       itsEdges = GenerateEdges(edge_array, weights) ;
     }
-    
+    Graph(vector<XY> &locations, vector<edge> &edge_array)
+    {
+      itsVertices = GenerateVertices(locations) ;
+      itsEdges = GenerateEdges(edge_array) ;
+    }
+
     ~Graph()
     {
       for (unsigned i = 0; i < numVertices; i++){
@@ -117,26 +122,28 @@ class Graph
       delete [] itsEdges ;
       itsEdges = 0 ;
     }
-    
+
     Vertex ** GetVertices() const {return itsVertices ;}
     Edge ** GetEdges() const {return itsEdges ;}
     ULONG GetNumVertices() const {return numVertices ;}
     ULONG GetNumEdges() const {return numEdges ;}
-    
+
     vector<Edge *> GetNeighbours(XY v) ;
     vector<Edge *> GetNeighbours(Vertex * v) ;
     vector<Edge *> GetNeighbours(XY v, XY v0) ;
     vector<Edge *> GetNeighbours(Vertex * v, Vertex * v0) ;
     vector<Edge *> GetNeighbours(Node * n) ;
-    
+
   private:
     Vertex ** itsVertices ;
     Edge ** itsEdges ;
     ULONG numVertices ;
     ULONG numEdges ;
-    
+
     Vertex ** GenerateVertices(vector<XY> &vertices) ;
     Edge ** GenerateEdges(vector<edge> &edges, vector< vector<double> > &weights) ;
+    Edge ** GenerateEdges(vector<edge> &edges) ;
+
 } ;
 
 // Node class to maintain path information up to a vertex
@@ -147,7 +154,7 @@ class Node
     Node(Vertex * vertex):
       itsVertex(vertex), itsParent(0), itsMeanCost(0.0), itsVarCost(0.0), itsDepth(0),
       itsHeuristic(0.0), itsMeanCTG(0.0), itsVarCTG(0.0) {}
-    
+
     Node(Vertex * vertex, nodeType n):
     itsVertex(vertex), itsParent(0), itsHeuristic(0.0)
     {
@@ -167,7 +174,7 @@ class Node
           itsVarCTG = DBL_MAX ;
       }
     }
-    
+
     Node(Node * parent, Edge * edge):
     itsParent(parent), itsHeuristic(0.0), itsMeanCTG(0.0), itsVarCTG(0.0)
     {
@@ -176,9 +183,9 @@ class Node
       itsVarCost = itsParent->GetVarCost() + edge->GetVarSearch() ;
       itsDepth = itsParent->GetDepth() + 1 ;
     }
-    
+
     ~Node(){} ;
-    
+
     Node * GetParent() const {return itsParent ;}
     void SetParent(Node * parent) {itsParent = parent ;}
     double GetMeanCost() const {return itsMeanCost ;}
@@ -193,11 +200,11 @@ class Node
     void SetHeuristic(double h) {itsHeuristic = h ;}
     double GetMeanCTG() const {return itsMeanCTG ;}
     double GetVarCTG() const {return itsVarCTG ;}
-    
+
     void DisplayPath() ;
     Node * ReverseList(Node * itsChild) ;
     void SetCTG(double totalMean, double totalVar) ;
-    
+
   private:
     Vertex * itsVertex ;
     Node * itsParent ;
@@ -242,7 +249,7 @@ class Queue
       itsPQ = new QUEUE ;
       itsPQ->push(source) ;
     }
-    
+
     ~Queue(){
       while (!itsPQ->empty()){
         Node * temp = itsPQ->top() ;
@@ -257,17 +264,17 @@ class Queue
         closed[i] = 0 ;
       }
     }
-    
+
     vector<Node *> GetClosed() const {return closed ;}
     bool EmptyQueue() const {return itsPQ->empty() ;}
     ULONG SizeQueue() const {return (ULONG)itsPQ->size() ;}
     void UpdateQueue(Node * newNode) ;
     Node * PopQueue() ;
-    
+
   private:
     QUEUE * itsPQ ;
     vector<Node *> closed ;
-    
+
     bool CompareNodes(const Node * n1, const Node * n2) const ;
 } ;
 
@@ -285,7 +292,7 @@ class Search
       delete itsQueue ;
       itsQueue = 0 ;
     }
-    
+
     Graph * GetGraph() const {return itsGraph ;}
     Queue * GetQueue() const {return itsQueue ;}
     void SetQueue(Queue * queue) {itsQueue = queue ;}
@@ -300,7 +307,7 @@ class Search
     Vertex * itsGoal ;
     searchType SEARCH_TYPE ;
     heuristic HEURISTIC ;
-    
+
     ULONG FindSourceID() ;
     double ManhattanDistance(Vertex * v1, Vertex * v2) ;
     double EuclideanDistance(Vertex * v1, Vertex *v2) ;
@@ -312,12 +319,18 @@ class RAGS
 {
   public:
     typedef pair<int, int> edge ;
-    RAGS(vector<XY> &locations, vector<edge> &edge_array, vector< vector<double> > &weights): 
+    RAGS(vector<XY> &locations, vector<edge> &edge_array, vector< vector<double> > &weights):
     itsLocations(locations), itsEdgeArray(edge_array){
       itsGraph = new Graph(locations, edge_array, weights) ;
       PSET = BEST ; // BEST = ASTAR; ALL = RAGS
     }
-    
+
+    RAGS(vector<XY> &locations, vector<edge> &edge_array):
+    itsLocations(locations), itsEdgeArray(edge_array){
+      itsGraph = new Graph(locations, edge_array) ;
+      PSET = BEST ; // BEST = ASTAR; ALL = RAGS
+    }
+
     ~RAGS()
     {
       delete itsGraph ;
@@ -336,15 +349,15 @@ class RAGS
         itsNDSet[i] = 0 ;
       }
     }
-    
+
     Graph * GetGraph() const {return itsGraph ;}
     Vertex * GetVert() const {return itsVert ;}
-    
+
     void SetInitialVert(Vertex * start) ;
     XY SearchGraph(XY start, XY goal, vector<double> &weights) ;
     XY SearchGraph(Vertex * start, Vertex * goal, vector<double> &weights) ;
     int GetEdgeIndex(XY start, XY goal) ;
-    
+
   private:
     vector<XY> itsLocations ;
     vector<edge> itsEdgeArray ;
@@ -353,6 +366,6 @@ class RAGS
     Vertex * itsVert ;
     vector<Node *> itsNDSet ;
     pathOut PSET ;
-    
+
     void AssignCurrentEdgeCosts(vector<double> &weights) ;
 } ;

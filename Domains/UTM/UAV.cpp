@@ -16,6 +16,7 @@ UAV::UAV(XY start_loc, XY end_loc, UTMModes::UAVType t, TypeGraphManager* highGr
 	planAbstractPath();
 
 	//printf("ID = %i, l next = %i\n",ID,next_link_ID);
+
 };
 
 
@@ -35,9 +36,9 @@ int UAV::nextSectorID(int n){
 }
 
 int UAV::curLinkID(){
-	
+
 	pair<int,int> link(curSectorID(), nextSectorID());
-	if (link.first==link.second) 
+	if (link.first==link.second)
 		return -1;
 	else{
 		return linkIDs->at(link);
@@ -47,7 +48,7 @@ int UAV::curLinkID(){
 int UAV::curSectorID(){
 	if (lowGraph==NULL)
 		return highGraph->getMembership(loc); // return current sector
-	else 
+	else
 		return lowGraph->getMembership(loc);
 }
 
@@ -56,7 +57,7 @@ int UAV::endSectorID(){
 }
 
 int UAV::nextLinkID(){
-	if (nextSectorID(1)==nextSectorID(2)) 
+	if (nextSectorID(1)==nextSectorID(2))
 		return curLinkID();
 	else {
 		pair<int,int> link(nextSectorID(1),nextSectorID(2));
@@ -71,18 +72,18 @@ std::list<int> UAV::getBestPath(int memstart, int memend){
 void UAV::planAbstractPath(){
 	if (cur_link_ID!=-1) links_touched.insert(cur_link_ID);
 	sectors_touched.insert(curSectorID());
-	
+
 	list<int> high_path;
 	if (params->_search_type_mode==UTMModes::ASTAR){
 		high_path = highGraph->astar(curSectorID(), endSectorID(), type_ID);
 	} else {
-		// RAGS
+		high_path = highGraph->RAGS(curSectorID(), endSectorID(), type_ID);
 	}
-	
+
 	if (high_path_prev!=high_path){
 		pathChanged=true;
 		high_path_prev = high_path;
-		
+
 
 		if (lowGraph==NULL){
 			clear(target_waypoints);
@@ -119,7 +120,7 @@ int UAV::getDirection(){
 }
 
 void UAV::moveTowardNextWaypoint(){
-	if (!target_waypoints.size()) 
+	if (!target_waypoints.size())
 		return; // return if no waypoints
 
 	for (int i=0; i<speed; i++){
