@@ -133,6 +133,24 @@ Edge ** Graph::GenerateEdges(vector<edge> &edges, vector< vector<double> > &weig
 	return allEdges ;
 }
 
+Edge ** Graph::GenerateEdges(vector<edge> &edges)
+{
+	numEdges = (ULONG)edges.size() ;
+	Edge ** allEdges = new Edge * [numEdges] ;
+
+	for (ULONG i = 0; i < numEdges; i++)
+	{
+		Vertex * v1 = itsVertices[(ULONG)edges[i].first] ;
+		Vertex * v2 = itsVertices[(ULONG)edges[i].second] ;
+		double cost = 0; //weights[i][0] ;
+		double var = 0; //weights[i][1] ;
+
+		allEdges[i] = new Edge(v1, v2, cost, var) ;
+	}
+
+	return allEdges ;
+}
+
 void Node::DisplayPath()
 {
 	cout << "Vertex: (" << itsVertex->GetX() << "," << itsVertex->GetY() << ")\n" ;
