@@ -77,7 +77,7 @@ void UAV::planAbstractPath(){
 	if (params->_search_type_mode==UTMModes::ASTAR){
 		high_path = highGraph->astar(curSectorID(), endSectorID(), type_ID);
 	} else {
-		high_path = highGraph->RAGS(curSectorID(), endSectorID(), type_ID);
+		high_path = highGraph->rags(curSectorID(), endSectorID(), type_ID);
 	}
 
 	if (high_path_prev!=high_path){

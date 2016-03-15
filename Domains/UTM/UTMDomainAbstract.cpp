@@ -44,7 +44,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set):
 		links.push_back(
 			new Link(links.size(),source,source_loc,target,target_loc,
 			int(manhattan_distance(source_loc,target_loc)/10.0),
-			matrix1d(n_types,double(params->get_flat_capacity())),cardinal_dir));
+			vector<size_t>(n_types,size_t(params->get_flat_capacity())),cardinal_dir));
 		linkIDs->insert(make_pair((make_pair(source,target)),links.size()-1));
 
 		connections[source].push_back(target);

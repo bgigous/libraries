@@ -1,5 +1,4 @@
 #include "TypeGraphManager.h"
-#include "RAGS.h"
 
 using namespace std;
 using namespace easymath;
@@ -135,7 +134,7 @@ list<int> TypeGraphManager::astar(int mem1, int mem2, int type_ID){
 	return Graph_highlevel[type_ID]->astar(mem1,mem2);
 }
 
-list<int> TypeGraphManager::RAGS(int mem1, int mem2, int type_ID){
+list<int> TypeGraphManager::rags(int mem1, int mem2, int type_ID){
 //	return Graph_highlevel[type_ID]->RAGS(mem1,mem2);
 	// HACK: this command doesn't work.
 	return Graph_highlevel[type_ID]->astar(mem1,mem2);

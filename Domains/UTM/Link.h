@@ -5,7 +5,7 @@
 class Link{
 public:
 	Link(int ID, int source, easymath::XY source_loc, int target, easymath::XY target_loc,
-		int time, matrix1d capacity, int cardinal_dir):
+		int time, std::vector<size_t> capacity, int cardinal_dir):
 	ID(ID),
 		source(source),
 		source_loc(source_loc),
