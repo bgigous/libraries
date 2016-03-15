@@ -29,17 +29,29 @@ public:
 
 	//! Returns the predicted amount of time it would take to cross the node if the UAV got there immediately
 	matrix1d predicted_traversal_time(){
+
+		// Get predicted wait time for each type of UAV
 		matrix1d predicted(traffic.size());
 		for (uint i=0; i<traffic.size(); i++){
-			matrix1d waits; // the wait time for each traffic bit
-			for(UAV* u : traffic[i]){
+			
+			// Collect wait times on all UAVs ON the link
+			matrix1d waits;
+			for (UAV* u : traffic[i]) {
 				waits.push_back(u->t);
 			}
+			
+			// Sort by wait (ascending)
 			std::sort(waits.begin(),waits.end(),std::less<double>());
-			if (double(waits.size())-capacity[i] >= 0.0 )
-				waits.resize(uint(double(waits.size())-(capacity[i]-1)));	// drop the last [capacity[i]] elements
+
+			// Count waits for UAVs over capacity, with one space for a future UAV
+			if (double(waits.size()) - capacity[i] >= 0.0) {
+				waits.resize(waits.size() - capacity[i] + 1);
+			}
+
+			// Store predicted link time.
 			predicted[i] = time + easymath::sum(waits);
 		}
+
 		return predicted;
 	}
 
@@ -68,9 +80,7 @@ public:
 	const int target;
 	const int cardinal_dir;
 	void reset(){
-		for (std::list<UAV*> &t:traffic){
-			t.clear();
-		}
+		traffic.clear();
 	}
 
 
@@ -81,10 +91,7 @@ private:
 	const easymath::XY target_loc;
 	const int time;		// Amount of time it takes to travel across link
 
-	matrix1d capacity;
-
-
-
+	std::vector<size_t> capacity;	// Amount of each type of UAV that are allowed on the link
 };
 
 class LinkAgentManager: public IAgentManager{

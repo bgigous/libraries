@@ -34,6 +34,10 @@ namespace easymath{
 		friend XY operator+(const XY &lhs, const XY &rhs){
 			return XY(lhs.x+rhs.x,lhs.y+rhs.y);
 		}
+		void operator=(const XY &rhs) {
+			x = rhs.x;
+			y = rhs.y;
+		}
 	};
 
 	void clear(std::queue<XY> &q);
@@ -60,5 +64,6 @@ namespace easymath{
 		}
 	}
 
+	double rand(double low, double high); // random with bounds
 	double erfc(double x);
 }

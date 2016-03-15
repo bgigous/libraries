@@ -148,7 +148,7 @@ public:
 		return m_barriers.find(u) != m_barriers.end();
 	}
 
-	double solve(int xsource, int ysource, int xgoal, int ygoal){
+	double solve(size_t xsource, size_t ysource, size_t xgoal, size_t ygoal){
 		boost::static_property_map<mt::distance> weight(1);
 		// The predecessor map is a vertex-to-vertex mapping.
 		typedef boost::unordered_map<mt::vertex_descriptor,

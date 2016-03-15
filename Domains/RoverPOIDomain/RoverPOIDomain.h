@@ -1,5 +1,8 @@
 #pragma once
-#include "../GridWorld/GridWorld.h"
+#include "../GridWorld.h""
+
+typedef easymath::XY POI;
+
 class RoverPOIDomain :
 	public GridWorld
 {
@@ -25,7 +28,7 @@ public:
 	
 	//void generateStaticPOIPositions();
 	//PairQueueAscending sortedPOIDists(double xref, double yref);
-	State getState(int me);
+	matrix1d getState(int me);
 	
 	//void generatePOIs();
 };

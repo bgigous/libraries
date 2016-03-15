@@ -297,39 +297,24 @@ GridWorld::PairQueueAscending RoverPOIDomain::sortedPOIDists(double xref, double
 
 	PairQueueAscending q(dists.begin(),dists.end());
 	return q;
-}
+}*/
 
-State RoverPOIDomain::getState(int me)
+matrix1d RoverPOIDomain::getState(int me)
 {
-	// NEW sonar state... go by quadrant AND distance...
-	// note here only quadrant is implemented
-
 	// State elements/init
-	std::vector<std::vector<double> > poisByQuadrantAndDistance(NSECTORS); // count POIs for each sector
-	std::vector<std::vector<double> > roversByQuadrantAndDistance(NSECTORS); // count POIs for each sector
-	std::vector<std::vector<std::vector<double> > > roverTypeCountByQuadrantAndDistance; // used if using types [QUADRANT][DIST][TYPE]
-	std::vector<double> stateInputs;
-
-	// Reserve space
-	for (int i=0; i<NSECTORS;i++){
-		poisByQuadrantAndDistance[i] = std::vector<double>(NDISTANCES,0.0);
-		roversByQuadrantAndDistance[i] = std::vector<double>(NDISTANCES,0.0);
-	}
+	matrix2d poisByQuadrantAndDistance(4, matrix1d(NDISTANCES,0.0)); // count POIs for each quadrant
+	matrix2d roversByQuadrantAndDistance(4, matrix1d(NDISTANCES,0.0)); // count POIs for each quadrant
+	matrix3d roverTypeCountByQuadrantAndDistance; // used if using types [QUADRANT][DIST][TYPE]
+	matrix1d stateInputs;
 
 	// Counting rovers by quadrant
 	for (int i=0; i<POIs.size(); i++){
-		std::pair<Direction,DistanceDivision> quadAndDist = relativePosition(rovers[me].x,rovers[me].y,POIs[i].x,POIs[i].y);
+		std::pair<Direction,DistanceDivision> quadAndDist = relativePosition(rovers[me],POIs[i]);
 		int quadrant = int(quadAndDist.first);
 		int dist = int(quadAndDist.second);
-		poisByQuadrantAndDistance[quadrant][dist]++;
+		poisByQuadrantAndDistance[quadrant][dist]+=1/POIs.size();	// Normalised count
 	}
 
-	// Normalization
-	for (int i=0; i<poisByQuadrantAndDistance.size(); i++){
-		for (int j=0; j<poisByQuadrantAndDistance[i].size(); j++){
-			poisByQuadrantAndDistance[i][j] /= POIs.size();
-		}
-	}
 	for (int i=0; i<roversByQuadrantAndDistance.size(); i++){
 		for (int j=0; j<roversByQuadrantAndDistance[i].size(); j++){
 			roversByQuadrantAndDistance[i][j] /= rovers.size();
@@ -344,6 +329,8 @@ State RoverPOIDomain::getState(int me)
 		stateInputs.insert(stateInputs.end(),roversByQuadrantAndDistance[i].begin(),roversByQuadrantAndDistance[i].end());
 	}
 	
+	/* NOTE: REPLACE THIS WITH CHILD CLASS FOR TYPES
+		
 	if (usingTypes){
 		// Collect and add type information if necessary
 		roverTypeCountByQuadrantAndDistance = std::vector<std::vector<std::vector<double> > >(NSECTORS);
@@ -379,11 +366,12 @@ State RoverPOIDomain::getState(int me)
 				stateInputs.insert(stateInputs.end(), roverTypeCountByQuadrantAndDistance[i][j].begin(), roverTypeCountByQuadrantAndDistance[i][j].end());
 			}
 		}
-	}
+	}*/
 
 	// Generate state from stitched inputs
 	return State(stateInputs);
 }
+/**/
 
 void RoverPOIDomain::generatePOIs(){
 	// randomly generates POIs

@@ -16,7 +16,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set):
 	int n_sectors;
 	std::string domain_dir = filehandler->createDomainDirectory();
 	ifstream edgefile(domain_dir+"edges.csv");
-	bool fileExists = edgefile;
+	bool fileExists = edgefile.good();
 	edgefile.close();
 	if (params->_airspace_mode==UTMModes::SAVED && fileExists){
 		highGraph = new TypeGraphManager(domain_dir+"edges.csv",domain_dir+"nodes.csv",n_types);

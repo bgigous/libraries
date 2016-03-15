@@ -1,9 +1,8 @@
 #pragma once
-#include "../EnvironmentBounds/EnvironmentBounds.h"
-#include <cstdlib>
-//#include "NeuralNet.h"
-#include "../NeuroEvo/NeuroEvo.h"
-#include <set>
+#include "../EnvironmentBounds.h"
+//#include <cstdlib>
+#include "../../SingleAgent/NeuroEvo/NeuroEvo.h"
+//#include <set>
 
 #define SENSORFAILLIMIT 5.0 // amount that a 'sensorfail' type rover can deviate from desired course
 enum FailType{

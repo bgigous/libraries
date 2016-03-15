@@ -4,13 +4,10 @@
 
 #pragma once
 
-#include "World2D.h"
-#include "..\..\..\master_libraries\easyio\easyio.h"
-#include "NeuralNet\NeuralNet.h"
-#include "IDomainStateful.h"
-
-using namespace std;
-using namespace easymath;
+#include "../../SingleAgent/NeuralNet/NeuralNet.h"
+#include "../IDomainStateful.h"
+#include "../../Math/easymath.h"
+#include "../GridWorld.h"
 
 class RoverDomainParameters{
 public:
@@ -25,38 +22,22 @@ public:
 	std::vector<int> rover_types_fixed;
 };
 
-class StepClockLogger{
+class Rover: public easymath::XY{
 public:
-	// Performs clock and logging functions for all objects in system
-	StepClockLogger(){};
-	StepClockLogger(int max_steps_set, std::vector<Point2D*>* all_objects_set);
-	void reset();
-	void logStep(int step);
-	void exportLog(std::string file_name, double G);
-	void addGLine(double G);
-
-private:
-	int max_steps;
-	std::vector<std::vector<std::vector<double> > > log; // [step][object][x=0,y=1]
-	std::vector<Point2D*>* all_objects; // Pointer to physical presence of all 2D objects
-};
-
-
-class Rover: public Point2D{
-public:
-	Rover(World2DParameters* world_params, RoverDomainParameters* domain_params_set);
+	int ID;
+	Rover(GridWorld* world, RoverDomainParameters* domain_params_set);
 	RoverDomainParameters* domain_params;
 	~Rover();
 	void selectAction(NeuralNet* NN);
-	vector<double> stateInputs;
+	matrix1d stateInputs;
 	enum RoverType{FAST,SLOWTURN,ERRATIC,NORMAL,NUMTYPES};
 	RoverType type;
-	vector<double> action; // 2 outputs: dx,dy
+	matrix1d action; // 2 outputs: dx,dy
 };
 
-class POI: public Point2D{
+class POI: public easymath::XY{
 public:
-	POI(World2DParameters* world_params);
+	POI(easymath::XY);
 	~POI();
 };
 
@@ -65,78 +46,72 @@ class RoverDomain: public IDomainStateful
 public:
 	RoverDomain(void);
 	~RoverDomain(void);
-	void exportLog(std::string fid, double G){
-		log.exportLog(fid,G);
-	}
 
-	std::vector<std::vector<double> > getStates(){
-		std::vector<std::vector<double> > S = std::vector<std::vector<double> >(rovers.size());
+
+	std::vector<easymath::XY> fixedRoverPositions;
+	std::vector<easymath::XY> fixedPOIPositions;
+	
+	matrix2d getStates(){
+		matrix2d S = matrix2d(rovers.size(),matrix1d(domain_params->n_state_elements,0.0));
 		for (int i=0; i<rovers.size(); i++){
-			// Reserve space for state elements
-			std::vector<double> si = std::vector<double>(domain_params->n_state_elements);
 
 			// Count number of rovers in each fix, as percentage of total rovers
 			for (int j=0; j<rovers.size(); j++){
 				if (i==j) continue;
-				int Qj = world->getRelativeQuadrant(rovers[i],rovers[j]); // Quadrant of rover j, relative to i
-				si[Qj] += 1.0/double(rovers.size()-1);
+				int Qj = easymath::cardinal_direction(*rovers[i]-*rovers[j]); // Quadrant of rover j, relative to i
+				S[i][Qj] += 1.0/double(rovers.size()-1);
 			}
 
 			// Count number of POIs in each fix
 			for (int j=0; j<POIs.size(); j++){
-				int Qj = world->getRelativeQuadrant(rovers[i],POIs[j]); // Quadrant of POI j, relative to i
-				si[Qj+4]+=1.0/double(POIs.size()); // Adding this to the state (offset by earlier state elements)
+				int Qj = easymath::cardinal_direction(*rovers[i]-*POIs[j]); // Quadrant of POI j, relative to i
+				S[i][Qj+4]+=1.0/double(POIs.size()); // Adding this to the state (offset by earlier state elements)
 			}
+			
+			Rover * ref = rovers[i];
+			sort(rovers.begin(),rovers.end(),[ref](Rover* r1, Rover* r2){
+				if (r1->ID == ref->ID) return false;
+				else if (r2->ID == ref->ID) return true;
+				else return (manhattan_distance(*r1, *ref) < manhattan_distance(*r2, *ref));
+			});
 
-			// Add element si to S
-			S[i] = si;
-
-			// Gets the nearest neighbor type
-			DistIDPairList pq = getSortedRoverDistances(rovers[i]);
-			if (rovers[pq.begin()->second]->ID==rovers[i]->ID) pq.erase(pq.begin());
-			int neighbor_type = rovers[pq.front().second]->type; // TEMPORARY EDIT; ALL 1 TYPE
-
+			int neighbor_type;
 			if (type_blind){
 				 neighbor_type = Rover::NORMAL;
+			} else {
+				neighbor_type= rovers[0]->type;
 			}
 			S[i].push_back(neighbor_type); // Appends as the last element
 		}
 		return S;
 	}
-	std::vector<double> getRewards(){
+	
+	matrix1d getRewards(){
 		double G_sum = 0.0;
 		for (int i=0; i<POIs.size(); i++){
-			DistIDPairList pq = getSortedRoverDistances(POIs[i]);
-			DistIDPairList::iterator it = pq.begin();
-			double dij = it->first;
-			it++;
-			double dik = it->first;
-
-			// BOUND CLOSENESS
-			if (dij<1.0) dij = 1.0;
-			if (dik<1.0) dik = 1.0;
-
-			double Nij= 0.0;
-			if (dij<domain_params->observation_distance){
-				Nij = 1.0;
+			matrix1d d = matrix1d(rovers.size());
+			for (size_t j = 0; j < rovers.size(); j++)
+			{
+				d[j] = easymath::manhattan_distance(*POIs[i], *rovers[j]);
+				if (d[j] < 1.0) d[j] = 1.0;	 // bound closeness
 			}
-			double Nik = 0.0;
-			if (dik<domain_params->observation_distance){
-				Nik = 1.0;
-			}
-			G_sum += 2.0*(Nij*Nik)/(dij+dik);
+			std::sort(d.begin(),d.end());
+
+			double Nij = d[0] < domain_params->observation_distance;
+			double Nik = d[1] < domain_params->observation_distance;
+			G_sum += 2.0*(Nij*Nik)/(d[0]+d[1]);
 		}
-		return vector<double>(rovers.size(),G_sum);
+		return matrix1d(rovers.size(),G_sum);
 	}
 
-	void simulateStep(std::vector<std::vector<double> > agent_actions){
+	void simulateStep(matrix2d agent_actions){
 		for (int i=0; i<rovers.size(); i++){
 			// Adjust actions to match type
 			if (rovers[i]->type==Rover::ERRATIC){
-				if (COIN<0.2){
+				if (easymath::rand(0,1)<0.2){
 					// Take a random action
-					agent_actions[i][0] = COIN_FLOOR0;
-					agent_actions[i][1] = COIN_FLOOR0;
+					agent_actions[i][0] = easymath::rand(0, 0.99);
+					agent_actions[i][1] = easymath::rand(0, 0.99);
 				}
 			} else if (rovers[i]->type==Rover::FAST){
 				agent_actions[i][0]*=10.0;
@@ -146,36 +121,20 @@ public:
 				agent_actions[i][0]/=10.0;
 			}
 
-			rovers[i]->adjustPosition(agent_actions[i][0],agent_actions[i][1]);
+			(XY)*rovers[i] = *rovers[i] + XY(agent_actions[i][0], agent_actions[i][1]);
 		}
 	}
 	
-	void simulateRoverEpisodeTypes(vector<vector<NeuralNet*> > NNSet, vector<double> &fitnesses, matrix2d &xi);
+	void simulateRoverEpisodeTypes(std::vector<std::vector<NeuralNet*> > NNSet, matrix1d &fitnesses, matrix2d &xi);
 	
-	StepClockLogger log;
-	vector<Rover*> rovers;
+	std::vector<Rover*> rovers;
 
-	void logStep(int step){
-		log.logStep(step);
-	}
 	void reset();
 	
 
 private:
 	
-	World2D* world;
-	vector<POI*> POIs;
+	GridWorld* world;
+	std::vector<POI*> POIs;
 	RoverDomainParameters* domain_params;
-
-	//void setRoverStateTypes(Rover *r, int neighbor_type);
-	//void setRoverActions(vector<vector<NeuralNet*> > NN_set);
-	//void moveRovers(); // moves many rovers at once
-	//std::vector<double> getReward();
-	DistIDPairList getSortedRoverDistances(Point2D *me);
-	
-	void addRover();
-	void addPOI();
-	std::vector<std::vector<double> > roverPositionSave;
-
-
 };
