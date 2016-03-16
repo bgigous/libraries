@@ -45,7 +45,7 @@ public:
 			std::sort(waits.begin(),waits.end(),std::less<double>());
 
 			// Count waits for UAVs over capacity, with one space for a future UAV
-			if (double(waits.size()) - capacity[i] >= 0.0) {
+			if (waits.size() - capacity[i] >= 0.0) {
 				waits.resize(waits.size() - capacity[i] + 1);
 			}
 
@@ -82,7 +82,7 @@ public:
 	const int target;
 	const int cardinal_dir;
 	void reset(){
-		traffic.clear();
+		traffic = vector < std::list<UAV*> >(UTMModes::NTYPES, std::list<UAV*>());
 	}
 
 

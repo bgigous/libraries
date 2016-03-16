@@ -19,7 +19,7 @@ public:
 		_traffic_mode(DETERMINISTIC),
 		_agent_defn_mode(SECTOR),
 		_reward_type_mode(LINK),
-		_search_type_mode(ASTAR),
+		_search_type_mode(RAGS),
 		// Constants defaults
 		n_sectors(20)
 	{};

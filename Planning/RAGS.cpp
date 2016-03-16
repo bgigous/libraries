@@ -191,6 +191,7 @@ void Queue::UpdateQueue(Node * newNode)
 	// Compare newNode to nodes in closed set
 	// if closed contains node with same vertex, compare their costs
 	// choose whether or not to create a new node
+
 	bool dom = false ;
 	for (ULONG i = 0; i < closed.size(); i++){
 		if (closed[i]->GetVertex() == newNode->GetVertex()){
@@ -231,6 +232,11 @@ bool Queue::CompareNodes(const Node * n1, const Node * n2) const
 	// out: Is n1 worse than or equal to n2?
 	double n1Cost = n1->GetMeanCost() ;
 	double n2Cost = n2->GetMeanCost() ;
+	
+	if (n1Cost == n2Cost && n1->GetVarCost() == n2->GetVarCost()) {
+		return n1 < n2; // memory location comparison breaks ties
+	}
+
 	return (n1Cost >= n2Cost && n1->GetVarCost() >= n2->GetVarCost()) ;
 	/*    if (n1Cost > n2Cost && n1->GetVarCost() > n2->GetVarCost())
 	return true ;
@@ -472,6 +478,7 @@ void RAGS::SetInitialVert(Vertex * start)
 XY RAGS::SearchGraph(XY start, XY goal, vector<double> &weights)
 	// Create function that converts from XY to Vertex *
 {
+
 	Vertex ** allVerts = itsGraph->GetVertices() ;
 	Vertex * sVert=NULL;
 	Vertex * gVert=NULL;
@@ -503,6 +510,7 @@ XY RAGS::SearchGraph(XY start, XY goal, vector<double> &weights)
 XY RAGS::SearchGraph(Vertex * start, Vertex * goal, vector<double> &weights)
 {
 	AssignCurrentEdgeCosts(weights) ;
+	AssignCurrentMeansAndVariances();
 
 	// Initialise non-dominated path set
 	if (itsNDSet.empty()){
@@ -591,8 +599,33 @@ XY RAGS::SearchGraph(Vertex * start, Vertex * goal, vector<double> &weights)
 	return vertXY ;
 }
 
+void RAGS::AssignCurrentMeansAndVariances() {
+	size_t T = weights_history.size(); // length of time this has been running
+	size_t E = weights_history[0].size(); // number of edges
+	Edge ** edges = itsGraph->GetEdges();
+
+	for (size_t e = 0; e < E; e++) {
+		double sum = 0, mu = 0, sigma_sq = 0, sdev = 0, dev = 0;
+		vector<double> h(T, 0.0);
+		for (size_t t = 0; t < T; t++) {
+			h[t] = weights_history[t][e];
+		}
+
+		sum = accumulate(h.begin(), h.end(), 0.0);
+		mu = sum / T;
+
+		sdev = std::inner_product(h.begin(), h.end(), h.begin(), 0.0);
+		sigma_sq = sdev / T - mu*mu;
+
+		edges[e]->SetMeanCost(mu);
+		edges[e]->SetVarCost(sigma_sq);
+	}
+}
+
+
 void RAGS::AssignCurrentEdgeCosts(vector<double> &weights)
 {
+	weights_history.push_back(weights); // Record weight for later mean/var calculations
 	ULONG n = itsGraph->GetNumEdges() ;
 	Edge ** e = itsGraph->GetEdges() ;
 

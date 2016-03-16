@@ -9,6 +9,7 @@
 #include <limits.h>
 #include <fstream>
 #include <sstream>
+#include <numeric>
 
 #include "../Math/easymath.h"
 
@@ -34,10 +35,10 @@ class Vertex
 {
   public:
     Vertex(double x, double y):
-      itsX(x), itsY(y) {}
+      itsX(x), itsY(y){}
     ~Vertex() {}
 
-    double GetX() const {return itsX ;}
+	double GetX() const {return itsX ;}
     void SetX(double x) {itsX = x ;}
     double GetY() const {return itsY ;}
     void SetY(double y) {itsY = y ;}
@@ -229,6 +230,11 @@ class CompareNode
 //                                      default:
             double n1Cost = n1->GetMeanCost() + n1->GetHeuristic() ;
             double n2Cost = n2->GetMeanCost() + n2->GetHeuristic() ;
+			
+			if (n1Cost == n2Cost && n1->GetVarCost() == n2->GetVarCost()) {
+				return n1 < n2; // memory location comparison breaks ties
+			}
+
             return (n1Cost >= n2Cost && n1->GetVarCost() >= n2->GetVarCost()) ;
 //                                              if (n1Cost > n2Cost && n1->GetVarCost() > n2->GetVarCost())
 //                                                      return true ;
@@ -367,5 +373,8 @@ class RAGS
     vector<Node *> itsNDSet ;
     pathOut PSET ;
 
+	vector<vector<double> > weights_history; //[t][edge]
     void AssignCurrentEdgeCosts(vector<double> &weights) ;
+	void AssignCurrentMeansAndVariances();
+	
 } ;

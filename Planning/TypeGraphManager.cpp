@@ -8,7 +8,7 @@ TypeGraphManager::TypeGraphManager(void)
 }
 
 TypeGraphManager::TypeGraphManager(int n_types, std::vector<edge> edges, vector<XY> agentLocs):
-	n_types(n_types),edges(edges)
+	n_types(n_types),edges(edges), rags_map(new RAGS(agentLocs,edges))
 {
 	initializeTypeLookupAndDirections(agentLocs);
 }
@@ -23,7 +23,7 @@ TypeGraphManager::TypeGraphManager(string edgesFile, string verticesFile, int n_
 	edges = FileIn::read_pairs<edge>(edgesFile); // NOTE: this leaves to the user the task of making edges bidirectional
 	//rags_graph_data = std::vector<rags_info>(edges.size());
 	//weights = FileIn::read_pairs<XY>(weights);
-	RAGS my_rags = RAGS(agentLocs, edges);
+	rags_map = new RAGS(agentLocs, edges);
 
 	//FileIn::loadVariable(edges, edgesFile);
 
@@ -60,6 +60,8 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX
 		}
 	}
 
+	rags_map = new RAGS(agentLocs, edges);
+
 	bool isfullyconnected = fullyConnected(agentLocs);
 
 	for (uint i=0; i<agentLocs.size(); i++){
@@ -95,6 +97,7 @@ bool TypeGraphManager::fullyConnected(vector<XY> agentLocs){
 
 TypeGraphManager::~TypeGraphManager(void)
 {
+	delete rags_map;
 	for (int i=0; i<n_types; i++){
 		delete Graph_highlevel[i];
 	}
@@ -102,7 +105,7 @@ TypeGraphManager::~TypeGraphManager(void)
 
 
 //! Returns the mean and variance of the cost associated with this link
-std::vector<double> TypeGraphManager::rags_info::get_prob_dist(int type_id){
+/*std::vector<double> TypeGraphManager::rags_info::get_prob_dist(int type_id){
        return probDist[type_id];
 }
 
@@ -117,15 +120,13 @@ void TypeGraphManager::rags_info::calc_prob_dist(double link_cost, int type_id){
         probDist[type_id].clear();
         probDist[type_id].push_back(mu);
         probDist[type_id].push_back(sigma_sq);
-}
+}*/
 
 void TypeGraphManager::setCostMaps(matrix2d agent_actions){
 
 	for (uint i=0; i<Graph_highlevel.size(); i++){
 		Graph_highlevel[i]->setWeights(agent_actions[i]);
-		for (uint j=0; j<agent_actions[i].size(); j++){
-				rags_graph_data[j].calc_prob_dist(agent_actions[i][j], i);
-        }
+		
 	}
 }
 
@@ -136,8 +137,18 @@ list<int> TypeGraphManager::astar(int mem1, int mem2, int type_ID){
 
 list<int> TypeGraphManager::rags(int mem1, int mem2, int type_ID){
 //	return Graph_highlevel[type_ID]->RAGS(mem1,mem2);
-	// HACK: this command doesn't work.
-	return Graph_highlevel[type_ID]->astar(mem1,mem2);
+	// HACK: this command doesn't work;
+	matrix1d w = Graph_highlevel[type_ID]->getWeights();
+	XY start_loc = getLocation(mem1);
+	XY end_loc = getLocation(mem2);
+
+	XY next_xy = rags_map->SearchGraph(start_loc,end_loc,w);
+	int next_node_ID = getMembership(next_xy);
+	list<int> partial_path;
+	partial_path.push_back(mem1); // Add in starting node too
+	partial_path.push_back(next_node_ID);
+	// NOTE TO RYAN: debug may be needed here. RAGS doesn't always seem to find a path. Please make sure I'm using it correctly.s
+	return partial_path;
 }
 
 int TypeGraphManager::getMembership(easymath::XY pt){

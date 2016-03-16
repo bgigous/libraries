@@ -27,6 +27,7 @@ public:
 	void setCostMaps(matrix2d agent_actions);
 	std::list<int> astar(int mem1, int mem2, int type_ID);
 	std::list<int> rags(int mem1, int mem2, int type_ID);
+	RAGS* rags_map;
 
 	// Accessor functions
 	int getMembership(easymath::XY pt);
@@ -48,13 +49,15 @@ private:
 	bool intersectsExistingEdge(edge candidate,std::vector<easymath::XY> agentLocs);
 	bool fullyConnected(std::vector<easymath::XY> agentLocs);
 	void initializeTypeLookupAndDirections(std::vector<easymath::XY> agentLocs);
-
+	
+	
+	/*
 	struct rags_info{
         std::vector<std::vector<double>> probDist;
         std::vector<std::vector<double>> points;
         void calc_prob_dist(double cost, int type);
         std::vector<double> get_prob_dist(int type);
 	};
-	std::vector<rags_info> rags_graph_data;
+	std::vector<rags_info> rags_graph_data;*/
 };
 
