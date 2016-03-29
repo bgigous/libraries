@@ -26,6 +26,7 @@ public:
 	// A* modification functions
 	void setCostMaps(matrix2d agent_actions);
 	std::list<int> astar(int mem1, int mem2, int type_ID);
+	// RAGS modification functions
 	std::list<int> rags(int mem1, int mem2, int type_ID);
 	RAGS* rags_map;
 
@@ -49,8 +50,8 @@ private:
 	bool intersectsExistingEdge(edge candidate,std::vector<easymath::XY> agentLocs);
 	bool fullyConnected(std::vector<easymath::XY> agentLocs);
 	void initializeTypeLookupAndDirections(std::vector<easymath::XY> agentLocs);
-	
-	
+
+
 	/*
 	struct rags_info{
         std::vector<std::vector<double>> probDist;

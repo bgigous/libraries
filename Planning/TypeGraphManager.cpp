@@ -60,7 +60,7 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX
 		}
 	}
 
-	rags_map = new RAGS(agentLocs, edges);
+	rags_map = new RAGS(agentLocs, edges); // create a RAGS object which generates a graph for searching over
 
 	bool isfullyconnected = fullyConnected(agentLocs);
 
@@ -126,7 +126,7 @@ void TypeGraphManager::setCostMaps(matrix2d agent_actions){
 
 	for (uint i=0; i<Graph_highlevel.size(); i++){
 		Graph_highlevel[i]->setWeights(agent_actions[i]);
-		
+
 	}
 }
 
