@@ -23,6 +23,18 @@ namespace easymath{
 		return sqrt(dx*dx+dy*dy);
 	}
 
+	int bin(double &n, matrix1d& bounds) {
+		for (size_t i = 0; i < bounds.size()-1; i++)
+			if (n < bounds[i + 1])
+				return i;
+		return bounds.size();
+	}
+
+	double rand(double low, double high) {
+		double r = double(std::rand()) / double(RAND_MAX);
+		return r*(high - low) + low;
+	}
+
 	double cross(const XY &U, const XY &V){
 		return U.x*V.y-U.y*V.x;
 	}

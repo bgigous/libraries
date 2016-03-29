@@ -333,7 +333,7 @@ ULONG Search::FindSourceID()
 	for (ULONG i = 0; i < itsGraph->GetNumVertices(); i++)
 		if (itsSource == itsGraph->GetVertices()[i])
 			return i ;
-	cout << "Error: souce ID not found. Exiting.\n" ;
+	cout << "Error: source ID not found. Exiting.\n" ;
 	exit(1) ;
 }
 
