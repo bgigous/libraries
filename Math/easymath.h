@@ -40,11 +40,12 @@ namespace easymath{
 		}
 	};
 
+	int bin(double& n, matrix1d& bounds); // returns bin assignment based on bounds. Bounds must be sorted
+
 	void clear(std::queue<XY> &q);
 
 	double manhattan_distance(const XY &p1, const XY &p2);
 	double euclidean_distance(const XY &p1, const XY &p2);
-	void discretize_segment(std::vector<XY>::iterator iter_begin, std::vector<XY> myvec, int n_even_segments);
 	int cardinal_direction(const XY &dx_dy);
 	double cross(const XY &U, const XY &V);
 

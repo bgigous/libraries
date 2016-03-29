@@ -1,8 +1,6 @@
 #pragma once
-#include "../EnvironmentBounds.h"
-//#include <cstdlib>
+#include "../GridWorld.h"
 #include "../../SingleAgent/NeuroEvo/NeuroEvo.h"
-//#include <set>
 
 #define SENSORFAILLIMIT 5.0 // amount that a 'sensorfail' type rover can deviate from desired course
 enum FailType{
@@ -13,18 +11,32 @@ enum FailType{
 	FAILTYPECOUNT // number of elements in enum
 };
 
-class Rover{
+
+class RoverDomainParameters;
+
+class Rover : public easymath::XY {
 public:
-	Rover();
-	~Rover();
 	int ID;
-	bool caught;
-	int max_ind(std::vector<double> myvector);
-	void boundPosition();
-	void walk(double dx, double dy, double percentFail);
-	double coin();
-	double x,y;
-	EnvironmentBounds bounds;
-	void randWalk(double percentFail);
-	double orientation; // NOTE: ORIENTATION IS ABSOLUTE, SCALED BETWEEN 0-1 (NOT 0-2PI)
+	Rover(GridWorld* world, RoverDomainParameters* domain_params_set);
+	RoverDomainParameters* domain_params;
+	~Rover();
+	GridWorld* world;
+	const enum RoverType { FAST, SLOWTURN, ERRATIC, NORMAL, NUMTYPES };
+	RoverType type;
+
+	double get_type_multiplier() {
+		if (type == FAST)
+			return 0.25;
+		else if (type == SLOWTURN)
+			return 0.5;
+		else
+			return 0.75;
+	}
+
+
+	void walk(double dx, double dy);
+	double get_x(void);
+	void set_x(double new_x);
+	double get_y(void);
+	void set_y(double new_y);
 };

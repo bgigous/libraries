@@ -152,12 +152,11 @@ list<int> TypeGraphManager::rags(int mem1, int mem2, int type_ID){
 }
 
 int TypeGraphManager::getMembership(easymath::XY pt){
-	if (loc2mem.find(pt)!=loc2mem.end()) {
-		return loc2mem[pt];
-	} else {
-		printf("Point (%f,%f) not found in membership lookup. (Were you trying to use the detailed map?) \n",pt.x,pt.y);
-		system("pause");
-		exit(1);
+	try{
+		return loc2mem.at(pt);
+	} catch (out_of_range){
+		printf("Point (%f,%f) not found in membership lookup. ",pt.x,pt.y);
+		printf("Were you trying to use the detailed map ?\n");
 	}
 }
 
