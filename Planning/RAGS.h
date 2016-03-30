@@ -164,7 +164,7 @@ class Node
         case SOURCE:
           itsMeanCost = 0.0 ;
           itsVarCost = 0.0 ;
-          itsDepth = 0.0 ;
+          itsDepth = 0 ;
           itsMeanCTG = 0.0 ;
           break ;
         default:

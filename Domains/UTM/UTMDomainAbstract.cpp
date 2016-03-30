@@ -18,7 +18,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set):
 	ifstream edgefile(domain_dir+"edges.csv");
 	bool fileExists = edgefile.good();
 	edgefile.close();
-	if (params->_airspace_mode==UTMModes::SAVED && fileExists){
+	if (params->_airspace_mode==UTMModes::AirspaceMode::SAVED && fileExists){
 		highGraph = new TypeGraphManager(domain_dir+"edges.csv",domain_dir+"nodes.csv",n_types);
 		n_sectors = highGraph->getNVertices();
 	} else {
@@ -55,7 +55,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set):
 		sectors.push_back(new Sector(highGraph->getLocation(i),i, n_sectors, connections[i],params));
 
 
-	if (params->_agent_defn_mode==UTMModes::SECTOR) agents = new SectorAgentManager(links,n_types,sectors,params);
+	if (params->_agent_defn_mode==UTMModes::AgentDefinition::SECTOR) agents = new SectorAgentManager(links,n_types,sectors,params);
 	else agents = new LinkAgentManager(links.size(),n_types,links,params);
 
 	// Fix construction
@@ -87,117 +87,12 @@ UTMDomainAbstract::~UTMDomainAbstract(void)
 		delete u;
 }
 
-double UTMDomainAbstract::getGlobalReward(){
-	return -agents->global();
-}
-
 matrix1d UTMDomainAbstract::getPerformance(){
-	return matrix1d(n_agents,getGlobalReward());
-}
-
-
-matrix1d UTMDomainAbstract::getDifferenceReward(){
-	matrix1d G = matrix1d(n_agents,getGlobalReward());
-	matrix1d G_c = zeros(n_agents);
-
-	if (params->_reward_mode==UTMModes::DIFFERENCE_AVG){
-		for (int i=0; i<n_agents; i++){
-			G_c[i] = -sum(agents->metrics[i].G_avg);
-		}
-	} else if (params->_reward_mode==UTMModes::DIFFERENCE_DOWNSTREAM){
-		for (int i=0; i<n_agents; i++){
-			G_c[i] = -sum(agents->metrics[i].G_minus_downstream);
-		}
-	}
-
-	return G-G_c;
-
-	// REMOVE THE AGENT FROM THE SYSTEM
-	/*
-	for (uint i=0; i<sectors->size(); i++){
-		for (int j=0; j<n_types; j++){
-			conflict_node_average[i] += sectors->at(i).conflicts[j];
-		}
-		conflict_node_average[i] /= double(sectors->at(i).steps);
-	}
-
-	for (int i=0; i<n_links; i++){
-		for (int j=0; j<n_types; j++){
-			link_conflict_node_average[i] += linkConflicts[i][j];
-		}
-		link_conflict_node_average[i] /= double(linkSteps[i]);
-	}
-
-
-	matrix1d D(n_agents,0.0);
-	double G_reg = -getGlobalReward();
-
-	// METHOD 1: INFINITE LINK COSTS (*resim) // NOT FUNCTIONAL YET
-	// METHOD 2: STATIC LINK COSTS (*resim) // NOT FUNCTIONAL YET
-	// METHOD 3: HAND-CODED LINK COSTS (*resim) // NOT FUNCTIONAL YET
-
-	for (int i=0; i<n_agents; i++){
-		switch(params->_reward_mode){
-		case UTMModes::DIFFERENCE_DOWNSTREAM:	// METHOD 4: DOWNSTREAM EFFECTS REMOVED
-			if (params->_agent_defn_mode==UTMModes::SECTOR)
-				D[i] = -(G_reg - conflict_minus_downstream[i]);
-			else D[i] = -(G_reg - link_conflict_minus_downstream[i]);
-			break;
-		case UTMModes::DIFFERENCE_DOWNSTREAM_SQ:	// Method 4.1 squareed w/downstream removed
-			if (params->_agent_defn_mode==UTMModes::SECTOR)
-				D[i] = -(pow(G_reg,2.0) - pow(conflict_minus_downstream[i],2.0));
-			else D[i] = -(pow(G_reg,2.0) - pow(link_conflict_minus_downstream[i],2.0));
-			break;
-		case UTMModes::DIFFERENCE_TOUCHED:		// METHOD 5: UPSTREAM AND DOWNSTREAM EFFECTS REMOVED
-			/*if (params->_agent_defn_mode==UTMModes::SECTOR)
-				D[i] = -(G_reg - conflict_minus_touched[i]); // NOT FUNCTIONAL YET
-				*/
-	/*		printf("TODO DIFFERENCE TOUCHED");
-			break;
-		case UTMModes::DIFFERENCE_TOUCHED_SQ:		// METHOD 5.1: UPSTREAM AND DOWNSTREAM EFFECTS REMOVED squared
-			/*if (params->_agent_defn_mode==UTMModes::SECTOR)
-				D[i] = -(pow(G_reg,2.0) - pow(conflict_minus_touched[i],2.0)); // NOT FUNCTIONAL YET
-			*/
-		/*	printf("TODO DIFFERENCE TOUCHED");
-			break;
-		case UTMModes::DIFFERENCE_REALLOC:		// METHOD 6: RANDOM TRAFFIC REALLOCATION
-			if (params->_agent_defn_mode==UTMModes::SECTOR)
-				D[i] = -(G_reg - conflict_random_reallocation[i]);
-			else D[i] = -(G_reg - link_conflict_random_reallocation[i]);
-			break;
-		case UTMModes::DIFFERENCE_REALLOC_SQ:		// METHOD 6.1: RANDOM TRAFFIC REALLOCATION
-			if (params->_agent_defn_mode==UTMModes::SECTOR)
-				D[i] = -(pow(G_reg,2.0) - pow(conflict_random_reallocation[i],2.0));
-			else D[i] = -(pow(G_reg,2.0) - pow(link_conflict_random_reallocation[i],2.0));
-			break;
-		case UTMModes::DIFFERENCE_AVG:			// METHOD 7: CONFLICTS AVERAGED OVER THE NODE'S HISTORY
-			if (params->_agent_defn_mode==UTMModes::SECTOR)
-				D[i] = -conflict_node_average[i];
-			else D[i] = -link_conflict_node_average[i];
-			break;
-		case UTMModes::DIFFERENCE_AVG_SQ:			// METHOD 7.1: CONFLICTS AVERAGED OVER THE NODE'S HISTORY, squared
-			if (params->_agent_defn_mode==UTMModes::SECTOR)
-				D[i] = -(pow(G_reg,2.0)-pow(G_reg - conflict_node_average[i],2.0));
-
-			else D[i] = -(pow(G_reg,2.0)-pow(G_reg - link_conflict_node_average[i],2.0));
-			break;
-		default:{
-			printf("unrecognized mode!");
-			system("pause");
-			exit(1);
-				}
-		}
-	}*/
-	//return D;
-	return matrix1d(n_agents,0.0);
+	return agents->performance();
 }
 
 matrix1d UTMDomainAbstract::getRewards(){
-	if (params->_reward_mode==UTMModes::GLOBAL){
-		return matrix1d(n_agents,getGlobalReward());
-	} else {
-		return getDifferenceReward();
-	}
+	return agents->reward();
 }
 
 
@@ -210,7 +105,7 @@ void UTMDomainAbstract::incrementUAVPath(){
 				return false;
 			} else return true;			// At end of non-destination link
 		} else {
-			for (int i=0; i<=u->type_ID;i++)	// TYPE IMPLEMENTATION
+			for (size_t i=0; i<=u->type_ID;i++)	// TYPE IMPLEMENTATION
 				u->t--;						// Not yet at end of link. Decrement time.
 			return false;
 		}
@@ -218,7 +113,7 @@ void UTMDomainAbstract::incrementUAVPath(){
 
 	if (eligible.empty()){
 		return;
-	} else if (params->_reward_type_mode==UTMModes::CONFLICTS){
+	} else if (params->_reward_type_mode==UTMModes::RewardType::CONFLICTS){
 		for (UAV* u : eligible){
 			u->high_path_prev.pop_front();
 			u->loc = sectors[u->high_path_prev.front()]->xy;
@@ -232,9 +127,9 @@ void UTMDomainAbstract::incrementUAVPath(){
 			agents->add_delay(u);	// adds delay for each eligible UAV not able to move
 
 			// counterfactuals
-			if (params->_reward_mode==UTMModes::DIFFERENCE_AVG)
+			if (params->_reward_mode==UTMModes::RewardMode::DIFFERENCE_AVG)
 				agents->add_average_counterfactual();
-			else if (params->_reward_mode==UTMModes::DIFFERENCE_DOWNSTREAM)
+			else if (params->_reward_mode==UTMModes::RewardMode::DIFFERENCE_DOWNSTREAM)
 				agents->add_downstream_delay_counterfactual(u);
 			else continue;
 		}
@@ -286,7 +181,7 @@ matrix2d UTMDomainAbstract::getStates(){
 
 	// CONGESTION STATE
 
-	if (params->_agent_defn_mode==UTMModes::SECTOR){
+	if (params->_agent_defn_mode==UTMModes::AgentDefinition::SECTOR){
 		vector<int> sector_congestion_count(n_agents,0);
 		for (UAV* u : UAVs){
 			sector_congestion_count[u->curSectorID()]++;
@@ -329,7 +224,7 @@ void UTMDomainAbstract::simulateStep(matrix2d agent_actions){
 
 	// UAVs move
 	incrementUAVPath();
-	if (params->_reward_type_mode==UTMModes::CONFLICTS)
+	if (params->_reward_type_mode==UTMModes::RewardType::CONFLICTS)
 		detectConflicts();
 
 }
@@ -343,7 +238,7 @@ matrix3d UTMDomainAbstract::getTypeStates(){
 	matrix3d allStates = zeros(n_agents,n_types,n_state_elements);
 
 	matrix2d state_printout = zeros(n_agents,n_state_elements);
-	if (params->_agent_defn_mode==UTMModes::SECTOR){
+	if (params->_agent_defn_mode==UTMModes::AgentDefinition::SECTOR){
 		for (UAV* u: UAVs){
 			int a = u->curSectorID();
 			int id = u->type_ID;

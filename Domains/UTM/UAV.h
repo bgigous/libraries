@@ -38,7 +38,9 @@ public:
 	std::list<int> getBestPath(int memstart, int memend); // does not set anything within the UAV
 
 	int ID;
-	UTMModes::UAVType type_ID;
+	size_t type_ID;
+	UTMModes::UAVType type;
+
 	double speed; // connected to type_ID
 	easymath::XY loc;
 	bool pathChanged;
