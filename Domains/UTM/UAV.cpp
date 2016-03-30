@@ -6,7 +6,14 @@ using namespace std;
 
 UAV::UAV(XY start_loc, XY end_loc, UTMModes::UAVType t, TypeGraphManager* highGraph,
 		 map<pair<int,int>,int>* linkIDs, UTMModes* params, SectorGraphManager* lowGraph):
-	highGraph(highGraph),lowGraph(lowGraph),loc(start_loc), end_loc(end_loc), type_ID(t),speed(1.0), linkIDs(linkIDs),params(params)
+	highGraph(highGraph),
+	lowGraph(lowGraph),
+	loc(start_loc), 
+	end_loc(end_loc), 
+	type_ID(size_t(t)),
+	type(t),speed(1.0), 
+	linkIDs(linkIDs),
+	params(params)
 {
 	static int calls=0;
 	ID = calls++;
@@ -74,7 +81,7 @@ void UAV::planAbstractPath(){
 	sectors_touched.insert(curSectorID());
 
 	list<int> high_path;
-	if (params->_search_type_mode==UTMModes::ASTAR){
+	if (params->_search_type_mode==UTMModes::SearchDefinition::ASTAR){
 		high_path = highGraph->astar(curSectorID(), endSectorID(), type_ID);
 	} else {
 		high_path = highGraph->rags(curSectorID(), endSectorID(), type_ID);

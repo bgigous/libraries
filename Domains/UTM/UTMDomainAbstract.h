@@ -26,9 +26,6 @@ public:
 	UTMModes* params;
 	UTMFileNames* filehandler;
 	
-	// Rewards
-	matrix1d getDifferenceReward();
-	double getGlobalReward();
 
 	// Agents
 	IAgentManager* agents;
@@ -73,5 +70,7 @@ public:
 
 	//! Moves all it can in the list. Those eligible to move but who are blocked are left after the function.
 	void try_to_move(std::vector<UAV*> & eligible_to_move);
-	void move_UAV_to_link(UAV* u, Link* cur_link, Link* new_link); // handles motion of the UAV in the simulation, also includes logging
+
+	// this has moved or something?
+	//void move_UAV_to_link(UAV* u, Link* cur_link, Link* new_link); // handles motion of the UAV in the simulation, also includes logging
 };

@@ -12,19 +12,13 @@ highGraph(highGraph), lowGraph(lowGraph), fixes(fixes),
 }
 
 bool Fix::atDestinationFix(UAV &u){
-	switch(params->_arrival_mode){
-	case UTMModes::EXACT:
+	if (params->_arrival_mode== UTMModes::ArrivalMode::EXACT)
 		return u.end_loc == u.loc;
-		break;
-	case UTMModes::THRESHOLD:
+	else if (params->_arrival_mode == UTMModes::ArrivalMode::THRESHOLD){
 		return u.target_waypoints.size()				// UAV has planned a trajectory
-		&& u.target_waypoints.front()==loc				// UAV wants to go there next
-		&& easymath::euclidean_distance(u.loc,loc)<params->get_dist_thresh()	// UAV is close enough
-		&& u.end_loc==loc;								// This is destination fix
-	default:
-		printf("FATAL ERROR: No valid _arrival_mode chosen.");
-		system("pause");
-		exit(1);
+			&& u.target_waypoints.front() == loc				// UAV wants to go there next
+			&& easymath::euclidean_distance(u.loc, loc) < params->get_dist_thresh()	// UAV is close enough
+			&& u.end_loc == loc;								// This is destination fix
 	}
 }
 
@@ -33,11 +27,11 @@ std::list<UAV* > Fix::generateTraffic(int step){
 	std::list<UAV* > newTraffic;
 
 	switch(params->_traffic_mode){
-	case UTMModes::PROBABILISTIC:
+	case UTMModes::TrafficMode::PROBABILISTIC:
 		if (double(rand())/double(RAND_MAX) > params->get_p_gen())	// Doesn't generate a UAV
 			return newTraffic;
 		break;
-	case UTMModes::DETERMINISTIC:
+	case UTMModes::TrafficMode::DETERMINISTIC:
 		if (step%params->get_gen_rate()!=0)	// Doesn't generate a UAV
 			return newTraffic;
 		break;

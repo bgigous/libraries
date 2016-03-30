@@ -6,92 +6,57 @@
 #include <string>
 #include <memory>
 
-class IAgentManager{
+class IAgentManager {
 public:
-	IAgentManager(UTMModes* params):
-		params(params),
-		metrics(std::vector<Reward_Metrics>(params->get_n_agents(),Reward_Metrics(params->get_n_types())))
-	{
-	}
-	~IAgentManager(){
-	//	static int calls = 0;
-	//	exportAgentActions(calls++);
-	};
+	typedef matrix1d(IAgentManager::*counterfactual_method)();
+	counterfactual_method counterfactual;
 
+	IAgentManager(UTMModes* params);	//! Constructor that sets up agent management based on UTMModes.
+	~IAgentManager() {};
 
+	bool square_reward;		//! Identifies whether squared reward is used (D = G^2-G_c^2)
+	
+	matrix1d global();			//! Global reward (not squared, even if square_reward set)
+	matrix1d Gc_average();		//! Replace the impact of the individual with the average delay
+	matrix1d Gc_downstream();	//! Remove the downstream traffic of an agent
+	matrix1d Gc_realloc();		//! Reallocate an individual's traffic to other agents
+	matrix1d Gc_touched();		//! Remove any traffic that touches the individual during the run
+	matrix1d Gc_0();			//! Zero counterfactual (G-Gc_0=G);
+	matrix1d reward();			//! This is G-counterfactual (potentially squared)
+	matrix1d performance();		//! Global reward, squared if square_reward set
 
-	UTMModes* params;
-	virtual matrix2d actions2weights(matrix2d agent_actions)=0;
-	matrix3d agentActions;
-	matrix3d agentStates;
-	void logAgentActions(matrix2d agentStepActions){
-		agentActions.push_back(agentStepActions);
-	}
-	bool last_action_different(){
-		if (agentActions.size()>1){
-			matrix2d last_action = agentActions.back();
-			matrix2d cur_action = agentActions[agentActions.size()-2];
-
-			return last_action != cur_action;
-		}
-		return true;
-	}
-
-	void exportAgentActions(int fileID){
-		FileOut::print_vector(agentActions,"actions-"+std::to_string(fileID)+".csv");
-		FileOut::print_vector(agentStates,"states-"+std::to_string(fileID)+".csv");
-	}
+	virtual matrix2d actions2weights(matrix2d agent_actions) = 0;	//! Translates neural net output to link search costs
+	matrix3d agentActions;		//! Stored agent actions, [*step][agent][action]
+	matrix3d agentStates;		//! Stored agent states, [*step][agent][state]
+	void logAgentActions(matrix2d agentStepActions);	//! Adds to agentActions
+	bool last_action_different();			//! Returns true if the last action was different. Used to prompt replanning.
+	void exportAgentActions(int fileID);	//! Exports list of agent actions to a numbered file.
 
 	//! Metrics relating to a reward. Each of these maps to an agent.
-	struct Reward_Metrics{
-		Reward_Metrics(int n_types):
-			local(matrix1d(n_types,0.0)),
-			G_avg(matrix1d(n_types,0.0)),
-			G_minus_downstream(matrix1d(n_types,0.0)),
-			G_random_realloc(matrix1d(n_types,0.0))
-		{
+	struct Reward_Metrics {
+		Reward_Metrics(int n_types) :
+			local(zeros(n_types)),
+			G_avg(zeros(n_types)),
+			G_minus_downstream(zeros(n_types)),
+			G_random_realloc(zeros(n_types)),
+			G_touched(zeros(n_types))
+		{};
 
-		}
-
-		matrix1d local;
-
-		// counterfactuals
-		matrix1d G_avg;
-		matrix1d G_minus_downstream;
-		matrix1d G_random_realloc;
+		matrix1d local;					//! Local reward
+		matrix1d G_avg;					//! Average counterfactual
+		matrix1d G_minus_downstream;	//! Downstream counterfactual
+		matrix1d G_random_realloc;		//! Random reallocation counterfactual
+		matrix1d G_touched;				//! Touched counterfactual
 	};
-	
-	int* steps; // keeps time with simulator
 
-	double global(){
-		double sum=0.0;
-		
-		for (Reward_Metrics r:metrics){
-			sum += easymath::sum(r.local);
-			//r.local;
-			//std::printf("%.3f,",easymath::sum(r.local));
-		}
-		//std::printf("=%.3f\n",sum);
-		//system("pause");
-		return sum;
-	}
+	int* steps;		//! Keeps time with simulator
 
-	void reset(){
-		//static int calls = 0;
-		//exportAgentActions(calls++);
-		//system("pause");
-		agentActions.clear();
-		agentStates.clear();
-		metrics = std::vector<Reward_Metrics>(params->get_n_agents(),Reward_Metrics(params->get_n_types()));
-	}
+	void reset();	//! Resets for the next simulation call
 
-	std::vector<Reward_Metrics> metrics;
-	virtual void add_delay(UAV* u)=0;
-	virtual void detect_conflicts()=0;
+	std::vector<Reward_Metrics> metrics;	//! Stores metrics for each agent, used in reward calculation.
+	virtual void add_delay(UAV* u) = 0;		//! Adds delay from UAV (based on agent definition)
+	virtual void detect_conflicts() = 0;	//! Detects conflicts (based on agent definition)
 
-	void add_average_counterfactual();
-	virtual void add_downstream_delay_counterfactual(UAV* u)=0;
-	/*virtual void add_downstream_conflict_counterfactual()=0;
-	virtual void add_realloc_delay_counterfactual()=0;
-	virtual void add_realloc_conflict_counterfactual()=0;*/
+	void add_average_counterfactual();		//! Simulates that step an agent replaced by its historical average.
+	virtual void add_downstream_delay_counterfactual(UAV* u) = 0;	//! Keeps track of Gc_downstream (based on agent definition)
 };

@@ -62,10 +62,7 @@ public:
 				// remove the effects of the UAV for the counterfactual..
 		// calculate the G that means that the UAV's impact is removed...
 
-		if (params->_reward_mode==UTMModes::DIFFERENCE_AVG_SQ ||
-			params->_reward_mode==UTMModes::DIFFERENCE_DOWNSTREAM_SQ ||
-			params->_reward_mode==UTMModes::DIFFERENCE_REALLOC_SQ ||
-			params->_reward_mode==UTMModes::GLOBAL_SQ){
+		if (square_reward){
 				// squared reward... needs all of delay at that node at that time to be squared
 				printf("SQUARED TODO");
 				exit(1);
@@ -80,32 +77,21 @@ public:
 			}
 		}
 	}
-	void detect_conflicts(){
+	void detect_conflicts() {
 		// all links going TO the sector are considered to contribute to its conflict
-		for (size_t s=0; s<sectors.size(); s++){
+		for (size_t s = 0; s < sectors.size(); s++) {
 			std::vector<Link*> toward = links_toward_sector[s];
-
-			// also defined by link capacities
-			if (params->_reward_mode==UTMModes::DIFFERENCE_AVG_SQ ||
-				params->_reward_mode==UTMModes::DIFFERENCE_DOWNSTREAM_SQ ||
-				params->_reward_mode==UTMModes::DIFFERENCE_REALLOC_SQ ||
-				params->_reward_mode==UTMModes::GLOBAL_SQ){
-					for (size_t i=0; i<toward.size(); i++){
-						for (size_t j=0; j<toward[i]->traffic.size(); j++){
-							int over_capacity = toward[i]->number_over_capacity(j);
-							if (over_capacity>0)
-								metrics[i].local[j]+=over_capacity*over_capacity;
-						}
-					}
-			} else {
-				for (size_t i=0; i<toward.size(); i++){
-					for (size_t j=0; j<toward[i]->traffic.size(); j++){
-						int over_capacity = toward[i]->number_over_capacity(j);
-						if (over_capacity>0)
-							metrics[i].local[j]+=over_capacity;
-					}
+			for (size_t i = 0; i < toward.size(); i++) {
+				for (size_t j = 0; j < toward[i]->traffic.size(); j++) {
+					int over_capacity = toward[i]->number_over_capacity(j);
+					if (over_capacity <= 0) continue;
+					else if (square_reward)
+						metrics[i].local[j] += over_capacity*over_capacity;
+					else
+						metrics[i].local[j] += over_capacity;
 				}
 			}
+
 		}
 	}
 };

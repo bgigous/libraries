@@ -9,27 +9,31 @@
 #include "../IDomainStateful.h"
 
 
+
+
 class UTMModes: public IDomainStatefulParameters{
 public:
+
 	UTMModes():
 		// Mode defaults
-		_reward_mode(GLOBAL),
-		_airspace_mode(SAVED),
-		_arrival_mode(EXACT),
-		_traffic_mode(DETERMINISTIC),
-		_agent_defn_mode(SECTOR),
-		_reward_type_mode(LINK),
-		_search_type_mode(RAGS),
+		_reward_mode(UTMModes::RewardMode::GLOBAL),
+		_airspace_mode(UTMModes::AirspaceMode::SAVED),
+		_arrival_mode(UTMModes::ArrivalMode::EXACT),
+		_traffic_mode(UTMModes::TrafficMode::DETERMINISTIC),
+		_agent_defn_mode(UTMModes::AgentDefinition::LINK),
+		_reward_type_mode(UTMModes::RewardType::DELAY),
+		_search_type_mode(UTMModes::SearchDefinition::ASTAR),
 		// Constants defaults
-		n_sectors(20)
+		square_reward(false),
+		n_sectors(15)
 	{};
 	~UTMModes(){};
 
 	// OPTION HERE FOR ONE AGENT PER LINK
-	enum AgentDefinition{SECTOR,LINK};
+	enum class AgentDefinition{SECTOR,LINK};
 	AgentDefinition _agent_defn_mode;
 
-	enum SearchDefinition{ASTAR,RAGS};
+	enum class SearchDefinition{ASTAR,RAGS};
 	SearchDefinition _search_type_mode;
 
 
@@ -41,14 +45,18 @@ public:
 
 	// Agents
 	int get_n_agents(){
-		if (_agent_defn_mode==UTMModes::SECTOR){
-			return get_n_sectors();
+		try {
+			if (_agent_defn_mode == UTMModes::AgentDefinition::SECTOR) {
+				return get_n_sectors();
+			}
+			else if (_agent_defn_mode == UTMModes::AgentDefinition::LINK) {
+				return get_n_links();
+			}
+			else {
+				throw std::runtime_error("Bad _agent_defn_mode");
+			}
 		}
-		else if (_agent_defn_mode==UTMModes::LINK){
-			return get_n_links();
-		}
-		else {
-			printf("unrecognized agent mode!");
+		catch (std::runtime_error) {
 			exit(1);
 		}
 	}
@@ -60,46 +68,35 @@ public:
 	}
 
 	// REWARDS
-	enum RewardMode
+	enum class RewardMode
 	{
-		// LINEAR REWARDS
 		GLOBAL,
 		DIFFERENCE_DOWNSTREAM,
 		DIFFERENCE_TOUCHED,
-
 		DIFFERENCE_REALLOC,
 		DIFFERENCE_AVG,
-		// SQUARED REWARDS
-		GLOBAL_SQ,
-		DIFFERENCE_DOWNSTREAM_SQ,
-		DIFFERENCE_TOUCHED_SQ,
-		DIFFERENCE_REALLOC_SQ,
-		DIFFERENCE_AVG_SQ,
 		NMODES
 	};
+	bool square_reward;
+
 	RewardMode _reward_mode;
 	std::string getRewardModeName(){
-		std::string reward_names[RewardMode::NMODES] = {
+		std::string reward_names[size_t(RewardMode::NMODES)] = {
 			"GLOBAL",
 			"DIFFERENCE_DOWNSTREAM",
 			"DIFFERENCE_TOUCHED",
 			"DIFFERENCE_REALLOC",
-			"DIFFERENCE_AVG",
-			"GLOBAL_SQ",
-			"DIFFERENCE_DOWNSTREAM_SQ",
-			"DIFFERENCE_TOUCHED_SQ",
-			"DIFFERENCE_REALLOC_SQ",
-			"DIFFERENCE_AVG_SQ",
+			"DIFFERENCE_AVG"
 		};
-		return reward_names[_reward_mode];
+		return reward_names[size_t(_reward_mode)];
 	}
 
-	enum RewardType{	// this is which types of environment variable is counted
+	enum class RewardType{	// this is which types of environment variable is counted
 		CONFLICTS,
 		DELAY,
 		NREWARDTYPES
 	};
-	int _reward_type_mode;
+	RewardType _reward_type_mode;
 
 
 	// CAPACITIES
@@ -107,31 +104,31 @@ public:
 
 
 	// AIRSPACE
-	enum AirspaceMode{SAVED,GENERATED};
+	enum class AirspaceMode{SAVED,GENERATED};
 	AirspaceMode _airspace_mode;
 
 	//SUBCLASS MODES/CONSTANTS
-	enum TrafficMode{DETERMINISTIC, PROBABILISTIC};
+	enum class TrafficMode{DETERMINISTIC, PROBABILISTIC};
 	TrafficMode _traffic_mode;
-	enum ArrivalMode{EXACT, THRESHOLD};
+	enum class ArrivalMode{EXACT, THRESHOLD};
 	ArrivalMode _arrival_mode;
 
 
 	// UAV types
 
-	enum UAVType{SLOW, FAST, NTYPES=4};
+	enum class UAVType{SLOW, FAST, NTYPES=4};
 	//const enum UAVType{SLOW,NTYPES};
 
 	// CONSTANTS
 	int get_n_state_elements(){
-		if (_agent_defn_mode==SECTOR) return 4;
+		if (_agent_defn_mode==UTMModes::AgentDefinition::SECTOR) return 4;
 		else return 1;
 	} // 4 state elements for sectors ( number of planes traveling in cardinal directions)
 	int get_n_control_elements(){
-		return get_n_state_elements()*NTYPES;
+		return get_n_state_elements()*int(UAVType::NTYPES);
 	}
 	int get_n_steps(){return 200;};
-	int get_n_types(){return NTYPES;};
+	int get_n_types(){return int(UAVType::NTYPES);};
 	double get_p_gen(){return 0.5;};
 	int get_gen_rate(){return 50;};
 	double get_dist_thresh(){return 2.0;};

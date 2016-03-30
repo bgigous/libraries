@@ -14,15 +14,15 @@ public:
 		time(time),
 		cardinal_dir(cardinal_dir),
 		capacity(capacity),
-		traffic(UTMModes::NTYPES,std::list<UAV*>())
+		traffic(size_t(UTMModes::UAVType::NTYPES),std::list<UAV*>())
 	{}
 
 	//!
-	bool at_capacity(int UAV_type){
+	bool at_capacity(size_t UAV_type){
 		return number_over_capacity(UAV_type) >= 0;
 	}
 
-	int number_over_capacity(int type_ID){
+	int number_over_capacity(size_t type_ID){
 		return int(traffic[type_ID].size()-capacity[type_ID]);
 	}
 	std::vector<std::list<UAV*> > traffic;
@@ -75,14 +75,14 @@ public:
 	}
 
 	void remove(UAV* u){
-		traffic[u->type_ID].erase(std::find(traffic[u->type_ID].begin(),traffic[u->type_ID].end(),u));
+		traffic[size_t(u->type_ID)].erase(std::find(traffic[size_t(u->type_ID)].begin(),traffic[size_t(u->type_ID)].end(),u));
 	}
 
 	const int source;
 	const int target;
 	const int cardinal_dir;
 	void reset(){
-		traffic = vector < std::list<UAV*> >(UTMModes::NTYPES, std::list<UAV*>());
+		traffic = std::vector < std::list<UAV*> >(size_t(UTMModes::UAVType::NTYPES), std::list<UAV*>());
 	}
 
 
@@ -125,17 +125,14 @@ public:
 
 	void add_delay(UAV* u){
 		//printf("#%i delayed",u->ID);
-		metrics.at(u->cur_link_ID).local[u->type_ID]++; // adds to the local delay
+		metrics.at(u->cur_link_ID).local[size_t(u->type_ID)]++; // adds to the local delay
 	}
 
 	void add_downstream_delay_counterfactual(UAV* u){
 		// remove the effects of the UAV for the counterfactual..
 		// calculate the G that means that the UAV's impact is removed...
 
-		if (params->_reward_mode==UTMModes::DIFFERENCE_AVG_SQ ||
-			params->_reward_mode==UTMModes::DIFFERENCE_DOWNSTREAM_SQ ||
-			params->_reward_mode==UTMModes::DIFFERENCE_REALLOC_SQ ||
-			params->_reward_mode==UTMModes::GLOBAL_SQ){
+		if (square_reward){
 				// squared reward... needs all of delay at that edge at that time to be squared
 				printf("SQUARED TODO");
 				exit(1);
@@ -143,7 +140,7 @@ public:
 		else{
 			for (size_t i=0; i<metrics.size(); i++){
 				if (u->links_touched.count(i)==0){
-					metrics[i].G_minus_downstream[u->type_ID]++;
+					metrics[i].G_minus_downstream[size_t(u->type_ID)]++;
 				} else {
 					continue;
 				}
@@ -152,27 +149,17 @@ public:
 	}
 
 	void detect_conflicts(){
-		if (params->_reward_mode==UTMModes::DIFFERENCE_AVG_SQ ||
-			params->_reward_mode==UTMModes::DIFFERENCE_DOWNSTREAM_SQ ||
-			params->_reward_mode==UTMModes::DIFFERENCE_REALLOC_SQ ||
-			params->_reward_mode==UTMModes::GLOBAL_SQ){
-				for (size_t i=0; i<links.size(); i++){
-					for (size_t j=0; j<links[i]->traffic.size(); j++){
-						int over_capacity = links[i]->number_over_capacity(j);
-						if (over_capacity>0)
-							metrics[i].local[j]+=over_capacity*over_capacity;
-					}
-				}
-		} else {
-			for (size_t i=0; i<links.size(); i++){
-				for (size_t j=0; j<links[i]->traffic.size(); j++){
-					int over_capacity = links[i]->number_over_capacity(j);
-					if (over_capacity>0)
-						metrics[i].local[j]+=over_capacity;
-				}
+		for (size_t i = 0; i < links.size(); i++) {
+			for (size_t j = 0; j < links[i]->traffic.size(); j++) {
+				int over_capacity = links[i]->number_over_capacity(j);
+				if (over_capacity <= 0)
+					continue; // no congestion
+				else if (square_reward)
+					metrics[i].local[j] += over_capacity*over_capacity;
+				else
+					metrics[i].local[j] += over_capacity;
 			}
 		}
-
 	}
 
 

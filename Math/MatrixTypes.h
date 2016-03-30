@@ -34,6 +34,12 @@ namespace easymath{
 	}
 
 	template<typename T>
+	void square(std::vector<T> &m) {
+		for (T &i : m)
+			i = i*i;
+	}
+
+	template<typename T>
 	T mean(std::vector<T> m){
 		return sum(m)/m.size();
 	}

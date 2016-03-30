@@ -62,11 +62,6 @@ namespace easymath{
 		}
 	}
 
-	void clear(std::queue<XY> &q){
-		std::queue<XY> empty;
-		std::swap(q,empty);
-	}
-
 	double erfc(double x)
 	{
 
