@@ -498,12 +498,16 @@ XY RAGS::SearchGraph(XY start, XY goal, vector<double> &weights)
 			gFound = true ;
 		}
 	}
-	if (!sFound)
-		printf("ERROR: start vertex (%f,%f) not found. Exiting.\n",start.x,start.y) ;
-	if (!gFound)
-		printf("ERROR: goal vertex (%f,%f) not found. Exiting.\n",goal.x,goal.y) ;
-	if (!sFound || !gFound)
-		exit(1) ;
+	if (!sFound) {
+		printf("ERROR: start vertex (%f,%f) not found. Exiting.\n", start.x, start.y);
+		system("pause");
+	}
+	if (!gFound) {
+		printf("ERROR: goal vertex (%f,%f) not found. Exiting.\n", goal.x, goal.y);
+	}
+	if (!sFound || !gFound) {
+		exit(1);
+	}
 	return SearchGraph(sVert, gVert, weights) ;
 }
 
