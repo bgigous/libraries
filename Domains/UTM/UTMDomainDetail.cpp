@@ -3,12 +3,9 @@
 using namespace std;
 using namespace easymath;
 
-UTMDomainDetail::UTMDomainDetail():
-	UTMDomainAbstract()
+UTMDomainDetail::UTMDomainDetail(UTMModes* params_set):
+	UTMDomainAbstract(params_set)
 {
-
-	if (params==NULL) params = new UTMModes(); // use all defaults
-	if (filehandler==NULL) filehandler = new UTMFileNames(params);
 
 	matrix2d membership_map = FileIn::read2<double>("agent_map/membership_map.csv");
 	fix_locs = FileIn::read_pairs<XY>("agent_map/fixes.csv");

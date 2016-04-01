@@ -157,6 +157,8 @@ int TypeGraphManager::getMembership(easymath::XY pt){
 	} catch (out_of_range){
 		printf("Point (%f,%f) not found in membership lookup. ",pt.x,pt.y);
 		printf("Were you trying to use the detailed map ?\n");
+		system("pause");
+		exit(1);
 	}
 }
 

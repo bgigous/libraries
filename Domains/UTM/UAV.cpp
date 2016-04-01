@@ -60,7 +60,10 @@ int UAV::curSectorID(){
 }
 
 int UAV::endSectorID(){
-	return highGraph->getMembership(end_loc);
+	if (lowGraph == NULL)
+		return highGraph->getMembership(end_loc);
+	else
+		return lowGraph->getMembership(end_loc);
 }
 
 int UAV::nextLinkID(){
@@ -81,10 +84,12 @@ void UAV::planAbstractPath(){
 	sectors_touched.insert(curSectorID());
 
 	list<int> high_path;
+	int cur_s = curSectorID();
+	int end_s = endSectorID();
 	if (params->_search_type_mode==UTMModes::SearchDefinition::ASTAR){
-		high_path = highGraph->astar(curSectorID(), endSectorID(), type_ID);
+		high_path = highGraph->astar(cur_s, end_s, type_ID);
 	} else {
-		high_path = highGraph->rags(curSectorID(), endSectorID(), type_ID);
+		high_path = highGraph->rags(cur_s, end_s, type_ID);
 	}
 
 	if (high_path_prev!=high_path){

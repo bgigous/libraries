@@ -16,7 +16,7 @@ class UTMDomainDetail:
 	public UTMDomainAbstract
 {
 public:
-	UTMDomainDetail();
+	UTMDomainDetail(UTMModes* params_set);
 	~UTMDomainDetail(void);
 
 	// Base function overloads

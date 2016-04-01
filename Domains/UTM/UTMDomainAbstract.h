@@ -14,7 +14,7 @@ class UTMDomainAbstract :
 	public IDomainStateful
 {
 public:
-	UTMDomainAbstract(UTMModes* params=NULL);
+	UTMDomainAbstract(UTMModes* params);
 	~UTMDomainAbstract(void);
 
 	virtual void synch_step(int* step_set){
