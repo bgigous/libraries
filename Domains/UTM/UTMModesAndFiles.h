@@ -116,7 +116,7 @@ public:
 
 	// UAV types
 
-	enum class UAVType{SLOW, FAST, NTYPES=4};
+	enum class UAVType{SLOW, FAST, NTYPES=1};
 	//const enum UAVType{SLOW,NTYPES};
 
 	// CONSTANTS
@@ -130,7 +130,7 @@ public:
 	int get_n_steps(){return 200;};
 	int get_n_types(){return int(UAVType::NTYPES);};
 	double get_p_gen(){return 0.5;};
-	int get_gen_rate(){return 50;};
+	int get_gen_rate(){return 10;};
 	double get_dist_thresh(){return 2.0;};
 	double get_conflict_thresh(){return 2.0;};
 };

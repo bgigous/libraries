@@ -4,7 +4,7 @@
 
 class Link{
 public:
-	Link(int ID, int source, easymath::XY source_loc, int target, easymath::XY target_loc,
+	Link(int ID, int source, int target,
 		int time, std::vector<size_t> capacity, int cardinal_dir):
 	ID(ID),
 		source(source),
@@ -30,7 +30,6 @@ public:
 
 	//! Returns the predicted amount of time it would take to cross the node if the UAV got there immediately
 	matrix1d predicted_traversal_time(){
-
 		// Get predicted wait time for each type of UAV
 		matrix1d predicted(traffic.size());
 		for (uint i=0; i<traffic.size(); i++){
@@ -71,7 +70,7 @@ public:
 		u->t = time;
 		traffic.at(size_t(u->type_ID)).push_back(u);
 		u->cur_link_ID = ID;
-		u->loc = source_loc;
+		u->mem = source;
 	}
 
 	void remove(UAV* u){
@@ -110,11 +109,13 @@ public:
 
 	virtual matrix2d actions2weights(matrix2d agent_actions){
 		matrix2d weights = easymath::zeros(n_types,n_edges);
+		double alpha = 0.0;
 
 		for (int i=0; i<n_edges; i++){
 			matrix1d predicted = links.at(i)->predicted_traversal_time();
 			for (int t=0; t<n_types; t++){
-				weights[t][i] = predicted[t] + agent_actions[i][t]*100.0;
+				// note: is there a scalable metric here?
+				weights[t][i] = predicted[t] + agent_actions[i][t] * alpha;
 				//weights[t][i] = agent_actions[i][t]*1000.0;
 			}
 		}

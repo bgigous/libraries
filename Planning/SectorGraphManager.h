@@ -7,9 +7,9 @@
 class SectorGraphManager
 {
 public:
-	typedef std::pair<int,int> Edge;
+	typedef std::pair<int,int> edge;
 
-	SectorGraphManager(matrix2d membership_map, std::vector<Edge> edges);
+	SectorGraphManager(matrix2d membership_map, std::vector<edge> edges);
 	~SectorGraphManager(void);
 
 	int getMembership(const easymath::XY &p);

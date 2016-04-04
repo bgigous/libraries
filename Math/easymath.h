@@ -89,14 +89,15 @@ namespace easymath{
 	//! Remove-erase-if idiom
 	template <class Container, class UnaryPredicate>
 	void remove_erase_if(Container stl, UnaryPredicate pred){
-		auto it = stl.begin();
+		stl.erase(std::remove_if(stl.begin(), stl.end(), pred),stl.end());
+		/*auto it = stl.begin();
 		while (it!=stl.end()){
 			if (!pred(*it)){
 				stl.erase(it++);
 			} else {
 				it++;
 			}
-		}
+		}*/
 	}
 
 	//! Returns a random number between some bounds.

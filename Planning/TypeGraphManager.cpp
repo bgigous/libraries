@@ -43,7 +43,7 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX
 		l = XY(rand()%int(gridSizeX),rand()%int(gridSizeY));
 	}
 
-	vector<pair<int,int> > candidates;
+	vector<edge > candidates;
 	for (uint i=0; i<agentLocs.size(); i++){
 		for (uint j=0; j<agentLocs.size(); j++){
 			if (i==j) continue;
@@ -123,10 +123,16 @@ void TypeGraphManager::rags_info::calc_prob_dist(double link_cost, int type_id){
 }*/
 
 void TypeGraphManager::setCostMaps(matrix2d agent_actions){
+	for (int i = 0; i < agent_actions.size(); i++) {
+		for (int j = 0; j < agent_actions[i].size(); j++) {
 
+			if (agent_actions[i][j] < 0) {
+				printf("Bad weight!");
+			}
+		}
+	}
 	for (uint i=0; i<Graph_highlevel.size(); i++){
 		Graph_highlevel[i]->setWeights(agent_actions[i]);
-		
 	}
 }
 

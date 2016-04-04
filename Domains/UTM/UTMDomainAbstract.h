@@ -10,12 +10,25 @@
 #include "Fix.h"
 #include "../../FileIO/FileOut.h"
 
+
+class UTMDomain :
+	public IDomainStateful
+{
+public:
+	UTMDomain(UTMModes* params);
+	~UTMDomain() {};
+	virtual void initialize(UTMModes* params) = 0;
+};
+
 class UTMDomainAbstract :
 	public IDomainStateful
 {
 public:
+	typedef std::pair<int, int> edge;
 	UTMDomainAbstract(UTMModes* params);
 	~UTMDomainAbstract(void);
+
+//	virtual void initialize(UTMModes* params);
 
 	virtual void synch_step(int* step_set){
 		step = step_set;
@@ -34,7 +47,7 @@ public:
 	std::vector<Sector*> sectors;
 	std::vector<Link*> links;
 	std::vector<Fix*> fixes;
-	std::map<std::pair<int,int>,int> *linkIDs;
+	std::map<edge,int> *linkIDs;
 
 
 	// Traffic
@@ -48,13 +61,9 @@ public:
 	matrix2d getStates();
 	matrix3d getTypeStates();
 	void simulateStep(matrix2d agent_actions);
-	void logStep();
+	void logStep() {}; // no logging currently
 	std::string createExperimentDirectory();
 
-	// UAV motion tracking
-	void logUAVLocations();
-	matrix2d UAVLocations; // UAVLocation is nUAVs*2 x nSteps long, with the first dimension being twice as long because there are x- and y-values
-	void exportUAVLocations(int fileID);
 	void exportSectorLocations(int fileID);
 
 	// Different from children
