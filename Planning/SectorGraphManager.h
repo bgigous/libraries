@@ -2,8 +2,14 @@
 
 #include "../../libraries/Planning/GridGraph.h"
 #include <map>
-// A manager class to handle different instances of grid for different sectors
-// Carrie! What's exactly is an instance of grid?
+
+/**
+* A manager class to handle different instances of grid for different sectors.
+* Each 'type' in the simulation may have a different grid object (layer) assigned
+* to it, in order to calculate traffic congestion differently and assign different
+* costs to different UAV traffic types. This class stores the layer and manages
+* access based on type.
+*/
 
 class SectorGraphManager
 {
