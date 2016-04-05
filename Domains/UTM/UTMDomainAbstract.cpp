@@ -157,6 +157,7 @@ void UTMDomainAbstract::try_to_move(vector<UAV*> & eligible_to_move) {
 
 	int el_size;
 	do {
+		// Carrie! I don't think this does anything (it)
 		vector<UAV*>::iterator it = eligible_to_move.begin();
 		el_size = eligible_to_move.size();
 

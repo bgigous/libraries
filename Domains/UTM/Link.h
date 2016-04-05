@@ -107,6 +107,7 @@ public:
 	const int n_edges;
 	const int n_types;
 
+	// Carrie! What's the point of this? Is it to make it scale better for costs the UAVs see?
 	virtual matrix2d actions2weights(matrix2d agent_actions){
 		matrix2d weights = easymath::zeros(n_types,n_edges);
 		double alpha = 0.0;
@@ -124,6 +125,7 @@ public:
 
 	std::vector<Link*> links;
 
+	// Carrie! Why does a "RewardMetrics" object keep track of delay? Why not the link itself?
 	void add_delay(UAV* u){
 		//printf("#%i delayed",u->ID);
 		metrics.at(u->cur_link_ID).local[size_t(u->type_ID)]++; // adds to the local delay

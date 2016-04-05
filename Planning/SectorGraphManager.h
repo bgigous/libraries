@@ -3,6 +3,7 @@
 #include "../../libraries/Planning/GridGraph.h"
 #include <map>
 // A manager class to handle different instances of grid for different sectors
+// Carrie! What's exactly is an instance of grid?
 
 class SectorGraphManager
 {

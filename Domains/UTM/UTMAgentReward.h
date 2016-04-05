@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 
+// Carrie! What's the gist of this class?
 class IAgentManager {
 public:
 	typedef matrix1d(IAgentManager::*counterfactual_method)();
