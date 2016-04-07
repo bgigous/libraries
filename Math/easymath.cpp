@@ -1,11 +1,20 @@
 #include "easymath.h"
 
 namespace easymath{
+	std::set<XY> get_n_unique_points(double x_min, double x_max, double y_min, double y_max, size_t n){
+		std::set<XY> pt_set;
+		while (pt_set.size()<n){
+			XY p = XY(rand(x_min, x_max),rand(y_min,y_max));
+			pt_set.insert(p);
+		}
+		return pt_set;
+	}
 
 	double manhattan_distance(const XY &p1, const XY &p2){
 		XY diff = p1-p2;
 		return abs(diff.x)+abs(diff.y);
 	}
+
 
 	int cardinal_direction(const XY &dx_dy){
 		if (dx_dy.y>=0){ // Going up

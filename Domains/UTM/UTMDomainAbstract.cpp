@@ -3,38 +3,26 @@
 using namespace std;
 using namespace easymath;
 
-
-UTMDomain::UTMDomain(UTMModes* params) :
-	IDomainStateful(params)
-{
-};
-
-/*UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set):
-	UTMDomain(params_set)
-{
-	initialize(params);
-}*/
-
 UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
 	IDomainStateful(params_set)
 {
 	filehandler = new UTMFileNames(params_set),
-		params = params_set;
+	params = params_set;
 
 	// Airspace construction
 	int n_sectors;
-	std::string domain_dir = filehandler->createDomainDirectory();
-	ifstream edgefile(domain_dir + "edges.csv");
-	bool fileExists = edgefile.good();
-	edgefile.close();
-	if (params->_airspace_mode == UTMModes::AirspaceMode::SAVED && fileExists) {
+	string domain_dir = filehandler->createDomainDirectory();
+	
+	if (params->_airspace_mode == UTMModes::AirspaceMode::SAVED 
+		// Use a saved airspace
+		&& FileOut::file_exists(domain_dir+"edges.csv")) {
 		highGraph = new TypeGraphManager(domain_dir + "edges.csv", domain_dir + "nodes.csv", n_types);
 		n_sectors = highGraph->getNVertices();
 	}
 	else {
 		// Generate a new airspace
 		n_sectors = params->get_n_sectors();
-		highGraph = new TypeGraphManager(n_sectors, n_types, 200.0, 2000);
+		highGraph = new TypeGraphManager(n_sectors, n_types, 200.0, 200.0);
 		highGraph->print_graph(domain_dir); // saves the graph
 	}
 	params->n_links = highGraph->getEdges().size(); // Must be set after graph created
@@ -65,8 +53,11 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
 		sectors.push_back(new Sector(highGraph->getLocation(i), i, n_sectors, connections[i], params));
 
 
-	if (params->_agent_defn_mode == UTMModes::AgentDefinition::SECTOR) agents = new SectorAgentManager(links, n_types, sectors, params);
-	else agents = new LinkAgentManager(links.size(), n_types, links, params);
+	if (params->_agent_defn_mode == UTMModes::AgentDefinition::SECTOR)
+		agents = new SectorAgentManager(links, n_types, sectors, params);
+	else
+		agents = new LinkAgentManager(links.size(), n_types, links, params);
+	highGraph->setCostMaps(agents->actions2weights(zeros(n_agents,n_types))); // initialize the cost maps
 
 	// Fix construction
 	for (Sector* s : sectors)
@@ -117,7 +108,7 @@ void UTMDomainAbstract::incrementUAVPath() {
 			else return true;			// At end of non-destination link
 		}
 		else {
-			for (size_t i = 0; i <= u->type_ID; i++)	// TYPE IMPLEMENTATION
+			for (size_t i = 0; i <= u->type_ID; i++)	// TYPE IMPLEMENTATION: speed
 				u->t--;						// Not yet at end of link. Decrement time.
 			return false;
 		}
@@ -151,7 +142,7 @@ void UTMDomainAbstract::incrementUAVPath() {
 }
 
 void UTMDomainAbstract::try_to_move(vector<UAV*> & eligible_to_move) {
-	//random_shuffle(eligible_to_move.begin(), eligible_to_move.end());
+	random_shuffle(eligible_to_move.begin(), eligible_to_move.end());
 
 	int el_size;
 	do {
@@ -221,29 +212,36 @@ matrix2d UTMDomainAbstract::getStates() {
 
 void UTMDomainAbstract::simulateStep(matrix2d agent_actions) {
 	// Alter the cost maps (agent actions)
-	agent_actions = zeros(agent_actions.size(), agent_actions[0].size());
-	agents->logAgentActions(agent_actions);
-	bool action_changed = agents->last_action_different();
+	//agent_actions = zeros(agent_actions.size(), agent_actions[0].size());
+	//agents->logAgentActions(agent_actions);
+	//bool action_changed = agents->last_action_different();
 
 	// New UAVs appear
 	getNewUAVTraffic();
 
-	if (action_changed)
-		highGraph->setCostMaps(agents->actions2weights(agent_actions));
+	// Calculate cost map, using agent actions
+	matrix2d cost_map = agents->actions2weights(agent_actions);
+	bool cost_changed = (cost_map != last_cost_map);
+
+	if (cost_changed){
+		highGraph->setCostMaps(cost_map);
+		last_cost_map = cost_map;
+	}
 
 	// Make UAVs reach their destination
 	absorbUAVTraffic();
 
 	// Plan over new cost maps
-	if (action_changed)
+	if (cost_changed){
 		getPathPlans();
+	}
 
 	// UAVs move
 	incrementUAVPath();
 	if (params->_reward_type_mode == UTMModes::RewardType::CONFLICTS)
 		detectConflicts();
-	if (agents->global()[0]>0)
-	printf("%f ",agents->global()[0]);
+	//if (agents->global()[0]>0)
+	//printf("%f ",agents->global()[0]);
 }
 
 matrix3d UTMDomainAbstract::getTypeStates() {
@@ -402,7 +400,6 @@ void UTMDomainAbstract::getPathPlans(std::list<UAV* > &new_UAVs) {
 }
 
 void UTMDomainAbstract::reset() {
-	system("pause");
 	while (!UAVs.empty()) {
 		delete UAVs.back();
 		UAVs.pop_back();
@@ -411,6 +408,9 @@ void UTMDomainAbstract::reset() {
 	for (Link* l : links) {
 		l->reset();
 	}
+
+	
+	highGraph->setCostMaps(agents->actions2weights(zeros(n_agents,n_types))); // initialize the cost maps
 
 	agents->reset();
 }

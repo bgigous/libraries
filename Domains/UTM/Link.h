@@ -40,17 +40,20 @@ public:
 				waits.push_back(u->t);
 			}
 			
-			// Sort by wait (ascending)
-			std::sort(waits.begin(),waits.end(),std::less<double>());
+			// Sort by wait (descending)
+			std::sort(waits.begin(),waits.end(),greater<double>());
 
-			// Count waits for UAVs over capacity, with one space for a future UAV
-			if (int(waits.size()) - int(capacity[i]) >= 0.0) {
-				waits.resize(waits.size() - capacity[i] + 1);
-			}
+			int n_ok = capacity[i]-1; // number of UAVs that are ok to be on link (you can still go on the link)
+			if (waits.size()>n_ok)
+				waits.resize(waits.size()-n_ok); // number of UAVs that you actually have to wait for
+
 
 			// Store predicted link time.
-			predicted[i] = time + easymath::sum(waits);
+			double w = easymath::sum(waits);
+			predicted[i] = time + w;
+			//printf("%i=%i+%i \t",int(predicted[i]), int(time), int(w));
 		}
+
 
 		return predicted;
 	}

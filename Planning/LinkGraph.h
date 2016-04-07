@@ -97,11 +97,9 @@ public:
 		edge_iter ei, ei_end;
 		int i=0;
 
-		matrix1d w = getWeights();
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
 			put(boost::edge_weight,g,*ei,weights[i++]);
 		}
-		w = getWeights();
 	}
 
 	matrix1d getWeights(){

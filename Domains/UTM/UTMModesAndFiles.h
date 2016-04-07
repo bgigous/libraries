@@ -8,9 +8,6 @@
 #endif
 #include "../IDomainStateful.h"
 
-
-
-
 class UTMModes: public IDomainStatefulParameters{
 public:
 
@@ -18,7 +15,6 @@ public:
 		// Mode defaults
 		_reward_mode(UTMModes::RewardMode::GLOBAL),
 		_airspace_mode(UTMModes::AirspaceMode::SAVED),
-		_arrival_mode(UTMModes::ArrivalMode::EXACT),
 		_traffic_mode(UTMModes::TrafficMode::DETERMINISTIC),
 		_agent_defn_mode(UTMModes::AgentDefinition::LINK),
 		_reward_type_mode(UTMModes::RewardType::DELAY),
@@ -110,8 +106,6 @@ public:
 	//SUBCLASS MODES/CONSTANTS
 	enum class TrafficMode{DETERMINISTIC, PROBABILISTIC};
 	TrafficMode _traffic_mode;
-	enum class ArrivalMode{EXACT, THRESHOLD};
-	ArrivalMode _arrival_mode;
 
 
 	// UAV types
@@ -130,17 +124,19 @@ public:
 	int get_n_steps(){return 200;};
 	int get_n_types(){return int(UAVType::NTYPES);};
 	double get_p_gen(){return 0.5;};
-	int get_gen_rate(){return 10;};
+	int get_gen_rate(){return 10;}; //! UAVs are generated every get_gen_rate() steps
 	double get_dist_thresh(){return 2.0;};
 	double get_conflict_thresh(){return 2.0;};
 };
 
 class UTMFileNames{
 public:
-	UTMFileNames(UTMModes* modes_set=NULL):modes(modes_set){
+	UTMFileNames(UTMModes* modes_set=NULL):
+		modes(modes_set)
+	{
 		if (modes_set==NULL){
 			modes = new UTMModes(); // Uses the default
-			kill_modes=true;
+			kill_modes = true;
 		} else {
 			kill_modes = false;
 		}
@@ -208,60 +204,6 @@ public:
 		mkdir(TYPES_FOLDER.c_str(),ACCESSPERMS);
 		mkdir(REWARD_FOLDER.c_str(),ACCESSPERMS);
 #endif
-		/*
-		std::string TRAFFIC_FOLDER;
-		switch(modes->_traffic_mode){
-		case UTMModes::DETERMINISTIC:
-		TRAFFIC_FOLDER = SECTOR_FOLDER + "Deterministic_" + std::to_string(modes->get_gen_rate()) + "_Traffic/";
-		break;
-		case UTMModes::PROBABILISTIC:
-		TRAFFIC_FOLDER = SECTOR_FOLDER + "Probabilistic_" + std::to_string(modes->get_p_gen()*100) + "_Traffic/";
-		break;
-		default:
-		TRAFFIC_FOLDER = "UNKNOWN/";
-		break;
-		}
-
-		std::string CAPACITY_FOLDER = TRAFFIC_FOLDER + std::to_string(modes->get_flat_capacity()) + "_Capacity/"; // assume uniform sector capacity
-		std::string REWARD_TYPE_FOLDER;
-		switch(modes->_reward_type_mode){
-		case UTMModes::RewardType::CONFLICTS:
-		REWARD_TYPE_FOLDER = CAPACITY_FOLDER + "Conflict_Reward/";
-		break;
-		case UTMModes::RewardType::DELAY:
-		REWARD_TYPE_FOLDER = CAPACITY_FOLDER + "Delay_Reward/";
-		break;
-		default:
-		REWARD_TYPE_FOLDER = "UNKNOWN/";
-		break;
-		}
-		std::string REWARD_FOLDER = REWARD_TYPE_FOLDER + modes->getRewardModeName() + "_Reward/";
-
-		#ifdef _WIN32
-		_mkdir(EXPERIMENT_FOLDER.c_str());
-		_mkdir(AGENTS_FOLDER.c_str());
-		_mkdir(SECTOR_FOLDER.c_str());
-		_mkdir(TRAFFIC_FOLDER.c_str());
-		_mkdir(CAPACITY_FOLDER.c_str());
-		_mkdir(REWARD_TYPE_FOLDER.c_str());
-		_mkdir(REWARD_FOLDER.c_str());
-		#else
-		mkdir(EXPERIMENT_FOLDER.c_str(), ACCESSPERMS);
-		mkdir(AGENTS_FOLDER.c_str(), ACCESSPERMS);
-		mkdir(SECTOR_FOLDER.c_str(), ACCESSPERMS);
-		mkdir(TRAFFIC_FOLDER.c_str(), ACCESSPERMS);
-		mkdir(CAPACITY_FOLDER.c_str(), ACCESSPERMS);
-		mkdir(REWARD_TYPE_FOLDER.c_str(), ACCESSPERMS);
-		mkdir(REWARD_FOLDER.c_str(), ACCESSPERMS);
-		#endif
-		*/
 		return REWARD_FOLDER; // returns the full directory path just generated
 	}
-
-	/*std::string createDomainDirectory(){
-	std::string DOMAIN_FOLDER = "Domains/";
-
-	}*/
-private:
-
 };

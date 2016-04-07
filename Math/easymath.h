@@ -3,6 +3,7 @@
 #include "MatrixTypes.h"
 #include <queue>
 #include <utility>
+#include <set>
 
 
 namespace easymath{
@@ -105,4 +106,6 @@ namespace easymath{
 
 	//! Error function (this exists in linux but not windows)
 	double erfc(double x);
+
+	std::set<XY> get_n_unique_points(double xmin, double xmax, double ymin, double ymax, size_t n);
 }

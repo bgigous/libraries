@@ -17,23 +17,19 @@ bool Fix::atDestinationFix(UAV &u){
 }
 
 bool FixDetail::atDestinationFix(UAVDetail &u) {
-	if (params->_arrival_mode == UTMModes::ArrivalMode::EXACT)
-		return u.end_loc == u.loc;
-	else if (params->_arrival_mode == UTMModes::ArrivalMode::THRESHOLD) {
-		return u.target_waypoints.size()				// UAV has planned a trajectory
-			&& u.target_waypoints.front() == loc				// UAV wants to go there next
-			&& easymath::euclidean_distance(u.loc, loc) < params->get_dist_thresh()	// UAV is close enough
-			&& u.end_loc == loc;								// This is destination fix
-	}
+	return u.target_waypoints.size()				// UAV has planned a trajectory
+		&& u.target_waypoints.front() == loc				// UAV wants to go there next
+		&& euclidean_distance(u.loc, loc) < params->get_dist_thresh()	// UAV is close enough
+		&& u.end_loc == loc;								// This is destination fix
 }
 
-std::list<UAV* > Fix::generateTraffic(int step){
+list<UAV* > Fix::generateTraffic(int step){
 	// Creates a new UAV in the world
 	std::list<UAV* > newTraffic;
 
 	switch(params->_traffic_mode){
 	case UTMModes::TrafficMode::PROBABILISTIC:
-		if (double(rand())/double(RAND_MAX) > params->get_p_gen())	// Doesn't generate a UAV
+		if (rand(0,1) > params->get_p_gen())	// Doesn't generate a UAV
 			return newTraffic;
 		break;
 	case UTMModes::TrafficMode::DETERMINISTIC:

@@ -4,13 +4,13 @@
 using namespace easymath;
 using namespace std;
 
-UAV::UAV(int start_mem, int mem_end, UTMModes::UAVType t, TypeGraphManager* highGraph,
+UAV::UAV(int start_mem, int mem_end, UTMModes::UAVType my_type, TypeGraphManager* highGraph,
 	map<edge, int>* linkIDs, UTMModes* params) :
 	highGraph(highGraph),
 	mem(start_mem),
 	mem_end(mem_end),
-	type_ID(size_t(t)),
-	type(t),speed(1.0), 
+	type_ID(size_t(my_type)),
+	type(my_type),speed(1.0), 
 	linkIDs(linkIDs),
 	params(params)
 {
@@ -111,10 +111,10 @@ void UAV::planAbstractPath(){
 
 
 
-		for (int i : high_path) {
+		/*for (int i : high_path) {
 			cout << i << ",";
 		}
-		cout << endl;
+		cout << endl;*/
 	} else {
 		pathChanged=false;
 	}

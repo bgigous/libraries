@@ -10,16 +10,6 @@
 #include "Fix.h"
 #include "../../FileIO/FileOut.h"
 
-
-class UTMDomain :
-	public IDomainStateful
-{
-public:
-	UTMDomain(UTMModes* params);
-	~UTMDomain() {};
-	virtual void initialize(UTMModes* params) = 0;
-};
-
 class UTMDomainAbstract :
 	public IDomainStateful
 {
@@ -27,8 +17,6 @@ public:
 	typedef std::pair<int, int> edge;
 	UTMDomainAbstract(UTMModes* params);
 	~UTMDomainAbstract(void);
-
-//	virtual void initialize(UTMModes* params);
 
 	virtual void synch_step(int* step_set){
 		step = step_set;
@@ -82,4 +70,5 @@ public:
 
 	// this has moved or something?
 	//void move_UAV_to_link(UAV* u, Link* cur_link, Link* new_link); // handles motion of the UAV in the simulation, also includes logging
+	matrix2d last_cost_map;
 };
