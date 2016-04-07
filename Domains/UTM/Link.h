@@ -125,7 +125,7 @@ public:
 	std::vector<Link*> links;
 
 	void add_delay(UAV* u){
-		//printf("#%i delayed",u->ID);
+		//printf("#%i ",u->ID);
 		metrics.at(u->cur_link_ID).local[size_t(u->type_ID)]++; // adds to the local delay
 	}
 

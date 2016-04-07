@@ -107,6 +107,14 @@ void UAV::planAbstractPath(){
 		//clear(target_waypoints);
 		//for (int sector_id:high_path)
 		//	target_waypoints.push(highGraph->getLocation(sector_id));
+		
+
+
+
+		for (int i : high_path) {
+			cout << i << ",";
+		}
+		cout << endl;
 	} else {
 		pathChanged=false;
 	}

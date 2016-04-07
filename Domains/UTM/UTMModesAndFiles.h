@@ -25,7 +25,7 @@ public:
 		_search_type_mode(UTMModes::SearchDefinition::ASTAR),
 		// Constants defaults
 		square_reward(false),
-		n_sectors(20)
+		n_sectors(10)
 	{};
 	~UTMModes(){};
 

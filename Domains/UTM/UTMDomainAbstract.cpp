@@ -130,7 +130,6 @@ void UTMDomainAbstract::incrementUAVPath() {
 	// CURRENTLY CONFLICTS MODE MAY NOT WORK...
 	//else if (params->_reward_type_mode == UTMModes::RewardType::CONFLICTS) {
 	//	for (UAV* u : eligible) {
-	//		u->high_path_prev.pop_front();
 	//		u->loc = sectors[u->high_path_prev.front()]->xy;
 	//	}
 	//	return;
@@ -138,7 +137,6 @@ void UTMDomainAbstract::incrementUAVPath() {
 	else {
 		try_to_move(eligible); // This moves all UAVs that are eligible and not blocked
 		// Only those that cannot move are left in eligible
-		//std::printf("%i UAVs delayed. \n",eligible.size());
 		for (UAV* u : eligible) {
 			agents->add_delay(u);	// adds delay for each eligible UAV not able to move
 
@@ -153,7 +151,7 @@ void UTMDomainAbstract::incrementUAVPath() {
 }
 
 void UTMDomainAbstract::try_to_move(vector<UAV*> & eligible_to_move) {
-	random_shuffle(eligible_to_move.begin(), eligible_to_move.end());
+	//random_shuffle(eligible_to_move.begin(), eligible_to_move.end());
 
 	int el_size;
 	do {
@@ -224,6 +222,7 @@ matrix2d UTMDomainAbstract::getStates() {
 
 void UTMDomainAbstract::simulateStep(matrix2d agent_actions) {
 	// Alter the cost maps (agent actions)
+	agent_actions = zeros(agent_actions.size(), agent_actions[0].size());
 	agents->logAgentActions(agent_actions);
 	bool action_changed = agents->last_action_different();
 
@@ -244,7 +243,8 @@ void UTMDomainAbstract::simulateStep(matrix2d agent_actions) {
 	incrementUAVPath();
 	if (params->_reward_type_mode == UTMModes::RewardType::CONFLICTS)
 		detectConflicts();
-
+	if (agents->global()[0]>0)
+	printf("%f ",agents->global()[0]);
 }
 
 matrix3d UTMDomainAbstract::getTypeStates() {
@@ -403,8 +403,7 @@ void UTMDomainAbstract::getPathPlans(std::list<UAV* > &new_UAVs) {
 }
 
 void UTMDomainAbstract::reset() {
-	//printf("%i UAVs\n",UAVs.size());
-
+	system("pause");
 	while (!UAVs.empty()) {
 		delete UAVs.back();
 		UAVs.pop_back();
