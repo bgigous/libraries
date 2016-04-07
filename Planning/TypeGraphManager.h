@@ -10,7 +10,6 @@
 * Manages LinkGraph usage for different types in the system
 */
 
-
 class TypeGraphManager
 {
 public:
@@ -18,7 +17,7 @@ public:
 	typedef std::vector<std::vector<bool> > barrier_grid;
 
 	TypeGraphManager(void);
-	TypeGraphManager(int n_types, std::vector<edge> edges, std::vector<easymath::XY> verticesFile);
+	TypeGraphManager(int n_types, std::vector<edge> edges, std::vector<easymath::XY> agentLocs);
 	TypeGraphManager(std::string edgesFile, std::string verticesFile, int n_types);
 	TypeGraphManager(int n_vertices, int n_types, double gridSizeX, double gridSizeY);
 	~TypeGraphManager(void);

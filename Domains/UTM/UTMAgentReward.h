@@ -6,6 +6,14 @@
 #include <string>
 #include <memory>
 
+/**
+* Provides an interface for agents to interact with the simulator.
+* This allows for redefinition of agents in the UTM simulation, and also
+* collects information relevant to calculating difference, global, and
+* local rewards. Logging of agent actions can also be performed for
+* qualitative assessment of behavior.
+*/
+
 class IAgentManager {
 public:
 	typedef matrix1d(IAgentManager::*counterfactual_method)();
@@ -32,8 +40,15 @@ public:
 	bool last_action_different();			//! Returns true if the last action was different. Used to prompt replanning.
 	void exportAgentActions(int fileID);	//! Exports list of agent actions to a numbered file.
 
-	//! Metrics relating to a reward. Each of these maps to an agent.
+	
 	struct Reward_Metrics {
+		/**
+		* Metrics relating to a reward.
+		* This contains all information necessary to calculate an agent's
+		* reward for a run. This is to collect all information in one place,
+		* so that data for this calculation is not scattered all over the
+		* simulator.
+		*/
 		Reward_Metrics(int n_types) :
 			local(zeros(n_types)),
 			G_avg(zeros(n_types)),

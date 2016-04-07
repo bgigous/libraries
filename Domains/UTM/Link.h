@@ -107,6 +107,17 @@ public:
 	const int n_edges;
 	const int n_types;
 
+	/**
+	* Translates the output of a neural network into costs applied to a link.
+	* This can include the 'predicted' cost of the link, which is the
+	* traversal time plus the instantaneous wait time at that link. In
+	* addition, this translates neural network output, which is in the form
+	* [agent #][type #] into weights on the graph, which is in the form
+	* [type #][link #]. In the case of link agents, this mapping is
+	* agent # = link #, but this is not the case with sector agents.
+	* @param agent_actions neural network output, in the form of [agent #][type #]
+	* @return the costs for each link in the graph
+	*/ 
 	virtual matrix2d actions2weights(matrix2d agent_actions){
 		matrix2d weights = easymath::zeros(n_types,n_edges);
 		double alpha = 0.0;
@@ -124,6 +135,10 @@ public:
 
 	std::vector<Link*> links;
 
+	/**
+	* Adds to the delay for the agent assigned to that link.
+	* Agent reward metrics and link function are kept separate.
+	*/
 	void add_delay(UAV* u){
 		//printf("#%i ",u->ID);
 		metrics.at(u->cur_link_ID).local[size_t(u->type_ID)]++; // adds to the local delay

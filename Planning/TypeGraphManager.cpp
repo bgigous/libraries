@@ -7,7 +7,7 @@ TypeGraphManager::TypeGraphManager(void)
 {
 }
 
-TypeGraphManager::TypeGraphManager(int n_types, std::vector<edge> edges, vector<XY> agentLocs):
+TypeGraphManager::TypeGraphManager(int n_types, vector<edge> edges, vector<XY> agentLocs):
 	n_types(n_types),edges(edges), rags_map(new RAGS(agentLocs,edges))
 {
 	initializeTypeLookupAndDirections(agentLocs);

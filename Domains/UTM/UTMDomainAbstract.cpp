@@ -155,7 +155,6 @@ void UTMDomainAbstract::try_to_move(vector<UAV*> & eligible_to_move) {
 
 	int el_size;
 	do {
-		vector<UAV*>::iterator it = eligible_to_move.begin();
 		el_size = eligible_to_move.size();
 
 		vector<Link*> L = links;
