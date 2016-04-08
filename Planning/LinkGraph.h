@@ -97,11 +97,9 @@ public:
 		edge_iter ei, ei_end;
 		int i=0;
 
-		matrix1d w = getWeights();
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
 			put(boost::edge_weight,g,*ei,weights[i++]);
 		}
-		w = getWeights();
 	}
 
 	matrix1d getWeights(){
@@ -166,7 +164,7 @@ public:
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
 			connections_matrix[(*ei).m_source][(*ei).m_target]=true;
 
-		std::vector<std::pair<int,int> > my_edges;
+		std::vector<edge> my_edges;
 		for (boost::tie(ei,ei_end)=edges(g); ei != ei_end; ++ei){
 			my_edges.push_back(std::make_pair((*ei).m_source,(*ei).m_target));
 		}

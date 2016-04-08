@@ -40,7 +40,7 @@ matrix1d IAgentManager::global() {
 	for (Reward_Metrics r : metrics) {
 		sum += easymath::sum(r.local);
 	}
-	return matrix1d(metrics.size(), sum);
+	return matrix1d(metrics.size(), -sum);
 }
 
 matrix1d IAgentManager::Gc_average() {

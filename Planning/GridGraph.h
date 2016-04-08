@@ -23,7 +23,7 @@
 class mt{ // "my types"
 public:
 	// Distance traveled in the GridGraph
-	typedef std::pair<int,int> Edge;
+	typedef std::pair<int,int> edge;
 	typedef std::vector<std::vector<bool> > barrier_grid;
 
 	typedef double distance;

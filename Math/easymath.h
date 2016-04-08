@@ -3,6 +3,7 @@
 #include "MatrixTypes.h"
 #include <queue>
 #include <utility>
+#include <set>
 
 
 namespace easymath{
@@ -89,14 +90,15 @@ namespace easymath{
 	//! Remove-erase-if idiom
 	template <class Container, class UnaryPredicate>
 	void remove_erase_if(Container stl, UnaryPredicate pred){
-		auto it = stl.begin();
+		stl.erase(std::remove_if(stl.begin(), stl.end(), pred),stl.end());
+		/*auto it = stl.begin();
 		while (it!=stl.end()){
 			if (!pred(*it)){
 				stl.erase(it++);
 			} else {
 				it++;
 			}
-		}
+		}*/
 	}
 
 	//! Returns a random number between some bounds.
@@ -104,4 +106,6 @@ namespace easymath{
 
 	//! Error function (this exists in linux but not windows)
 	double erfc(double x);
+
+	std::set<XY> get_n_unique_points(double xmin, double xmax, double ymin, double ymax, size_t n);
 }

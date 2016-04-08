@@ -4,7 +4,7 @@
 
 class Link{
 public:
-	Link(int ID, int source, easymath::XY source_loc, int target, easymath::XY target_loc,
+	Link(int ID, int source, int target,
 		int time, std::vector<size_t> capacity, int cardinal_dir):
 	ID(ID),
 		source(source),
@@ -30,7 +30,6 @@ public:
 
 	//! Returns the predicted amount of time it would take to cross the node if the UAV got there immediately
 	matrix1d predicted_traversal_time(){
-
 		// Get predicted wait time for each type of UAV
 		matrix1d predicted(traffic.size());
 		for (uint i=0; i<traffic.size(); i++){
@@ -41,17 +40,20 @@ public:
 				waits.push_back(u->t);
 			}
 			
-			// Sort by wait (ascending)
-			std::sort(waits.begin(),waits.end(),std::less<double>());
+			// Sort by wait (descending)
+			std::sort(waits.begin(),waits.end(),greater<double>());
 
-			// Count waits for UAVs over capacity, with one space for a future UAV
-			if (waits.size() - capacity[i] >= 0.0) {
-				waits.resize(waits.size() - capacity[i] + 1);
-			}
+			int n_ok = capacity[i]-1; // number of UAVs that are ok to be on link (you can still go on the link)
+			if (waits.size()>n_ok)
+				waits.resize(waits.size()-n_ok); // number of UAVs that you actually have to wait for
+
 
 			// Store predicted link time.
-			predicted[i] = time + easymath::sum(waits);
+			double w = easymath::sum(waits);
+			predicted[i] = time + w;
+			//printf("%i=%i+%i \t",int(predicted[i]), int(time), int(w));
 		}
+
 
 		return predicted;
 	}
@@ -71,7 +73,7 @@ public:
 		u->t = time;
 		traffic.at(size_t(u->type_ID)).push_back(u);
 		u->cur_link_ID = ID;
-		u->loc = source_loc;
+		u->mem = source;
 	}
 
 	void remove(UAV* u){
@@ -108,14 +110,27 @@ public:
 	const int n_edges;
 	const int n_types;
 
+	/**
+	* Translates the output of a neural network into costs applied to a link.
+	* This can include the 'predicted' cost of the link, which is the
+	* traversal time plus the instantaneous wait time at that link. In
+	* addition, this translates neural network output, which is in the form
+	* [agent #][type #] into weights on the graph, which is in the form
+	* [type #][link #]. In the case of link agents, this mapping is
+	* agent # = link #, but this is not the case with sector agents.
+	* @param agent_actions neural network output, in the form of [agent #][type #]
+	* @return the costs for each link in the graph
+	*/ 
 	virtual matrix2d actions2weights(matrix2d agent_actions){
 		matrix2d weights = easymath::zeros(n_types,n_edges);
+		double alpha = 0.0;
 
 		for (int i=0; i<n_edges; i++){
 			matrix1d predicted = links.at(i)->predicted_traversal_time();
 			for (int t=0; t<n_types; t++){
-				//weights[t][i] = predicted[t] + agent_actions[i][t];
-				weights[t][i] = agent_actions[i][t]*1000.0;
+				// note: is there a scalable metric here?
+				weights[t][i] = predicted[t] + agent_actions[i][t] * alpha;
+				//weights[t][i] = agent_actions[i][t]*1000.0;
 			}
 		}
 		return weights;
@@ -123,8 +138,12 @@ public:
 
 	std::vector<Link*> links;
 
+	/**
+	* Adds to the delay for the agent assigned to that link.
+	* Agent reward metrics and link function are kept separate.
+	*/
 	void add_delay(UAV* u){
-		//printf("#%i delayed",u->ID);
+		//printf("#%i ",u->ID);
 		metrics.at(u->cur_link_ID).local[size_t(u->type_ID)]++; // adds to the local delay
 	}
 

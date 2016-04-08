@@ -16,7 +16,7 @@ class UTMDomainDetail:
 	public UTMDomainAbstract
 {
 public:
-	UTMDomainDetail();
+	UTMDomainDetail(UTMModes* params_set);
 	~UTMDomainDetail(void);
 
 	// Base function overloads
@@ -41,5 +41,12 @@ public:
 		agents->metrics.at(u2->curSectorID()).local[u2->type_ID]+=0.5;
 	}
 	uint getSector(easymath::XY p);
+
+
+
+	// UAV motion tracking
+	void logUAVLocations();
+	matrix2d UAVLocations; // UAVLocation is nUAVs*2 x nSteps long, with the first dimension being twice as long because there are x- and y-values
+	void exportUAVLocations(int fileID);
 };
 

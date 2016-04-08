@@ -14,7 +14,8 @@ class UTMDomainAbstract :
 	public IDomainStateful
 {
 public:
-	UTMDomainAbstract(UTMModes* params=NULL);
+	typedef std::pair<int, int> edge;
+	UTMDomainAbstract(UTMModes* params);
 	~UTMDomainAbstract(void);
 
 	virtual void synch_step(int* step_set){
@@ -34,7 +35,7 @@ public:
 	std::vector<Sector*> sectors;
 	std::vector<Link*> links;
 	std::vector<Fix*> fixes;
-	std::map<std::pair<int,int>,int> *linkIDs;
+	std::map<edge,int> *linkIDs;
 
 
 	// Traffic
@@ -48,13 +49,9 @@ public:
 	matrix2d getStates();
 	matrix3d getTypeStates();
 	void simulateStep(matrix2d agent_actions);
-	void logStep();
+	void logStep() {}; // no logging currently
 	std::string createExperimentDirectory();
 
-	// UAV motion tracking
-	void logUAVLocations();
-	matrix2d UAVLocations; // UAVLocation is nUAVs*2 x nSteps long, with the first dimension being twice as long because there are x- and y-values
-	void exportUAVLocations(int fileID);
 	void exportSectorLocations(int fileID);
 
 	// Different from children
@@ -73,4 +70,5 @@ public:
 
 	// this has moved or something?
 	//void move_UAV_to_link(UAV* u, Link* cur_link, Link* new_link); // handles motion of the UAV in the simulation, also includes logging
+	matrix2d last_cost_map;
 };
