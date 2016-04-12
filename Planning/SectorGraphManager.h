@@ -24,5 +24,5 @@ public:
 
 private:
 	matrix2d membership_map;
-	std::map<int,std::map<int,GridGraph*> > m2graph; // lets you know which A* to access
+	std::map<int,std::map<int,GridGraph*> > m2graph;  // lets you know which A* to access
 };

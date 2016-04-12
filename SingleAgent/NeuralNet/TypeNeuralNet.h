@@ -17,7 +17,7 @@ public:
 			}
 	}
 
-	matrix3d preprocess_weights; // [t][s][t']
+	matrix3d preprocess_weights;  // [t][s][t']
 
 	void mutate(){
 		NeuralNet::mutate();

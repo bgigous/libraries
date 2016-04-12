@@ -9,7 +9,7 @@ public:
 	NeuroEvoTypeWeighted(NeuroEvoParameters* NE_params, int n_types, int n_state_elements):
 		NeuroEvo(NE_params), n_types(n_types), n_state_elements(n_state_elements)
 	{
-		matrix3d preprocess_weights = matrix3d(n_types,matrix2d(n_state_elements,matrix1d(1,0.0)));; // last element not used; 1-1 relationship with state_element
+		matrix3d preprocess_weights = matrix3d(n_types,matrix2d(n_state_elements,matrix1d(1,0.0)));;  // last element not used; 1-1 relationship with state_element
 		while (population.size()){
 			delete population.front();
 			population.pop_front();
@@ -34,17 +34,17 @@ public:
 		// Mutate existing members to generate more
 		std::list<NeuralNet*>::iterator popMember=population.begin();
 		for (int i=0; i<params->popSize; i++){ // add k new members
-			//(*popMember)->evaluation = 0.0; // commented out so that you take parent's evaluation
-			TypeNeuralNet* m = new TypeNeuralNet(*((TypeNeuralNet*)*popMember)); // dereference pointer AND iterator
+			//(*popMember)->evaluation = 0.0;  // commented out so that you take parent's evaluation
+			TypeNeuralNet* m = new TypeNeuralNet(*((TypeNeuralNet*)*popMember));  // dereference pointer AND iterator
 			m->mutate();
 			population.push_back(m);
-			popMember++;
+			++popMember;
 		}
 	}
 
 	int n_types, n_state_elements;
 
-	using NeuroEvo::getAction; // so that the overloaded base class is seen
+	using NeuroEvo::getAction;  // so that the overloaded base class is seen
 	
 	matrix1d getAction(matrix2d state){
 		// state has elements [type][state element]

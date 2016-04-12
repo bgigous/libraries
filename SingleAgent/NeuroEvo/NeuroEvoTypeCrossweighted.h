@@ -37,23 +37,23 @@ public:
 		// Mutate existing members to generate more
 		std::list<NeuralNet*>::iterator popMember=population.begin();
 		for (int i=0; i<params->popSize; i++){ // add k new members
-			//(*popMember)->evaluation = 0.0; // commented out so that you take parent's evaluation
-			TypeNeuralNet* m = new TypeNeuralNet(*((TypeNeuralNet*)*popMember)); // dereference pointer AND iterator
+			//(*popMember)->evaluation = 0.0;  // commented out so that you take parent's evaluation
+			TypeNeuralNet* m = new TypeNeuralNet(*((TypeNeuralNet*)*popMember));  // dereference pointer AND iterator
 			m->mutate();
 			population.push_back(m);
-			popMember++;
+			++popMember;
 		}
 	}
 
-	using NeuroEvo::getAction; // so that the overloaded base function is seen
+	using NeuroEvo::getAction;  // so that the overloaded base function is seen
 
 	matrix1d getAction(matrix2d state){
 
 		matrix1d preprocessed_state(n_state_elements*n_types,0.0);
-		int ind = 0; // index for state;
+		int ind = 0;  // index for state;
 		// freaky for loop makes math right
 		for (int s=0; s<n_state_elements; s++){
-			for (uint t_prime=0; t_prime<((TypeNeuralNet*)(*pop_member_active))->preprocess_weights[0][0].size(); t_prime++){
+			for (size_t t_prime=0; t_prime<((TypeNeuralNet*)(*pop_member_active))->preprocess_weights[0][0].size(); t_prime++){
 				double node_sum = 0.0;
 				for (int t=0; t<n_types; t++){
 					node_sum += state[t][s]*((TypeNeuralNet*)(*pop_member_active))->preprocess_weights[t][s][t_prime];

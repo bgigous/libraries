@@ -1,8 +1,14 @@
-#pragma once
+// Copyright 2016 Carrie Rebhuhn
+
+#ifndef DOMAINS_UTM_UTMDOMAINDETAIL_H_
+#define DOMAINS_UTM_UTMDOMAINDETAIL_H_
 
 // STL includes
 #include <utility>
 #include <algorithm>
+#include <vector>
+#include <list>
+#include <string>
 
 // Library includes
 #include "UTMDomainAbstract.h"
@@ -10,43 +16,39 @@
 #include "../../FileIO/FileIn.h"
 
 
-using namespace std;
+class UTMDomainDetail :
+    public UTMDomainAbstract {
+ public:
+    explicit UTMDomainDetail(UTMModes* params_set);
+    virtual ~UTMDomainDetail(void);
 
-class UTMDomainDetail:
-	public UTMDomainAbstract
-{
-public:
-	UTMDomainDetail(UTMModes* params_set);
-	~UTMDomainDetail(void);
+    // Base function overloads
+    virtual matrix1d getRewards();
+    virtual matrix1d getPerformance();
+    virtual void getPathPlans();  // note: when is this event?
+    virtual void getPathPlans(const std::list<UAV*> &new_UAVs);
+    virtual void exportLog(std::string fid, double G);
+    virtual void detectConflicts();
+    virtual void incrementUAVPath();
+    virtual void reset();
 
-	// Base function overloads
-	virtual matrix1d getRewards();
-	virtual matrix1d getPerformance();
-	virtual void getPathPlans(); // note: when is this event?
-	virtual void getPathPlans(std::list<UAV*> &new_UAVs);
-	virtual void exportLog(std::string fid, double G);
-	virtual void detectConflicts();
-	virtual void incrementUAVPath();
-	virtual void reset();
+    // maps/Graph
+    SectorGraphManager* lowGraph;
+    void loadMaps();
+    vector<easymath::XY> fix_locs;
 
-	// maps/Graph
-	SectorGraphManager* lowGraph;
-	void loadMaps();
-	//Matrix<int,2> * membership_map; // technically this should be an int matrix. fix later	//backend
-	//std::vector<std::vector<int> > direction_map; // direction (cardinal) needed to travel to go from [node1][node2]
-	vector<easymath::XY> fix_locs;
+    void addConflict(UAV* u1, UAV* u2) {
+        agents->metrics.at(u1->curSectorID()).local[u1->type_ID] += 0.5;
+        agents->metrics.at(u2->curSectorID()).local[u2->type_ID] += 0.5;
+    }
+    size_t getSector(easymath::XY p);
 
-	void addConflict(UAV* u1, UAV* u2){
-		agents->metrics.at(u1->curSectorID()).local[u1->type_ID]+=0.5;
-		agents->metrics.at(u2->curSectorID()).local[u2->type_ID]+=0.5;
-	}
-	uint getSector(easymath::XY p);
+    // UAV motion tracking
+    void logUAVLocations();
 
-
-
-	// UAV motion tracking
-	void logUAVLocations();
-	matrix2d UAVLocations; // UAVLocation is nUAVs*2 x nSteps long, with the first dimension being twice as long because there are x- and y-values
-	void exportUAVLocations(int fileID);
+    //! UAVLocation is nUAVs*2 x nSteps long, with the first dimension being
+    //! twice as long because there are x- and y-values
+    matrix2d UAVLocations;
+    void exportUAVLocations(int fileID);
 };
-
+#endif  // DOMAINS_UTM_UTMDOMAINDETAIL_H_

@@ -142,8 +142,8 @@ Edge ** Graph::GenerateEdges(vector<edge> &edges)
 	{
 		Vertex * v1 = itsVertices[(ULONG)edges[i].first] ;
 		Vertex * v2 = itsVertices[(ULONG)edges[i].second] ;
-		double cost = 0; //weights[i][0] ;
-		double var = 0; //weights[i][1] ;
+		double cost = 0;  //weights[i][0] ;
+		double var = 0;  //weights[i][1] ;
 
 		allEdges[i] = new Edge(v1, v2, cost, var) ;
 	}
@@ -234,7 +234,7 @@ bool Queue::CompareNodes(const Node * n1, const Node * n2) const
 	double n2Cost = n2->GetMeanCost() ;
 	
 	if (n1Cost == n2Cost && n1->GetVarCost() == n2->GetVarCost()) {
-		return n1 < n2; // memory location comparison breaks ties
+		return n1 < n2;  // memory location comparison breaks ties
 	}
 
 	return (n1Cost >= n2Cost && n1->GetVarCost() >= n2->GetVarCost()) ;
@@ -523,7 +523,7 @@ XY RAGS::SearchGraph(Vertex * start, Vertex * goal, vector<double> &weights)
 
 		if (GSPaths.empty()){
 			XY s = XY(start->GetX(),start->GetY()) ;
-			return s ; // no paths found, stay where you are
+			return s ;  // no paths found, stay where you are
 		}
 
 		for (ULONG i = 0; i < (ULONG)GSPaths.size(); i++)
@@ -545,7 +545,7 @@ XY RAGS::SearchGraph(Vertex * start, Vertex * goal, vector<double> &weights)
 	vector<Node *> newNodes = itsNDSet ;
 	itsVert->SetNodes(newNodes) ;
 	vector<Node *> tmpNodes ;
-	vector<Node *> noNodes ; // keep track of unvisited nodes
+	vector<Node *> noNodes ;  // keep track of unvisited nodes
 	vector<Vertex *> nextVerts ;
 
 	// Identify next vertices
@@ -604,12 +604,12 @@ XY RAGS::SearchGraph(Vertex * start, Vertex * goal, vector<double> &weights)
 }
 
 void RAGS::AssignCurrentMeansAndVariances() {
-	size_t T = weights_history.size(); // length of time this has been running
-	size_t E = weights_history[0].size(); // number of edges
+	size_t T = weights_history.size();  // length of time this has been running
+	size_t E = weights_history[0].size();  // number of edges
 	Edge ** edges = itsGraph->GetEdges();
 
 	for (size_t e = 0; e < E; e++) {
-		double sum = 0, mu = 0, sigma_sq = 0, sdev = 0, dev = 0;
+		double sum = 0, mu = 0, sigma_sq = 0, sdev = 0;
 		vector<double> h(T, 0.0);
 		for (size_t t = 0; t < T; t++) {
 			h[t] = weights_history[t][e];
@@ -629,7 +629,7 @@ void RAGS::AssignCurrentMeansAndVariances() {
 
 void RAGS::AssignCurrentEdgeCosts(vector<double> &weights)
 {
-	weights_history.push_back(weights); // Record weight for later mean/var calculations
+	weights_history.push_back(weights);  // Record weight for later mean/var calculations
 	ULONG n = itsGraph->GetNumEdges() ;
 	Edge ** e = itsGraph->GetEdges() ;
 

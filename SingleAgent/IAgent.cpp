@@ -1,6 +1,7 @@
+// Copyright 2015 Carrie Rebhuhn
+
 #include "IAgent.h"
 
 
-IAgent::IAgent(void)
-{
+IAgent::IAgent(void) {
 }

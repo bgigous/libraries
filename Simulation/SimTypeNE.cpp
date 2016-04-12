@@ -3,7 +3,7 @@
 using namespace std;
 
 matrix2d SimTypeNE::getActions(){
-	matrix3d S = domain->getTypeStates(); // [agent id][type id][state element
+	matrix3d S = domain->getTypeStates();  // [agent id][type id][state element
 	return ((MultiagentTypeNE*)MAS)->getActions(S);
 }
 

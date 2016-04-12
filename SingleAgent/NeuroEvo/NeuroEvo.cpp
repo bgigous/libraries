@@ -10,7 +10,7 @@ NeuroEvoParameters::NeuroEvoParameters(int inputSet, int outputSet):
 
 void NeuroEvo::updatePolicyValues(double R){
 	// Add together xi values, for averaging
-	double xi=0.1; // "learning rate" for NE
+	double xi=0.1;  // "learning rate" for NE
 	double V = (*pop_member_active)->evaluation;
 	V = xi*(R-V)+V;
 	(*pop_member_active)->evaluation = V;
@@ -22,8 +22,8 @@ matrix1d NeuroEvo::getAction(matrix1d state){
 
 matrix1d NeuroEvo::getAction(matrix2d state){
 	matrix1d stateSum(state[0].size(),0.0);
-	for (uint i=0; i<state.size(); i++){ // state[type][state_element] -- specifies combination for state
-		for (uint j=0; j<state[i].size(); j++){
+	for (size_t i=0; i<state.size(); i++){ // state[type][state_element] -- specifies combination for state
+		for (size_t j=0; j<state[i].size(); j++){
 			stateSum[j] += state[i][j];
 		}
 	}
@@ -53,7 +53,7 @@ NeuroEvo::~NeuroEvo(void)
 }
 
 bool NeuroEvo::selectNewMember(){
-	pop_member_active++;
+	++pop_member_active;
 	if (pop_member_active==population.end()){
 		pop_member_active = population.begin();
 		return false;
@@ -66,18 +66,18 @@ void NeuroEvo::generateNewMembers(){
 	// Mutate existing members to generate more
 	list<NeuralNet*>::iterator popMember=population.begin();
 	for (int i=0; i<params->popSize; i++){ // add k new members
-		//(*popMember)->evaluation = 0.0; // commented out so that you take parent's evaluation
-		NeuralNet* m = new NeuralNet(**popMember); // dereference pointer AND iterator
+		//(*popMember)->evaluation = 0.0;  // commented out so that you take parent's evaluation
+		NeuralNet* m = new NeuralNet(**popMember);  // dereference pointer AND iterator
 		m->mutate();
 		population.push_back(m);
-		popMember++;
+		++popMember;
 	}
 }
 
 double NeuroEvo::getBestMemberVal(){
 	// Find the HIGHEST FITNESS value of any neural network
 	double highest = population.front()->evaluation;
-	for (list<NeuralNet*>::iterator popMember=population.begin(); popMember!=population.end(); popMember++){
+	for (list<NeuralNet*>::iterator popMember=population.begin(); popMember!=population.end(); ++popMember){
 		if (highest<(*popMember)->evaluation) highest=(*popMember)->evaluation;
 	}
 	return highest;
@@ -91,7 +91,7 @@ void listPointerShuffle(list<NeuralNet*> &L){
 
 void NeuroEvo::selectSurvivors(){
 	// Select neural networks with the HIGHEST FITNESS
-	population.sort(NNCompare); // Sort by the highest fitness
+	population.sort(NNCompare);  // Sort by the highest fitness
 	int nExtraNN = population.size()-params->popSize;
 	for (int i=0; i<nExtraNN; i++){ // Remove the extra
 		delete population.back();
@@ -109,7 +109,7 @@ void NeuroEvo::deepCopy(NeuroEvo &NE){
 	params = NE.params;
 
 	deletePopulation();
-	for (list<NeuralNet*>::iterator it=NE.population.begin(); it!=NE.population.end(); it++){
+	for (list<NeuralNet*>::iterator it=NE.population.begin(); it!=NE.population.end(); ++it){
 		population.push_back(new NeuralNet(**it));
 	}
 }

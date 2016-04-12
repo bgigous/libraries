@@ -41,7 +41,7 @@ public:
 private:
 	std::vector<edge> edges;
 	int n_types;
-	std::map<easymath::XY, int> loc2mem; // maps location to membership
+	std::map<easymath::XY, int> loc2mem;  // maps location to membership
 	std::vector<LinkGraph*> Graph_highlevel;
 
 	// Helpers/translators

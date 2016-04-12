@@ -7,34 +7,27 @@
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/grid_graph.hpp>
-//#include <boost/lexical_cast.hpp>
-//#include <boost/random/mersenne_twister.hpp>
-//#include <boost/random/uniform_int.hpp>
-//#include <boost/random/variate_generator.hpp>
 #include <boost/unordered_map.hpp>
-//#include <boost/unordered_set.hpp>
-//#include <ctime>
-//#include <iostream>
-//#include <limits>
-//#include <sstream>
+
+// from stl
 #include <fstream>
 #include <float.h>
 
-class mt{ // "my types"
+class mt { // "my types"
 public:
 	// Distance traveled in the GridGraph
-	typedef std::pair<int,int> edge;
+	typedef std::pair<int, int> edge;
 	typedef std::vector<std::vector<bool> > barrier_grid;
 
 	typedef double distance;
 
-	static const int GRID_RANK=2;
+	static const int GRID_RANK = 2;
 	typedef boost::grid_graph<GRID_RANK> grid;
 	typedef boost::graph_traits<grid>::vertex_descriptor vertex_descriptor;
 	typedef boost::graph_traits<grid>::vertices_size_type vertices_size_type;
 
 	// A hash function for vertices.
-	struct vertex_hash:std::unary_function<vertex_descriptor, std::size_t> {
+	struct vertex_hash :std::unary_function<vertex_descriptor, std::size_t> {
 		std::size_t operator()(vertex_descriptor const& u) const {
 			std::size_t seed = 0;
 			boost::hash_combine(seed, u[0]);
@@ -51,11 +44,11 @@ public:
 };
 
 // Euclidean heuristic
-class euclidean_heuristic:
+class euclidean_heuristic :
 	public boost::astar_heuristic<mt::filtered_grid, double>
 {
 public:
-	euclidean_heuristic(){};
+	euclidean_heuristic() {};
 	double operator()(mt::vertex_descriptor v) {
 		return sqrt(pow(double(m_goal[0]) - double(v[0]), 2) + pow(double(m_goal[1]) - double(v[1]), 2));
 	}
@@ -63,11 +56,11 @@ public:
 };
 
 // Manhattan heuristic
-class manhattan_heuristic:
+class manhattan_heuristic :
 	public boost::astar_heuristic<mt::filtered_grid, double>
 {
 public:
-	manhattan_heuristic(){};
+	manhattan_heuristic() {};
 	double operator()(mt::vertex_descriptor v) {
 		return fabs(double(m_goal[0]) - double(v[0])) + fabs(double(m_goal[1]) - double(v[1]));
 	}
@@ -77,14 +70,14 @@ public:
 
 class GridGraph {
 public:
-	~GridGraph();
+	~GridGraph() {};
 	// Exception thrown when the goal vertex is found
 	struct found_goal {};
 
 	// Visitor that terminates when we find the goal vertex
-	struct astar_goal_visitor:public boost::default_astar_visitor {
+	struct astar_goal_visitor :public boost::default_astar_visitor {
 		//	astar_goal_visitor(mt::vertex_descriptor goal):m_goal(goal) {};
-		astar_goal_visitor(){};
+		astar_goal_visitor() {};
 
 		void examine_vertex(mt::vertex_descriptor u, const mt::filtered_grid&) {
 			if (u == m_goal)
@@ -95,46 +88,47 @@ public:
 	};
 
 	// CREATION FUNCTIONS
-	GridGraph():m_grid(create_grid(0, 0)),m_barrier_grid(create_barrier_grid()) {};
-	GridGraph(std::size_t x, std::size_t y):m_grid(create_grid(x, y)),
+	GridGraph() :m_grid(create_grid(0, 0)), m_barrier_grid(create_barrier_grid()) {};
+	GridGraph(std::size_t x, std::size_t y) :m_grid(create_grid(x, y)),
 		m_barrier_grid(create_barrier_grid()) {};
 
-	GridGraph(mt::barrier_grid obstacle_map):
-		m_grid(create_grid(obstacle_map.size(),obstacle_map[0].size())),
-		m_barrier_grid(create_barrier_grid())
+	explicit GridGraph(mt::barrier_grid obstacle_map) :
+		m_grid(create_grid(obstacle_map.size(), obstacle_map[0].size())),
+		m_barrier_grid(create_barrier_grid()),
+		m_solution_length(0)
 	{
 		int v_index = 0;
-		for (uint y=0; y<obstacle_map[0].size(); y++){
-			for (uint x=0; x<obstacle_map.size(); x++){
-				if (obstacle_map[x][y]){ // there is an obstacle!
-					mt::vertex_descriptor u = vertex(v_index,m_grid);
-					m_barriers.insert(u); // insert a barrier!
+		for (size_t y = 0; y < obstacle_map[0].size(); y++) {
+			for (size_t x = 0; x < obstacle_map.size(); x++) {
+				if (obstacle_map[x][y]) { // there is an obstacle!
+					mt::vertex_descriptor u = vertex(v_index, m_grid);
+					m_barriers.insert(u);  // insert a barrier!
 				}
-				v_index++; // increment v_index even if no barrier added!
+				v_index++;  // increment v_index even if no barrier added!
 			}
 		}
 	}
 
-	GridGraph(matrix2d &members, int m1, int m2):
+	GridGraph(matrix2d &members, int m1, int m2) :
 		m_grid(create_grid(members.size(), members[0].size())),
 		m_barrier_grid(create_barrier_grid())
 	{
-		mt::barrier_grid obstacle_map(members.size(),std::vector<bool>(members[0].size(),false));
-		for (uint i=0; i<members.size(); i++){
-			for (uint j=0; j<members[i].size(); j++){
-				obstacle_map[i][j] = members[i][j]<0;
+		mt::barrier_grid obstacle_map(members.size(), std::vector<bool>(members[0].size(), false));
+		for (size_t i = 0; i < members.size(); i++) {
+			for (size_t j = 0; j < members[i].size(); j++) {
+				obstacle_map[i][j] = members[i][j] < 0;
 			}
 		}
 
 		// This map only shows grid cells of membership m1 and m2 as passable. Others are barriers.
 		// Backflow (travel from m2 to m1) is allowed but will tend to be suboptimal, so is improbable.
 		int v_index = 0;
-		for (uint y=0; y<obstacle_map[0].size(); y++){
-			for (uint x=0; x<obstacle_map.size(); x++){
+		for (size_t y = 0; y < obstacle_map[0].size(); y++) {
+			for (size_t x = 0; x < obstacle_map.size(); x++) {
 				if (obstacle_map[x][y] ||
-					(members[x][y]!=m1 && members[x][y]!=m2)){ // there is an obstacle, or wrong membership
-						mt::vertex_descriptor u = vertex(v_index,m_grid);
-						m_barriers.insert(u); // insert a barrier!
+					(members[x][y] != m1 && members[x][y] != m2)) { // there is an obstacle, or wrong membership
+					mt::vertex_descriptor u = vertex(v_index, m_grid);
+					m_barriers.insert(u);  // insert a barrier!
 				}
 				v_index++;
 			}
@@ -142,13 +136,13 @@ public:
 	}
 
 	// The length of the AStarGrid along the specified dimension.
-	mt::vertices_size_type length(std::size_t d) const {return m_grid.length(d);}
+	mt::vertices_size_type length(std::size_t d) const { return m_grid.length(d); }
 
 	bool has_barrier(mt::vertex_descriptor u) const {
 		return m_barriers.find(u) != m_barriers.end();
 	}
 
-	double solve(size_t xsource, size_t ysource, size_t xgoal, size_t ygoal){
+	double solve(size_t xsource, size_t ysource, size_t xgoal, size_t ygoal) {
 		boost::static_property_map<mt::distance> weight(1);
 		// The predecessor map is a vertex-to-vertex mapping.
 		typedef boost::unordered_map<mt::vertex_descriptor,
@@ -156,14 +150,15 @@ public:
 			mt::vertex_hash> pred_map;
 		pred_map predecessor;
 		boost::associative_property_map<pred_map> pred_pmap(predecessor);
+
 		// The distance map is a vertex-to-distance mapping.
 		typedef boost::unordered_map<mt::vertex_descriptor,
 			mt::distance, mt::vertex_hash> dist_map;
 		dist_map distance;
 		boost::associative_property_map<dist_map> dist_pmap(distance);
 
-		mt::vertex_descriptor s = {{xsource, ysource}};
-		mt::vertex_descriptor g = {{xgoal, ygoal}};
+		mt::vertex_descriptor s = { {xsource, ysource} };
+		mt::vertex_descriptor g = { {xgoal, ygoal} };
 		heuristic.m_goal = g;
 		visitor.m_goal = g;
 		m_solution.clear();
@@ -173,8 +168,9 @@ public:
 				boost::weight_map(weight).
 				predecessor_map(pred_pmap).
 				distance_map(dist_pmap).
-				visitor(visitor) );
-		} catch(found_goal fg) {
+				visitor(visitor));
+		}
+		catch (found_goal fg) {
 			(void)fg;
 			// Walk backwards from the goal through the predecessor chain adding
 			// vertices to the solution path.
@@ -189,21 +185,19 @@ public:
 		return maxdist;
 	}
 
-	std::vector<easymath::XY> astar(easymath::XY source, easymath::XY goal){
-		solve((int)source.x,(int)source.y, (int)goal.x, (int)goal.y);
-
-		//		printf("size = %i\n",m_solution.size());
+	std::vector<easymath::XY> astar(easymath::XY source, easymath::XY goal) {
+		solve((int)source.x, (int)source.y, (int)goal.x, (int)goal.y);
 
 		std::vector<easymath::XY> soln;
-		for (mt::vertex_vector::iterator it=m_solution.begin(); it!=m_solution.end(); it++){
+		for (mt::vertex_vector::iterator it = m_solution.begin(); it != m_solution.end(); ++it) {
 			soln.push_back(easymath::XY(it->front(), it->back()));
 		}
 		return soln;
 	}
 
-	bool solved() const {return !m_solution.empty();}
+	bool solved() const { return !m_solution.empty(); }
 	bool solution_contains(mt::vertex_descriptor u) const {
-		return std::find(m_solution.begin(),m_solution.end(),u) != m_solution.end();
+		return std::find(m_solution.begin(), m_solution.end(), u) != m_solution.end();
 	}
 
 	euclidean_heuristic heuristic;
@@ -213,16 +207,16 @@ public:
 	// The length of the solution path
 	mt::distance m_solution_length;
 
-	void printMap(std::string dir, int label1, int label2){
+	void printMap(std::string dir, int label1, int label2) {
 		std::stringstream ss;
-		ss << dir << label1 << "-" <<label2 << ".csv";
+		ss << dir << label1 << "-" << label2 << ".csv";
 		std::ofstream output(ss.str());
 
 
-		for (uint i = 0; i<length(0); i++){
-			for (uint j = 0; j < length(1); j++) {
+		for (size_t i = 0; i < length(0); i++) {
+			for (size_t j = 0; j < length(1); j++) {
 				// Put the character representing this point in the AStarGrid grid.
-				mt::vertex_descriptor u = {{i, j}};
+				mt::vertex_descriptor u = { {i, j} };
 				if (solution_contains(u))
 					output << 2 << ",";
 				else if (has_barrier(u))
@@ -247,8 +241,8 @@ private:
 		return boost::make_vertex_subset_complement_filter(m_grid, m_barriers);
 	}
 
-	mt::grid m_grid; // The grid underlying the AStarGrid
-	mt::filtered_grid m_barrier_grid; // The underlying AStarGrid grid with barrier vertices filtered out
-	mt::vertex_set m_barriers; // The barriers in the AStarGrid
+	mt::grid m_grid;  // The grid underlying the AStarGrid
+	mt::filtered_grid m_barrier_grid;  // The underlying AStarGrid grid with barrier vertices filtered out
+	mt::vertex_set m_barriers;  // The barriers in the AStarGrid
 };
 

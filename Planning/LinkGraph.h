@@ -23,7 +23,7 @@ public:
 	{};
 	CostType operator()(Vertex u)
 	{
-		return CostType(easymath::euclidean_distance(m_location[u],m_location[m_goal])); // euclidean cost heuristic
+		return CostType(easymath::euclidean_distance(m_location[u],m_location[m_goal]));  // euclidean cost heuristic
 	}
 private:
 	LocMap m_location;
@@ -32,7 +32,7 @@ private:
 };
 
 
-struct found_goal {}; // exception for termination
+struct found_goal {};  // exception for termination
 
 // visitor that terminates when we find the goal
 template <class Vertex>
@@ -59,7 +59,7 @@ public:
 		boost::no_property,
 		boost::property<boost::edge_weight_t, cost> > mygraph_t;
 	// Note: m_edges is not populated
-	typedef mygraph_t::vertex_descriptor vertex; // vertex is an int: corresponds to number in the locations list
+	typedef mygraph_t::vertex_descriptor vertex;  // vertex is an int: corresponds to number in the locations list
 	typedef mygraph_t::edge_descriptor edge_descriptor;
 	typedef mygraph_t::vertex_iterator vertex_iterator;
 	typedef std::pair<int, int> edge;
@@ -73,7 +73,7 @@ public:
 	}
 
 	// WEIGHT MODIFICATIONS
-	matrix1d saved_weights; // for blocking and unblocking sectors
+	matrix1d saved_weights;  // for blocking and unblocking sectors
 	typedef boost::graph_traits<mygraph_t>::edge_iterator edge_iter;
 	void blockVertex(int vertexID){
 		// Makes it highly suboptimal to travel to a vertex
@@ -93,7 +93,6 @@ public:
 	void setWeights(matrix1d weights){
 		// iterate over all edge descriptors...
 		typedef boost::graph_traits<mygraph_t>::edge_iterator edge_iter;
-		std::pair<edge_iter, edge_iter> ep;
 		edge_iter ei, ei_end;
 		int i=0;
 
@@ -105,7 +104,6 @@ public:
 	matrix1d getWeights(){
 		// iterate over all edge descriptors...
 		typedef boost::graph_traits<mygraph_t>::edge_iterator edge_iter;
-		std::pair<edge_iter, edge_iter> ep;
 		edge_iter ei, ei_end;
 		matrix1d weights;
 		for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
@@ -150,7 +148,7 @@ public:
 			}
 			return vertex2int(shortest_path);
 		}
-		return std::list<int>(1,int(start)); // fail to find path: stay in one place
+		return std::list<int>(1,int(start));  // fail to find path: stay in one place
 	}
 
 	void print_graph_to_file(std::string file_path){

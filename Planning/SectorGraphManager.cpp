@@ -7,7 +7,7 @@ SectorGraphManager::SectorGraphManager(matrix2d membership_map, vector<edge> edg
 	membership_map(membership_map)
 {
 	// Gets a grid map for each connection
-	for (uint i=0; i<edges.size(); i++){
+	for (size_t i=0; i<edges.size(); i++){
 		edge e = edges[i];
 		m2graph[e.first][e.second] = new GridGraph(membership_map, e.first, e.second);
 	}
@@ -18,7 +18,7 @@ SectorGraphManager::~SectorGraphManager(void)
 }
 
 int SectorGraphManager::getMembership(const XY &p){
-	return (int)membership_map[uint(p.x)][uint(p.y)];
+	return (int)membership_map[size_t(p.x)][size_t(p.y)];
 }
 
 vector<XY> SectorGraphManager::astar(const XY &p1, const XY &p2){

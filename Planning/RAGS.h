@@ -17,7 +17,7 @@ using namespace easymath ;
 using namespace std ;
 
 typedef unsigned long int ULONG ;
-enum searchType {ASTAR, DIJKSTRA} ; // BREADTH, DEPTH
+enum searchType {ASTAR, DIJKSTRA} ;  // BREADTH, DEPTH
 enum heuristic {ZERO, MANHATTAN, EUCLIDEAN} ;
 enum pathOut {BEST,ALL} ;
 enum nodeType {SOURCE, OTHER} ;
@@ -88,8 +88,8 @@ class Edge
     double itsMeanCost ;
     double itsVarCost ;
     double itsTrueCost ;
-    double itsMeanSearch ; // Actual value used in search
-    double itsVarSearch ; // Actual value used in search
+    double itsMeanSearch ;  // Actual value used in search
+    double itsVarSearch ;  // Actual value used in search
 } ;
 
 // Graph class to create and store graph structure
@@ -152,7 +152,7 @@ class Graph
 class Node
 {
   public:
-    Node(Vertex * vertex):
+    explicit Node(Vertex * vertex):
       itsVertex(vertex), itsParent(0), itsMeanCost(0.0), itsVarCost(0.0), itsDepth(0),
       itsHeuristic(0.0), itsMeanCTG(0.0), itsVarCTG(0.0) {}
 
@@ -232,7 +232,7 @@ class CompareNode
             double n2Cost = n2->GetMeanCost() + n2->GetHeuristic() ;
 			
 			if (n1Cost == n2Cost && n1->GetVarCost() == n2->GetVarCost()) {
-				return n1 < n2; // memory location comparison breaks ties
+				return n1 < n2;  // memory location comparison breaks ties
 			}
 
             return (n1Cost >= n2Cost && n1->GetVarCost() >= n2->GetVarCost()) ;
@@ -251,7 +251,7 @@ class Queue
 {
   public:
     typedef priority_queue<Node *, vector<Node *>, CompareNode> QUEUE ;
-    Queue(Node * source){
+    explicit Queue(Node * source){
       itsPQ = new QUEUE ;
       itsPQ->push(source) ;
     }
@@ -328,13 +328,13 @@ class RAGS
     RAGS(vector<XY> &locations, vector<edge> &edge_array, vector< vector<double> > &weights):
     itsLocations(locations), itsEdgeArray(edge_array){
       itsGraph = new Graph(locations, edge_array, weights) ;
-      PSET = BEST ; // BEST = ASTAR; ALL = RAGS
+      PSET = BEST ;  //BEST = ASTAR; ALL = RAGS
     }
 
     RAGS(vector<XY> &locations, vector<edge> &edge_array):
     itsLocations(locations), itsEdgeArray(edge_array){
       itsGraph = new Graph(locations, edge_array) ;
-      PSET = BEST ; // BEST = ASTAR; ALL = RAGS
+      PSET = BEST ;  // BEST = ASTAR; ALL = RAGS
     }
 
     ~RAGS()
@@ -373,7 +373,7 @@ class RAGS
     vector<Node *> itsNDSet ;
     pathOut PSET ;
 
-	vector<vector<double> > weights_history; //[t][edge]
+	vector<vector<double> > weights_history;  //[t][edge]
     void AssignCurrentEdgeCosts(vector<double> &weights) ;
 	void AssignCurrentMeansAndVariances();
 	

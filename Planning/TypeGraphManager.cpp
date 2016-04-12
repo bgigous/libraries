@@ -14,15 +14,15 @@ TypeGraphManager::TypeGraphManager(int n_types, vector<edge> edges, vector<XY> a
 }
 
 TypeGraphManager::TypeGraphManager(string edgesFile, string verticesFile, int n_types):
-	n_types(n_types)
+	n_types(n_types),
+	edges(FileIn::read_pairs<edge>(edgesFile)) // NOTE: this leaves to the user the task of making edges bidirectional
 {
 	// Read in files for sector management
 	vector<XY> agentLocs = FileIn::read_pairs<XY>(verticesFile);
-	edges = FileIn::read_pairs<edge>(edgesFile); // NOTE: this leaves to the user the task of making edges bidirectional
 	rags_map = new RAGS(agentLocs, edges);
 	
-	for (uint i=0; i<agentLocs.size(); i++){
-		loc2mem[agentLocs[i]]=i; // add in reverse lookup
+	for (size_t i=0; i<agentLocs.size(); i++){
+		loc2mem[agentLocs[i]]=i;  // add in reverse lookup
 	}
 
 	initializeTypeLookupAndDirections(agentLocs);
@@ -55,10 +55,8 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX
 
 	rags_map = new RAGS(agentLocs, edges);
 
-	bool isfullyconnected = fullyConnected(agentLocs);
-
-	for (uint i=0; i<agentLocs.size(); i++){
-		loc2mem[agentLocs[i]]=i; // add in reverse lookup
+	for (size_t i=0; i<agentLocs.size(); i++){
+		loc2mem[agentLocs[i]]=i;  // add in reverse lookup
 	}
 
 	initializeTypeLookupAndDirections(agentLocs);
@@ -77,8 +75,8 @@ bool TypeGraphManager::intersectsExistingEdge(edge candidate, vector<XY> agentLo
 bool TypeGraphManager::fullyConnected(vector<XY> agentLocs){
 	LinkGraph a = LinkGraph(agentLocs,edges);
 
-	for (uint i=0; i<agentLocs.size(); i++){
-		for (uint j=0; j<agentLocs.size(); j++){
+	for (size_t i=0; i<agentLocs.size(); i++){
+		for (size_t j=0; j<agentLocs.size(); j++){
 			if (i==j) continue;
 			list<int> path = a.astar(i,j);
 			if (path.size()==1)
@@ -98,7 +96,7 @@ TypeGraphManager::~TypeGraphManager(void)
 }
 
 void TypeGraphManager::setCostMaps(matrix2d agent_actions){
-	for (uint i=0; i<Graph_highlevel.size(); i++){
+	for (size_t i=0; i<Graph_highlevel.size(); i++){
 		Graph_highlevel[i]->setWeights(agent_actions[i]);
 	}
 }
@@ -116,7 +114,7 @@ list<int> TypeGraphManager::rags(int mem1, int mem2, int type_ID){
 	XY next_xy = rags_map->SearchGraph(start_loc,end_loc,w);
 	int next_node_ID = getMembership(next_xy);
 	list<int> partial_path;
-	partial_path.push_back(mem1); // Add in starting node too
+	partial_path.push_back(mem1);  // Add in starting node too
 	partial_path.push_back(next_node_ID);
 	// NOTE TO RYAN: debug may be needed here. RAGS doesn't always seem to find a path. Please make sure I'm using it correctly.s
 	return partial_path;

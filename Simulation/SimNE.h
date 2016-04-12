@@ -14,11 +14,11 @@ public:
 	SimNE(IDomainStateful* domain, MultiagentNE* MAS);
 	virtual ~SimNE(void);
 
-	static const int n_epochs=500; // testing parameter, changed from 500;
+	static const int n_epochs=500;  // testing parameter, changed from 500;
 	static const int n_trials=1;
-	int* step; // step counter for running the simulation
+	int* step;  // step counter for running the simulation
 
 	virtual void runExperiment();
 	virtual void epoch(int ep);
-	virtual matrix2d getActions(); // Gets actions based on current state: OVERLOAD FOR TYPES
+	virtual matrix2d getActions();  // Gets actions based on current state: OVERLOAD FOR TYPES
 };

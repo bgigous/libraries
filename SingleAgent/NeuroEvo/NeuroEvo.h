@@ -12,21 +12,21 @@
 #include "../../FileIO/FileOut.h"
 
 class NeuroEvoParameters{
-public:
+ public:
 	NeuroEvoParameters(int inputSet, int outputSet);
 	static const int nHidden = 50;
-	static const int popSize=10; // surviving population size
+	static const int popSize=10;  // surviving population size
 	
 	int nInput;
 	int nOutput;
-	double epsilon; // for epsilon-greedy selection: currently unused
+	double epsilon;  // for epsilon-greedy selection: currently unused
 };
 
 class NeuroEvo: public IAgent 
 {
 public:
 	NeuroEvo(){};
-	NeuroEvo(NeuroEvoParameters* neuroEvoParamsSet);
+	explicit NeuroEvo(NeuroEvoParameters* neuroEvoParamsSet);
 	~NeuroEvo(void);
 	
 	// Class variables
@@ -35,11 +35,10 @@ public:
 	std::list<NeuralNet*>::iterator pop_member_active;
 
 	void deepCopy(NeuroEvo &NE);
-	void deletePopulation(); // deletes all neural network population member pointers
-	virtual void generateNewMembers(); // Generate k new members from existing population
-	bool selectNewMember(); // Select the next member to test; if cannot be selected, end epoch
-	double getBestMemberVal(); // get the highest evaluation in the group
-	void setNNToBestMember();
+	void deletePopulation();  // deletes all neural network population member pointers
+	void generateNewMembers();  // Generate k new members from existing population
+	bool selectNewMember();  // Select the next member to test; if cannot be selected, end epoch
+	double getBestMemberVal();  // get the highest evaluation in the group
 	void selectSurvivors();
 	static bool NNCompare(const NeuralNet *x, const NeuralNet *y) {return (x->evaluation>y->evaluation);}
 
@@ -54,7 +53,7 @@ public:
 		for (NeuralNet* p: population){
 			matrix1d node_info;
 			matrix1d wt_info;
-			p->save(node_info,wt_info);
+			p->save(&node_info,&wt_info);
 			nets.push_back(node_info);
 			nets.push_back(wt_info);
 		}
