@@ -20,7 +20,7 @@ TypeGraphManager::TypeGraphManager(string edgesFile, string verticesFile, int n_
 	vector<XY> agentLocs = FileIn::read_pairs<XY>(verticesFile);
 	edges = FileIn::read_pairs<edge>(edgesFile); // NOTE: this leaves to the user the task of making edges bidirectional
 	rags_map = new RAGS(agentLocs, edges);
-	
+
 	for (uint i=0; i<agentLocs.size(); i++){
 		loc2mem[agentLocs[i]]=i; // add in reverse lookup
 	}
@@ -32,7 +32,7 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX
 	n_types(n_types)
 {
 	set<XY> agent_loc_set = get_n_unique_points(0.0,gridSizeX,0.0,gridSizeY, n_vertices);
-	vector<XY> agentLocs;
+	vector<XY> agentLocs (agent_loc_set.size());
 	copy(agent_loc_set.begin(),agent_loc_set.end(),agentLocs.begin());
 
 	vector<edge > candidates;
@@ -112,7 +112,6 @@ list<int> TypeGraphManager::rags(int mem1, int mem2, int type_ID){
 	matrix1d w = Graph_highlevel[type_ID]->getWeights();
 	XY start_loc = getLocation(mem1);
 	XY end_loc = getLocation(mem2);
-
 	XY next_xy = rags_map->SearchGraph(start_loc,end_loc,w);
 	int next_node_ID = getMembership(next_xy);
 	list<int> partial_path;
