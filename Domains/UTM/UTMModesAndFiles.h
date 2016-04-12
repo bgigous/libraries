@@ -8,113 +8,114 @@
 #include <direct.h>
 #else
 #include <sys/stat.h>
+#include <stdexcept>
 #endif
 
 #include "../IDomainStateful.h"
 
 class UTMModes : public IDomainStatefulParameters {
- public:
+public:
     UTMModes() :
-        // Mode defaults
-        _reward_mode(UTMModes::RewardMode::GLOBAL),
-        _airspace_mode(UTMModes::AirspaceMode::SAVED),
-        _traffic_mode(UTMModes::TrafficMode::DETERMINISTIC),
-        _agent_defn_mode(UTMModes::AgentDefinition::LINK),
-        _reward_type_mode(UTMModes::RewardType::DELAY),
-        _search_type_mode(UTMModes::SearchDefinition::ASTAR),
-        // Constants defaults
-        square_reward(false),
-        n_sectors(10)
-    {};
+		// Mode defaults
+		_reward_mode(UTMModes::RewardMode::GLOBAL),
+		_airspace_mode(UTMModes::AirspaceMode::SAVED),
+		_traffic_mode(UTMModes::TrafficMode::DETERMINISTIC),
+		_agent_defn_mode(UTMModes::AgentDefinition::LINK),
+		_reward_type_mode(UTMModes::RewardType::DELAY),
+		_search_type_mode(UTMModes::SearchDefinition::RAGS),
+		// Constants defaults
+		square_reward(false),
+		n_sectors(10)
+	{};
     ~UTMModes() {}
 
-    // OPTION HERE FOR ONE AGENT PER LINK
+	// OPTION HERE FOR ONE AGENT PER LINK
     enum class AgentDefinition { SECTOR, LINK };
-    AgentDefinition _agent_defn_mode;
+	AgentDefinition _agent_defn_mode;
 
     enum class SearchDefinition { ASTAR, RAGS };
-    SearchDefinition _search_type_mode;
+	SearchDefinition _search_type_mode;
 
 
-    // NUMBER OF SECTORS
-    int n_sectors;
+	// NUMBER OF SECTORS
+	int n_sectors;
     int get_n_sectors() {
-        return n_sectors;
-    }
+		return n_sectors;
+	}
 
-    // Agents
+	// Agents
     int get_n_agents() {
-        try {
-            if (_agent_defn_mode == UTMModes::AgentDefinition::SECTOR) {
-                return get_n_sectors();
+		try {
+			if (_agent_defn_mode == UTMModes::AgentDefinition::SECTOR) {
+				return get_n_sectors();
             } else if (_agent_defn_mode == UTMModes::AgentDefinition::LINK) {
-                return get_n_links();
+				return get_n_links();
             } else {
-                throw std::runtime_error("Bad _agent_defn_mode");
-            }
-        }
-        catch (std::runtime_error) {
-            exit(1);
-        }
-    }
+				throw std::runtime_error("Bad _agent_defn_mode");
+			}
+		}
+		catch (std::runtime_error) {
+			exit(1);
+		}
+	}
 
-    // This should be set after the graph is constructed!
-    int n_links;
+	// This should be set after the graph is constructed!
+	int n_links;
     int get_n_links() {
-        return n_links;
-    }
+		return n_links;
+	}
 
-    // REWARDS
+	// REWARDS
     enum class RewardMode {
-        GLOBAL,
-        DIFFERENCE_DOWNSTREAM,
-        DIFFERENCE_TOUCHED,
-        DIFFERENCE_REALLOC,
-        DIFFERENCE_AVG,
-        NMODES
-    };
-    bool square_reward;
+		GLOBAL,
+		DIFFERENCE_DOWNSTREAM,
+		DIFFERENCE_TOUCHED,
+		DIFFERENCE_REALLOC,
+		DIFFERENCE_AVG,
+		NMODES
+	};
+	bool square_reward;
 
-    RewardMode _reward_mode;
+	RewardMode _reward_mode;
     std::string getRewardModeName() {
-        std::string reward_names[size_t(RewardMode::NMODES)] = {
-            "GLOBAL",
-            "DIFFERENCE_DOWNSTREAM",
-            "DIFFERENCE_TOUCHED",
-            "DIFFERENCE_REALLOC",
-            "DIFFERENCE_AVG"
-        };
-        return reward_names[size_t(_reward_mode)];
-    }
+		std::string reward_names[size_t(RewardMode::NMODES)] = {
+			"GLOBAL",
+			"DIFFERENCE_DOWNSTREAM",
+			"DIFFERENCE_TOUCHED",
+			"DIFFERENCE_REALLOC",
+			"DIFFERENCE_AVG"
+		};
+		return reward_names[size_t(_reward_mode)];
+	}
 
     // This is which types of environment variable is counted
     enum class RewardType {
-        CONFLICTS,
-        DELAY,
-        NREWARDTYPES
-    };
-    RewardType _reward_type_mode;
+		CONFLICTS,
+		DELAY,
+		NREWARDTYPES
+	};
+	RewardType _reward_type_mode;
 
 
-    // CAPACITIES
+	// CAPACITIES
     int get_flat_capacity() { return 2; }
 
 
-    // AIRSPACE
+	// AIRSPACE
     enum class AirspaceMode { SAVED, GENERATED };
-    AirspaceMode _airspace_mode;
+	AirspaceMode _airspace_mode;
 
     // SUBCLASS MODES/CONSTANTS
     enum class TrafficMode { DETERMINISTIC, PROBABILISTIC };
-    TrafficMode _traffic_mode;
+	TrafficMode _traffic_mode;
 
 
-    // UAV types
+	// UAV types
 
     enum class UAVType { SLOW, FAST, NTYPES = 1 };
     // const enum UAVType{SLOW,NTYPES};
 
-    // CONSTANTS
+	// CONSTANTS
     //! Returns 4 state elements for sectors (number of planes traveling in
     //! cardinal directions). Returns 1 for links.
     int get_n_state_elements() {
@@ -122,7 +123,7 @@ class UTMModes : public IDomainStatefulParameters {
             return 4;
         else
             return 1;
-    }
+	}
     int get_n_control_elements() {
         return get_n_state_elements()*get_n_types();
     }
@@ -137,56 +138,56 @@ class UTMModes : public IDomainStatefulParameters {
 };
 
 class UTMFileNames {
- public:
+public:
     explicit UTMFileNames(UTMModes* modes_set = NULL) :
         modes(modes_set) {
         if (modes_set == NULL) {
             modes = new UTMModes();  // Uses the default
-            kill_modes = true;
-        } else {
-            kill_modes = false;
-        }
-    }
+			kill_modes = true;
+		} else {
+			kill_modes = false;
+		}
+	}
     ~UTMFileNames() {
-        if (kill_modes)
-            delete modes;
-    }
-    bool kill_modes;
-    UTMModes* modes;
+		if (kill_modes)
+			delete modes;
+	}
+	bool kill_modes;
+	UTMModes* modes;
 
     std::string createDomainDirectory() {
-        // Saves the map information
-        std::string DOMAIN_FOLDER = "Domains/";
+		// Saves the map information
+		std::string DOMAIN_FOLDER = "Domains/";
         std::string SECTOR_FOLDER = DOMAIN_FOLDER +
             std::to_string(modes->get_n_sectors()) + "_Sectors/";
 #ifdef _WIN32
-        _mkdir(DOMAIN_FOLDER.c_str());
-        _mkdir(SECTOR_FOLDER.c_str());
+		_mkdir(DOMAIN_FOLDER.c_str());
+		_mkdir(SECTOR_FOLDER.c_str());
 #else
-        mkdir(DOMAIN_FOLDER.c_str(), ACCESSPERMS);
-        mkdir(SECTOR_FOLDER.c_str(), ACCESSPERMS);
+		mkdir(DOMAIN_FOLDER.c_str(), ACCESSPERMS);
+		mkdir(SECTOR_FOLDER.c_str(), ACCESSPERMS);
 #endif
-        return SECTOR_FOLDER;
-    }
+		return SECTOR_FOLDER;
+	}
 
     std::string createExperimentDirectory() {
-        std::string EXPERIMENT_FOLDER = "Experiments/";
+		std::string EXPERIMENT_FOLDER = "Experiments/";
         // Creates a directory for the experiment and returns that as a string
-        // DIRECTORY HIERARCHY: EXPERIMENTS/NAGENTS/TRAFFIC/CAPACITY/REWARDTYPE/
-        // typehandling(file name).csv assumed
-        std::string AGENTS_FOLDER;
+		// DIRECTORY HIERARCHY: EXPERIMENTS/NAGENTS/TRAFFIC/CAPACITY/REWARDTYPE/
+		// typehandling(file name).csv assumed
+		std::string AGENTS_FOLDER;
 
         switch (modes->_agent_defn_mode) {
-        case UTMModes::AgentDefinition::LINK:
+		case UTMModes::AgentDefinition::LINK:
             AGENTS_FOLDER = EXPERIMENT_FOLDER + "Link_agents/";
-            break;
-        case UTMModes::AgentDefinition::SECTOR:
+			break;
+		case UTMModes::AgentDefinition::SECTOR:
             AGENTS_FOLDER = EXPERIMENT_FOLDER + "Sector_agents/";
-            break;
-        default:
+			break;
+		default:
             AGENTS_FOLDER = EXPERIMENT_FOLDER + "Unknown/";
-            break;
-        }
+			break;
+		}
 
         std::string SECTOR_FOLDER = AGENTS_FOLDER +
             std::to_string(modes->get_n_sectors()) + "_Sectors/";
@@ -200,13 +201,13 @@ class UTMFileNames {
             modes->getRewardModeName() + "_Reward/";
 
 #ifdef _WIN32
-        _mkdir(EXPERIMENT_FOLDER.c_str());
-        _mkdir(AGENTS_FOLDER.c_str());
-        _mkdir(SECTOR_FOLDER.c_str());
-        _mkdir(TRAFFIC_FOLDER.c_str());
-        _mkdir(STEPS_FOLDER.c_str());
-        _mkdir(TYPES_FOLDER.c_str());
-        _mkdir(REWARD_FOLDER.c_str());
+		_mkdir(EXPERIMENT_FOLDER.c_str());
+		_mkdir(AGENTS_FOLDER.c_str());
+		_mkdir(SECTOR_FOLDER.c_str());
+		_mkdir(TRAFFIC_FOLDER.c_str());
+		_mkdir(STEPS_FOLDER.c_str());
+		_mkdir(TYPES_FOLDER.c_str());
+		_mkdir(REWARD_FOLDER.c_str());
 #else
         mkdir(EXPERIMENT_FOLDER.c_str(), ACCESSPERMS);
         mkdir(AGENTS_FOLDER.c_str(), ACCESSPERMS);
@@ -217,6 +218,6 @@ class UTMFileNames {
         mkdir(REWARD_FOLDER.c_str(), ACCESSPERMS);
 #endif
         return REWARD_FOLDER;  // returns the full directory path just generated
-    }
+	}
 };
 #endif  // DOMAINS_UTM_UTMMODESANDFILES_H_

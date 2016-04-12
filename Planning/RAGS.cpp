@@ -232,7 +232,7 @@ bool Queue::CompareNodes(const Node * n1, const Node * n2) const
 	// out: Is n1 worse than or equal to n2?
 	double n1Cost = n1->GetMeanCost() ;
 	double n2Cost = n2->GetMeanCost() ;
-	
+
 	if (n1Cost == n2Cost && n1->GetVarCost() == n2->GetVarCost()) {
 		return n1 < n2;  // memory location comparison breaks ties
 	}
@@ -514,7 +514,7 @@ XY RAGS::SearchGraph(XY start, XY goal, vector<double> &weights)
 XY RAGS::SearchGraph(Vertex * start, Vertex * goal, vector<double> &weights)
 {
 	AssignCurrentEdgeCosts(weights) ;
-	AssignCurrentMeansAndVariances();
+	AssignCurrentMeansAndVariances(); // maybe we should update the means and variances after each step not for each UAV search
 
 	// Initialise non-dominated path set
 	if (itsNDSet.empty()){
