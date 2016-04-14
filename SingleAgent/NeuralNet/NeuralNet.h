@@ -1,4 +1,7 @@
-#pragma once
+// Copyright 2016 Carrie Rebhuhn
+#ifndef SINGLEAGENT_NEURALNET_NEURALNET_H_
+#define SINGLEAGENT_NEURALNET_NEURALNET_H_
+
 #include <vector>
 #include <iostream>
 #include <chrono>
@@ -18,49 +21,62 @@ class NeuralNet {
     void addInputs(int nToAdd);
 
     NeuralNet(int nInput, int nHidden, int nOutput, double gamma = 0.9);
-    NeuralNet(std::vector<int> &, double gamma = 0.9);
-    void train(matrix2d &O, matrix2d &T, double epsilon = 0.0,
+    explicit NeuralNet(std::vector<int> &, double gamma = 0.9);
+    void train(const matrix2d &O, const matrix2d &T, double epsilon = 0.0,
         int iterations = 0);
-    matrix1d predictBinary(matrix1d o);
-    matrix1d predictContinuous(matrix1d o);
-    matrix2d batchPredictBinary(matrix2d &O);
-    matrix2d batchPredictContinuous(matrix2d &O);
+    matrix1d predictBinary(const matrix1d o);
+    matrix1d predictContinuous(const matrix1d o);
+    matrix2d batchPredictBinary(const matrix2d &O);
+    matrix2d batchPredictContinuous(const matrix2d &O);
+
+    void save(std::string fileout);
+    void load(std::string filein);
+    void load(matrix1d node_info, matrix1d wt_info);
+    void save(matrix1d *node_info, matrix1d *wt_info);
 
  private:
     double gamma_;
     double mutStd;  // mutation standard deviation
     double mutationRate;  // probability that each connection is changed
 
-    // container for all outputs on way through neural network: for FAST multiplication
+    //! container for all outputs on way through neural network:
+    //! for FAST multiplication
     matrix2d matrix_multiplication_storage;
-    std::vector<int> nodes_;  // number of nodes at each layer of the network
-    matrix3d W;  // weights, W[interface][input][hidden(next unit)]. Without bias
-    matrix3d Wbar;  // weights with bias;
-    void setRandomWeights();  // sets weights randomly for the defined network
-    void setMatrixMultiplicationStorage();  // sets storage for matrix multiplication. Must be called each time network structure is changed/initiated
+    //! number of nodes at each layer of the network
+    std::vector<int> nodes_;
 
-    void  matrixMultiply(matrix1d &A, matrix2d &B, matrix1d &C);
-    double SSE(matrix1d &myVector);
+    //! weights, W[interface][input][hidden(next unit)]. Without bias
+    matrix3d W;
+    //! weights with bias;
+    matrix3d Wbar;
+
+    //! sets weights randomly for the defined network
+    void setRandomWeights();
+
+    //! sets storage for matrix multiplication.
+    //! Must be called each time network structure is changed/initiated
+    void setMatrixMultiplicationStorage();
+
     int connections();
-    double backProp(matrix1d &o, matrix1d &t);
-    void feedForward(matrix1d &o, matrix2d &Ohat, matrix3d &D);
+    double backProp(const matrix1d &o, const matrix1d &t);
+    void feedForward(const matrix1d &o, matrix2d* Ohat, matrix3d* D);
 
-    matrix2d matrixMultiply(const matrix2d &A, const matrix2d &B);
-    matrix2d matrixMultiply(const matrix1d&A, const matrix1d &B);
-    matrix1d matrixMultiply(const matrix2d &A, const matrix1d &B);
-    matrix1d matrixMultiply(const matrix1d &A, const matrix2d &B);
-    void sigmoid(matrix1d *myVector);
-    void cmp_int_fatal(int a, int b);
+
+    //! Static functions
+    static double SSE(const matrix1d &myVector);
+    static void matrixMultiply(const matrix1d &A, const matrix2d &B,
+        matrix1d *C);
+    static matrix2d matrixMultiply(const matrix2d &A, const matrix2d &B);
+    static matrix2d matrixMultiply(const matrix1d&A, const matrix1d &B);
+    static matrix1d matrixMultiply(const matrix2d &A, const matrix1d &B);
+    static matrix1d matrixMultiply(const matrix1d &A, const matrix2d &B);
+    static void sigmoid(matrix1d *myVector);
+    static void cmp_int_fatal(int a, int b);
 
 
 
  protected:
     double randAddFanIn(double fan_in);
     double randSetFanIn(double fan_in);
-
- public:
-    void save(std::string fileout);
-    void load(std::string filein);
-    void load(matrix1d node_info, matrix1d wt_info);
-    void save(matrix1d *node_info, matrix1d *wt_info);
 };
+#endif  // SINGLEAGENT_NEURALNET_NEURALNET_H_

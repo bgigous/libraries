@@ -17,7 +17,7 @@ double NeuralNet::randAddFanIn(double fan_in) {
     } else {
         // FOR MUTATION
         std::default_random_engine generator;
-        generator.seed(time(NULL));
+        generator.seed(static_cast<size_t>(time(NULL)));
         std::normal_distribution<double> distribution(0.0, mutStd);
         return distribution(generator);
     }
@@ -228,7 +228,7 @@ NeuralNet::NeuralNet(vector<int> &nodes, double gamma) :
     setMatrixMultiplicationStorage();
 }
 
-void NeuralNet::train(matrix2d &observations, matrix2d &T,
+void NeuralNet::train(const matrix2d &observations, const matrix2d &T,
     double epsilon, int iterations) {
     // just ensure it's bigger always to begin...
     double err = 2 * epsilon + 1.0;
@@ -268,7 +268,7 @@ matrix1d NeuralNet::predictBinary(matrix1d observations) {
 
 matrix1d NeuralNet::predictContinuous(matrix1d observations) {
     observations.push_back(1.0);
-    matrixMultiply(observations, Wbar[0], matrix_multiplication_storage[0]);
+    matrixMultiply(observations, Wbar[0], &matrix_multiplication_storage[0]);
     sigmoid(&matrix_multiplication_storage[0]);
 
     for (int connection = 1; connection < connections(); connection++) {
@@ -277,14 +277,14 @@ matrix1d NeuralNet::predictContinuous(matrix1d observations) {
         matrix_multiplication_storage[connection - 1].back() = 1.0;
 
         matrixMultiply(matrix_multiplication_storage[connection - 1],
-            Wbar[connection], matrix_multiplication_storage[connection]);
+            Wbar[connection], &matrix_multiplication_storage[connection]);
         sigmoid(&matrix_multiplication_storage[connection]);
     }
 
     return matrix_multiplication_storage.back();
 }
 
-matrix2d NeuralNet::batchPredictBinary(matrix2d &observations) {
+matrix2d NeuralNet::batchPredictBinary(const matrix2d &observations) {
     matrix2d out;
     for (size_t i = 0; i < observations.size(); i++) {
         out.push_back(predictBinary(observations[i]));
@@ -292,7 +292,7 @@ matrix2d NeuralNet::batchPredictBinary(matrix2d &observations) {
     return out;
 }
 
-matrix2d NeuralNet::batchPredictContinuous(matrix2d &observations) {
+matrix2d NeuralNet::batchPredictContinuous(const matrix2d &observations) {
     matrix2d out;
     for (size_t i = 0; i < observations.size(); i++) {
         out.push_back(predictContinuous(observations[i]));
@@ -300,7 +300,7 @@ matrix2d NeuralNet::batchPredictContinuous(matrix2d &observations) {
     return out;
 }
 
-double NeuralNet::SSE(matrix1d &myVector) {
+double NeuralNet::SSE(const matrix1d &myVector) {
     double err = 0.0;
     for (size_t i = 0; i < myVector.size(); i++) {
         err += myVector[i] * myVector[i];
@@ -312,7 +312,7 @@ int NeuralNet::connections() {
     return nodes_.size() - 1;
 }
 
-double NeuralNet::backProp(matrix1d &observations, matrix1d &t) {
+double NeuralNet::backProp(const matrix1d &observations, const matrix1d &t) {
     // 'observations' is the input vector, 't' is the 'target vector'
     // returns the SSE for the output vector
 
@@ -320,7 +320,7 @@ double NeuralNet::backProp(matrix1d &observations, matrix1d &t) {
     matrix3d D;  // stored derivatives
     // Go through network "feed forward" computation
 
-    feedForward(observations, Ohat, D);
+    feedForward(observations, &Ohat, &D);
 
     // "stored derivatives of the quadratic deviations"
     matrix1d e(Ohat.back().size() - 1, 0.0);
@@ -336,7 +336,7 @@ double NeuralNet::backProp(matrix1d &observations, matrix1d &t) {
     }
     delta.back() = matrixMultiply(D.back(), e);  // output layer delta
 
-                                                 // back propagation
+    // back propagation
     for (int connection = connections() - 2; connection >= 0; connection--) {
         matrix2d mult = matrixMultiply(D[connection], W[connection + 1]);
         delta[connection] = matrixMultiply(mult, delta[connection + 1]);
@@ -361,28 +361,28 @@ double NeuralNet::backProp(matrix1d &observations, matrix1d &t) {
     return SSE(e);
 }
 
-void NeuralNet::feedForward(matrix1d &o, matrix2d &Ohat, matrix3d &D) {
-    Ohat.push_back(o);
-    Ohat.back().push_back(1.0);  // add 1 for bias
+void NeuralNet::feedForward(const matrix1d &o, matrix2d *Ohat, matrix3d* D) {
+    Ohat->push_back(o);
+    Ohat->back().push_back(1.0);  // add 1 for bias
 
     for (int c = 0; c < connections(); c++) {
-        Ohat.push_back(matrixMultiply(Ohat[c], Wbar[c]));
-        sigmoid(&Ohat.back());
+        Ohat->push_back(matrixMultiply(Ohat->at(c), Wbar[c]));
+        sigmoid(&Ohat->back());
 
         // D stuff
-        D.push_back(matrix2d());
+        D->push_back(matrix2d());
 
         // number of hidden/output units, excluding bias
-        int k = Ohat.back().size();
+        int k = Ohat->back().size();
 
         for (int i = 0; i < k; i++) {  // add for last entry
             // For last output given, calculate the derivatives
-            double Oi = Ohat.back().at(i);
-            D[c].push_back(matrix1d(k, 0.0));
-            D[c][i][i] = Oi*(1 - Oi);  // create a diagonal matrix
+            double Oi = Ohat->back().at(i);
+            D->at(c).push_back(matrix1d(k, 0.0));
+            D->at(c)[i][i] = Oi*(1 - Oi);  // create a diagonal matrix
         }
 
-        Ohat.back().push_back(1.0);
+        Ohat->back().push_back(1.0);
     }
 }
 
@@ -452,7 +452,8 @@ matrix1d NeuralNet::matrixMultiply(const matrix1d &A, const matrix2d &B) {
     return C;
 }
 
-void  NeuralNet::matrixMultiply(matrix1d &A, matrix2d &B, matrix1d &C) {
+void NeuralNet::matrixMultiply(const matrix1d &A, const matrix2d &B,
+    matrix1d* C) {
     /* This fills C up to the size of B[0].size().
     * C is allowed to be larger by 1, to accommodate bias
     * Use this if expecting to get a vector back;
@@ -460,16 +461,16 @@ void  NeuralNet::matrixMultiply(matrix1d &A, matrix2d &B, matrix1d &C) {
     * returns a 1xsize(B,2) matrix*/
 
     cmp_int_fatal(A.size(), B.size());
-    if (B[0].size() != C.size() && B[0].size() != C.size() - 1) {
+    if (B[0].size() != C->size() && B[0].size() != C->size() - 1) {
         printf("B and C sizes don't match. pausing");
         system("pause");
     }
 
     // MODIFY TO MATCH1
     for (size_t col = 0; col < B[0].size(); col++) {
-        C[col] = 0.0;
+        C->at(col) = 0.0;
         for (size_t inner = 0; inner < B.size(); inner++) {
-            C[col] += A[inner] * B[inner][col];
+            C->at(col) += A[inner] * B[inner][col];
         }
     }
 }

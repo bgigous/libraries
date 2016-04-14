@@ -4,6 +4,12 @@
 #include <list>
 #include <map>
 
+using std::vector;
+using std::list;
+using std::map;
+using easymath::XY;
+using easymath::rand;
+
 Fix::Fix(XY loc, int ID_set, TypeGraphManager* highGraph,
     vector<Fix*>* fixes, UTMModes* params,
     map<edge, int> *linkIDs) :

@@ -84,11 +84,11 @@ class IAgentManager {
         * simulator.
         */
         explicit Reward_Metrics(int n_types) :
-            local(zeros(n_types)),
-            G_avg(zeros(n_types)),
-            G_minus_downstream(zeros(n_types)),
-            G_random_realloc(zeros(n_types)),
-            G_touched(zeros(n_types))
+            local(easymath::zeros(n_types)),
+            G_avg(easymath::zeros(n_types)),
+            G_minus_downstream(easymath::zeros(n_types)),
+            G_random_realloc(easymath::zeros(n_types)),
+            G_touched(easymath::zeros(n_types))
         {};
 
         matrix1d local;                 //! Local reward

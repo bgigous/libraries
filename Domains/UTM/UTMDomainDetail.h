@@ -35,7 +35,7 @@ class UTMDomainDetail :
     // maps/Graph
     SectorGraphManager* lowGraph;
     void loadMaps();
-    vector<easymath::XY> fix_locs;
+    std::vector<easymath::XY> fix_locs;
 
     void addConflict(UAV* u1, UAV* u2) {
         agents->metrics.at(u1->curSectorID()).local[u1->type_ID] += 0.5;

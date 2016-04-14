@@ -1,42 +1,53 @@
-#pragma once
+// Copyright 2016 Carrie Rebhuhn
+#ifndef MULTIAGENT_MULTIAGENTTYPENE_H_
+#define MULTIAGENT_MULTIAGENTTYPENE_H_
+
+#include <vector>
+#include <string>
 #include "MultiagentNE.h"
 #include "../SingleAgent/NeuroEvo/TypeNeuroEvo.h"
 #include "../SingleAgent/NeuroEvo/NeuroEvo.h"
 #include "../SingleAgent/NeuroEvo/NeuroEvoTypeWeighted.h"
 #include "../SingleAgent/NeuroEvo/NeuroEvoTypeCrossweighted.h"
 
+
 // Container for collection of 'Type Neuro Evo' agents
-class MultiagentTypeNE : public MultiagentNE
-{
-public:
+class MultiagentTypeNE : public MultiagentNE {
+ public:
     // options for handling different types
     enum TypeHandling { BLIND, WEIGHTED, CROSSWEIGHTED, MULTIMIND, NMODES };
     TypeHandling type_mode;
     int n_types;
 
-    MultiagentTypeNE(void) {};
-
-    MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params, TypeHandling type_mode, int n_types);
+    MultiagentTypeNE(void) {}
+    MultiagentTypeNE(int n_agents, NeuroEvoParameters* NE_params,
+        TypeHandling type_mode, int n_types);
     ~MultiagentTypeNE(void);
 
-    //void initializeWithStereotypes(std::vector<std::vector<NeuroEvo*> > stereotypes, std::vector<int> agent_types);
+    // void initializeWithStereotypes(std::vector<std::vector<NeuroEvo*> >
+    // stereotypes, std::vector<int> agent_types);
     matrix2d getActions(matrix3d state);
 
-    virtual bool setNextPopMembers() {
-        // Kind of hacky; select the next member and return true if not at the end
-        // Specific to Evo
+    //! Returns true if multiple neural nets are used
+    //! Currently only done in the multimind case
+    bool multiple_nets() {
+        return type_mode == MULTIMIND;
+    }
 
-        std::vector<bool> is_another_member(agents.size(), false);
+    //! Select the next member and return true if not at the end
+    //! Specific to Evo
+    virtual bool setNextPopMembers() {
+        std::vector<bool> not_end(agents.size(), false);
         for (size_t i = 0; i < agents.size(); i++) {
-            if (type_mode == MULTIMIND)
-                is_another_member[i]
-                = reinterpret_cast<TypeNeuroEvo*>(agents[i])->selectNewMemberAll();
-            else if (type_mode == WEIGHTED ||
-                type_mode == CROSSWEIGHTED ||
-                type_mode == BLIND)
-                is_another_member[i] = reinterpret_cast<NeuroEvo*>(agents[i])->selectNewMember();
+            if (multiple_nets()) {
+                not_end[i] = reinterpret_cast<TypeNeuroEvo*>
+                    (agents[i])->selectNewMemberAll();
+            } else {
+                not_end[i] = reinterpret_cast<NeuroEvo*>
+                    (agents[i])->selectNewMember();
+            }
         }
-        for (bool a : is_another_member) {
+        for (bool a : not_end) {
             if (!a) {
                 return false;
             }
@@ -59,9 +70,12 @@ public:
         for (IAgent* a : agents) {
             if (type_mode == MULTIMIND) {
                 reinterpret_cast<TypeNeuroEvo*>(a)->selectSurvivorsAll();
-            } else if (type_mode == WEIGHTED || type_mode == CROSSWEIGHTED || type_mode == BLIND) {
+            } else if (type_mode == WEIGHTED ||
+                type_mode == CROSSWEIGHTED ||
+                type_mode == BLIND) {
                 reinterpret_cast<NeuroEvo*>(a)->selectSurvivors();
             }
         }
     }
 };
+#endif  // MULTIAGENT_MULTIAGENTTYPENE_H_

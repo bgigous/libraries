@@ -4,18 +4,16 @@
 
 
 // STL includes
+#include <map>
 #include <queue>
+#include <utility>
 #include <list>
 #include <set>
-#include <memory>
-#include <utility>
-#include <map>
 
 // libraries includes
 #include "../../Planning/TypeGraphManager.h"
 #include "../../Planning/SectorGraphManager.h"
 #include "UTMModesAndFiles.h"
-
 
 class UAV {
     /*

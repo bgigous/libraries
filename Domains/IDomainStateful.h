@@ -2,13 +2,8 @@
 #ifndef DOMAINS_IDOMAINSTATEFUL_H_
 #define DOMAINS_IDOMAINSTATEFUL_H_
 
-
-#include <vector>
 #include <string>
-
-typedef std::vector<double> matrix1d;
-typedef std::vector<std::vector<double> > matrix2d;
-typedef std::vector<std::vector<std::vector<double> > > matrix3d;
+#include "../Math/MatrixTypes.h"
 
 class IDomainStatefulParameters {
  public:

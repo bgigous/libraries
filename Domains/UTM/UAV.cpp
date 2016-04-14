@@ -3,9 +3,16 @@
 #include <map>
 #include <list>
 #include <vector>
+#include "../../STL/easystl.h"
+
+using easystl::clear;
+using easymath::XY;
+using std::map;
+using std::list;
+using std::vector;
 
 UAV::UAV(int start_mem, int mem_end, UTMModes::UAVType my_type,
-    TypeGraphManager* highGraph, map<edge, int>* linkIDs, UTMModes* params) :
+    TypeGraphManager* highGraph, std::map<edge, int>* linkIDs, UTMModes* params) :
     highGraph(highGraph),
     mem(start_mem),
     mem_end(mem_end),

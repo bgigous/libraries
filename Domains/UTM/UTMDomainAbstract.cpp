@@ -6,6 +6,13 @@
 #include <list>
 #include <vector>
 
+using std::string;
+using std::list;
+using std::vector;
+using std::map;
+using easymath::XY;
+using easymath::zeros;
+
 UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
     IDomainStateful(params_set) {
     filehandler = new UTMFileNames(params_set),
@@ -242,6 +249,18 @@ void UTMDomainAbstract::simulateStep(matrix2d agent_actions) {
 
     // Make UAVs reach their destination
     absorbUAVTraffic();
+
+/*    int s = 0;
+    for (Link* l : links) {
+        for (list<UAV*> t : l->traffic) {
+            cout << t.size() << " ";
+            s += t.size();
+        }
+        cout << endl;
+    }
+    cout << s;*/
+
+//    system("pause");
 
     // Plan over new cost maps
     if (cost_changed) {

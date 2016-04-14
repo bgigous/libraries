@@ -1,5 +1,6 @@
 // Copyright 2016 Carrie Rebhuhn
 #include "MatrixTypes.h"
+#include <algorithm>
 
 matrix1d easymath::mean2(matrix2d myVector) {
     matrix1d myMean(myVector[0].size(), 0.0);

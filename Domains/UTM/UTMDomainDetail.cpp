@@ -4,6 +4,11 @@
 #include <list>
 #include <vector>
 
+using std::vector;
+using easymath::XY;
+using easymath::zeros;
+using std::list;
+
 UTMDomainDetail::UTMDomainDetail(UTMModes* params_set) :
     UTMDomainAbstract(params_set),
     fix_locs(FileIn::read_pairs<XY>("agent_map/fixes.csv")) {

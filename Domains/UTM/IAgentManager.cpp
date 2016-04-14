@@ -1,7 +1,17 @@
 // Copyright 2016 Carrie Rebhuhn
-#include "UTMAgentReward.h"
+#include "IAgentManager.h"
 #include <string>
 #include <vector>
+
+using std::string;
+using std::vector;
+using std::runtime_error;
+using easymath::sum;
+using easymath::zeros;
+using easymath::square;
+using easymath::operator+;
+using easymath::operator/;
+using easymath::operator-;
 
 IAgentManager::IAgentManager(UTMModes* params) :
     square_reward(params->square_reward),

@@ -3,8 +3,6 @@
 #define MATH_MATRIXTYPES_H_
 
 #include <vector>
-#include <algorithm>
-#include <functional>
 
 //! A file for containing matrix types.
 
