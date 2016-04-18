@@ -35,7 +35,7 @@ class distance_heuristic : public boost::astar_heuristic<Graph, CostType> {
  private:
     LocMap m_location;
     Vertex m_goal;
-    double XDIM, YDIM;
+    // double XDIM, YDIM;
 };
 
 

@@ -237,6 +237,7 @@ class CompareNode {
 };
 
 // Custom queue type to perform priority queue updates
+namespace ryan {
 class Queue {
  public:
     typedef std::priority_queue<Node *, std::vector<Node *>, CompareNode> QUEUE;
@@ -272,6 +273,7 @@ class Queue {
 
     bool CompareNodes(const Node * n1, const Node * n2) const;
 };
+}
 
 // Path search class to store and search a graph
 // A* search with zero, Manhattan or Euclidean distance heuristics
@@ -289,15 +291,15 @@ class Search {
     }
 
     Graph * GetGraph() const { return itsGraph; }
-    Queue * GetQueue() const { return itsQueue; }
-    void SetQueue(Queue * queue) { itsQueue = queue; }
+    ryan::Queue * GetQueue() const { return itsQueue; }
+    void SetQueue(ryan::Queue * q) { itsQueue = q; }
     Vertex * GetSource() const { return itsSource; }
     Vertex * GetGoal() const { return itsGoal; }
     std::vector<Node *> PathSearch(pathOut pType);
 
  private:
     Graph * itsGraph;
-    Queue * itsQueue;
+    ryan::Queue * itsQueue;
     Vertex * itsSource;
     Vertex * itsGoal;
     searchType SEARCH_TYPE;

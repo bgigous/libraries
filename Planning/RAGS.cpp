@@ -187,7 +187,7 @@ void Node::SetCTG(double totalMean, double totalVar) {
         itsParent->SetCTG(totalMean, totalVar);
 }
 
-void Queue::UpdateQueue(Node * newNode) {
+void ryan::Queue::UpdateQueue(Node * newNode) {
     // Compare newNode to nodes in closed set
     // if closed contains node with same vertex, compare their costs
     // choose whether or not to create a new node
@@ -206,7 +206,7 @@ void Queue::UpdateQueue(Node * newNode) {
     itsPQ->push(newNode);
 }
 
-Node * Queue::PopQueue() {
+Node * ryan::Queue::PopQueue() {
     // Check if next node is already dominated by existing node in closed set
     Node * newNode = itsPQ->top();
     bool dom = false;
@@ -226,7 +226,7 @@ Node * Queue::PopQueue() {
     return closed[(ULONG)closed.size() - 1];
 }
 
-bool Queue::CompareNodes(const Node * n1, const Node * n2) const {
+bool ryan::Queue::CompareNodes(const Node * n1, const Node * n2) const {
     // out: Is n1 worse than or equal to n2?
     double n1Cost = n1->GetMeanCost();
     double n2Cost = n2->GetMeanCost();
@@ -246,7 +246,8 @@ bool Queue::CompareNodes(const Node * n1, const Node * n2) const {
 
 vector<Node *> Search::PathSearch(pathOut pType) {
     ULONG sourceID = FindSourceID();
-    itsQueue = new Queue(new Node(itsGraph->GetVertices()[sourceID], SOURCE));
+    itsQueue
+        = new ryan::Queue(new Node(itsGraph->GetVertices()[sourceID], SOURCE));
 
     clock_t t_start = clock();
     double t_elapse = 0.0;

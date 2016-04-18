@@ -39,8 +39,6 @@ class Link {
 
  private:
     const int ID;
-    const easymath::XY source_loc;
-    const easymath::XY target_loc;
     const int time;  // Amount of time it takes to travel across link
 
     std::vector<size_t> capacity;  // Capacity for each UAV type [#types]

@@ -2,22 +2,6 @@
 #include "MatrixTypes.h"
 #include <algorithm>
 
-matrix1d easymath::mean2(matrix2d myVector) {
-    matrix1d myMean(myVector[0].size(), 0.0);
-    double s = static_cast<double>(myVector.size());
-    for (size_t i = 0; i < myVector.size(); i++) {
-        for (size_t j = 0; j < myVector[i].size(); j++) {
-            myMean[j] += myVector[i][j] / s;
-        }
-    }
-    return myMean;
-}
-
-int easymath::get_max_index(matrix1d v) {
-    matrix1d::iterator el = std::max_element(v.begin(), v.end());
-    return distance(v.begin(), el);
-}
-
 double easymath::normalize(double val, double min, double max) {
     return (val - min) / (max - min);
 }

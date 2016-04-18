@@ -10,8 +10,7 @@
 class Sector {
  public:
     // An area of space that contains some fixes
-    Sector(easymath::XY xy, int sectorIDset, int n_agents,
-        std::vector<int> connections, UTMModes* params);
+    Sector(easymath::XY xy, int sectorIDset, std::vector<int> connections);
     Sector() : ID(0) {}
     ~Sector() {}
 

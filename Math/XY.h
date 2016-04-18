@@ -28,7 +28,8 @@ class XY : public std::pair<double, double> {
 
     //! Checks equality of both elements
     friend bool operator==(const XY &lhs, const XY &rhs) {
-        return lhs.x == rhs.x && lhs.y == rhs.y;
+        return lhs.x == rhs.x && lhs.y == rhs.y
+            && lhs.first == rhs.first && lhs.second == rhs.second;
     }
 
     //! Scalar multiplication

@@ -1,10 +1,10 @@
 #pragma once
-#include "TypeNeuroEvo.h"
+#include "NeuroEvo\TypeNeuroEvo.h"
 
 class AgentTypeNE
 {
 public:
-	AgentTypeNE(void);
-	~AgentTypeNE(void);
+    AgentTypeNE(void);
+    ~AgentTypeNE(void);
 };
 

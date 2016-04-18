@@ -67,8 +67,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
 
     // Sector construction
     for (int i = 0; i < n_sectors; i++) {
-        Sector* s = new Sector(highGraph->getLocation(i), i,
-            n_sectors, connections[i], params);
+        Sector* s = new Sector(highGraph->getLocation(i), i, connections[i]);
         sectors.push_back(s);
     }
 
@@ -165,7 +164,7 @@ void UTMDomainAbstract::incrementUAVPath() {
 void UTMDomainAbstract::try_to_move(vector<UAV*> * eligible_to_move) {
     random_shuffle(eligible_to_move->begin(), eligible_to_move->end());
 
-    int el_size;
+    size_t el_size;
     do {
         el_size = eligible_to_move->size();
 
@@ -230,11 +229,6 @@ matrix2d UTMDomainAbstract::getStates() {
 
 
 void UTMDomainAbstract::simulateStep(matrix2d agent_actions) {
-    // Alter the cost maps (agent actions)
-    // agent_actions = zeros(agent_actions.size(), agent_actions[0].size());
-    // agents->logAgentActions(agent_actions);
-    // bool action_changed = agents->last_action_different();
-
     // New UAVs appear
     getNewUAVTraffic();
 
@@ -250,29 +244,17 @@ void UTMDomainAbstract::simulateStep(matrix2d agent_actions) {
     // Make UAVs reach their destination
     absorbUAVTraffic();
 
-/*    int s = 0;
-    for (Link* l : links) {
-        for (list<UAV*> t : l->traffic) {
-            cout << t.size() << " ";
-            s += t.size();
-        }
-        cout << endl;
-    }
-    cout << s;*/
-
-//    system("pause");
-
     // Plan over new cost maps
     if (cost_changed) {
         getPathPlans();
     }
 
+    printf("%i UAVs\n", UAVs.size());
+
     // UAVs move
     incrementUAVPath();
     if (params->_reward_type_mode == UTMModes::RewardType::CONFLICTS)
         detectConflicts();
-    // if (agents->global()[0]>0)
-    // printf("%f ",agents->global()[0]);
 }
 
 matrix3d UTMDomainAbstract::getTypeStates() {
@@ -431,6 +413,7 @@ void UTMDomainAbstract::getPathPlans(const std::list<UAV*> new_UAVs) {
 }
 
 void UTMDomainAbstract::reset() {
+    system("pause");
     while (!UAVs.empty()) {
         delete UAVs.back();
         UAVs.pop_back();

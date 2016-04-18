@@ -43,7 +43,6 @@ matrix1d Link::predicted_traversal_time() {
         if (waits.size() > n_ok)
             waits.resize(n_wait);
 
-
         // Store predicted link time.
         double w = easymath::sum(waits);
         predicted[i] = time + w;
@@ -85,7 +84,7 @@ LinkAgentManager::LinkAgentManager(int n_edges, int n_types,
 
 matrix2d LinkAgentManager::actions2weights(matrix2d agent_actions) {
     matrix2d weights = easymath::zeros(n_types, n_edges);
-    double alpha = 1000.0;
+    double alpha = 0.0;
 
     for (int i = 0; i < n_edges; i++) {
         matrix1d predicted = links.at(i)->predicted_traversal_time();

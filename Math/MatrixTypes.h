@@ -2,13 +2,15 @@
 #ifndef MATH_MATRIXTYPES_H_
 #define MATH_MATRIXTYPES_H_
 
-#include <vector>
 
 //! A file for containing matrix types.
 
+#include <vector>
 typedef std::vector<double> matrix1d;
 typedef std::vector<matrix1d> matrix2d;
 typedef std::vector<matrix2d> matrix3d;
+
+
 
 //! Also contains math functions for use with the matrices
 namespace easymath {
@@ -39,6 +41,18 @@ void square(std::vector<T> *m) {
 template<typename T>
 T mean(std::vector<T> m) {
     return sum(m) / m.size();
+}
+
+template<typename T>
+std::vector<T> mean2(std::vector<std::vector<T> > myVector) {
+    std::vector<T> myMean(myVector[0].size(), 0.0);
+    T s = static_cast<T>(myVector.size());
+    for (size_t i = 0; i < myVector.size(); i++) {
+        for (size_t j = 0; j < myVector[i].size(); j++) {
+            myMean[j] += myVector[i][j] / s;
+        }
+    }
+    return myMean;
 }
 
 template<typename T>
@@ -77,8 +91,12 @@ std::vector<T> set_negative_zero(const std::vector<T> &m) {
     return r;
 }
 
-matrix1d mean2(matrix2d myVector);
-int get_max_index(matrix1d myvector);
+template<typename T>
+size_t get_max_index(std::vector<T> myvector){
+    std::vector<T>:iterator el = std::max_element(v.begin(), v.end());
+    return distance(v.begin(), el);
+}
+
 double normalize(double val, double min, double max);
 
 void zero(matrix2d * m);
