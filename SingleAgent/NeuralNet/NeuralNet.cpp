@@ -1,5 +1,4 @@
 // Copyright 2016 Carrie Rebhuhn
-#pragma once
 #include "NeuralNet.h"
 #include <vector>
 #include <string>

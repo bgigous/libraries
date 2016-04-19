@@ -8,13 +8,10 @@
 #include <utility>
 #include <map>
 
-class Fix;
-
 class Fix {
-public:
+ public:
     typedef std::pair<int, int> edge;
     Fix(easymath::XY loc, int ID, TypeGraphManager* highGraph,
-        //std::vector<Fix*>* fixes, 
         std::vector<easymath::XY> dest_locs,
         UTMModes* params,
         std::map<edge, int> *linkIDs);
@@ -30,19 +27,16 @@ public:
     virtual UAV* generate_UAV();
 
     TypeGraphManager* highGraph;
-    // std::vector<Fix*>* fixes;  // for generating destinations
     std::vector<easymath::XY> destination_locs;
 };
 
 class FixDetail : public Fix {
-public:
+ public:
     FixDetail(easymath::XY loc, int ID, TypeGraphManager* highGraph,
         SectorGraphManager* lowGraph,
-        //std::vector<Fix*>* fixes,
         std::vector<easymath::XY> dest_locs,
         UTMModes* params, std::map<std::pair<int, int>, int> *linkIDs) :
         Fix(loc, ID, highGraph,
-            //fixes,
             dest_locs,
             params, linkIDs),
         lowGraph(lowGraph), approach_threshold(params->get_dist_thresh()),
