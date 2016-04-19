@@ -11,9 +11,11 @@ using easymath::XY;
 using easymath::rand;
 
 Fix::Fix(XY loc, int ID_set, TypeGraphManager* highGraph,
-    vector<Fix*>* fixes, UTMModes* params,
+    // vector<Fix*>* fixes, 
+    vector<XY> dest_locs,
+    UTMModes* params,
     map<edge, int> *linkIDs) :
-    highGraph(highGraph), fixes(fixes), ID(ID_set),
+    highGraph(highGraph), destination_locs(dest_locs), ID(ID_set),
     loc(loc), params(params), linkIDs(linkIDs) {
 }
 
@@ -57,9 +59,9 @@ UAV* Fix::generate_UAV() {
     static int calls = 0;
     XY end_loc;
     if (ID == 0)
-        end_loc = fixes->back()->loc;
+        end_loc = destination_locs.back();
     else
-        end_loc = fixes->at(ID - 1)->loc;  // go to previous
+        end_loc = destination_locs.at(ID - 1);  // go to previous
 
     // Creates an equal number of each type;
     int type_id_set = calls%params->get_n_types();
@@ -76,9 +78,9 @@ UAVDetail* FixDetail::generate_UAV() {
     static int calls = 0;
     XY end_loc;
     if (ID == 0)
-        end_loc = fixes->back()->loc;
+        end_loc = destination_locs.back();
     else
-        end_loc = fixes->at(ID - 1)->loc;  // go to previous
+        end_loc = destination_locs.at(ID - 1);  // go to previous
 
     int type_id_set = calls%params->get_n_types();
     UAVDetail* u = new UAVDetail(loc, end_loc,

@@ -66,8 +66,10 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
     }
 
     // Sector construction
+    vector<XY> sector_locs;
     for (int i = 0; i < n_sectors; i++) {
-        Sector* s = new Sector(highGraph->getLocation(i), i, connections[i]);
+        sector_locs.push_back(highGraph->getLocation(i));
+        Sector* s = new Sector(sector_locs.back(), i, connections[i]);
         sectors.push_back(s);
     }
 
@@ -83,7 +85,8 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
     // Fix construction
     for (Sector* s : sectors)
         fixes.push_back(new Fix(s->xy, s->ID, highGraph,
-            &fixes, params, linkIDs));
+            sector_locs,
+            params, linkIDs));
 }
 
 string UTMDomainAbstract::createExperimentDirectory() {
@@ -249,7 +252,6 @@ void UTMDomainAbstract::simulateStep(matrix2d agent_actions) {
         getPathPlans();
     }
 
-    printf("%i UAVs\n", UAVs.size());
 
     // UAVs move
     incrementUAVPath();
@@ -413,7 +415,6 @@ void UTMDomainAbstract::getPathPlans(const std::list<UAV*> new_UAVs) {
 }
 
 void UTMDomainAbstract::reset() {
-    system("pause");
     while (!UAVs.empty()) {
         delete UAVs.back();
         UAVs.pop_back();

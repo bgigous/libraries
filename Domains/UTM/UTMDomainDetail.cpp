@@ -32,7 +32,9 @@ UTMDomainDetail::UTMDomainDetail(UTMModes* params_set) :
     // Get link IDs for fix generation
     for (size_t i = 0; i < fix_locs.size(); i++) {
         fixes.push_back(new FixDetail(fix_locs[i], i, highGraph, lowGraph,
-            &fixes, params, linkIDs));
+            //&fixes, 
+            fix_locs,
+            params, linkIDs));
     }
 }
 
