@@ -1,6 +1,8 @@
 // Copyright Carrie Rebhuhn 2016
 #include "easymath.h"
 #include <set>
+#include <vector>
+#include <utility>
 
 namespace easymath {
 std::set<XY> get_n_unique_points(double x_min, double x_max,
@@ -11,6 +13,51 @@ std::set<XY> get_n_unique_points(double x_min, double x_max,
         pt_set.insert(p);
     }
     return pt_set;
+}
+
+int get_nearest_square(int n) {
+    return pow(ceil(sqrt(n)), 2);
+}
+
+std::pair<int, int> ind2sub(const int sub, const int cols, const int rows) {
+    int row = sub / cols;
+    int col = sub%rows;
+    return std::make_pair(row, col);
+}
+
+std::vector<std::pair<int, int> > get_n_unique_square_subscripts(size_t n) {
+    int square = get_nearest_square(n);
+    std::vector<int> inds(square);
+    for (int i = 0; i < inds.size(); i++) {
+        inds[i] = i;
+    }
+
+    int n_surplus = square - n;
+    for (int i = 0; i < n_surplus; i++) {
+        inds.erase(inds.begin(), inds.begin()+std::rand() % inds.size());
+    }
+
+    int base = sqrt(square);
+    std::vector<std::pair<int, int> > subs(inds.size());
+    for (int i = 0; i < subs.size(); i++) {
+        subs[i] = ind2sub(inds[i], base, base);
+    }
+    return subs;
+}
+
+std::set<XY> get_n_unique_square_points(double x_min, double x_max,
+    double y_min, double y_max, size_t n) {
+
+    std::vector<std::pair<int, int> > subs = get_n_unique_square_subscripts(n);
+
+    std::set<XY> pts;
+    for (int i = 0; i < subs.size(); i++) {
+        double base = sqrt(get_nearest_square(n));
+        double xval = (x_max - x_min)*static_cast<double>(subs[i].first) / base;
+        double yval = (y_max - y_min)*static_cast<double>(subs[i].second) / base;
+        pts.insert(XY(xval, yval));
+    }
+    return pts;
 }
 
 double manhattan_distance(const XY &p1, const XY &p2) {

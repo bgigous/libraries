@@ -39,7 +39,18 @@ double rand(double low, double high);
 //! Error function (this exists in linux but not windows)
 double erfc(double x);
 
+int get_nearest_square(int n);
+
 std::set<XY> get_n_unique_points(double xmin, double xmax,
     double ymin, double ymax, size_t n);
+
+//! Gets random points, fit into a square
+std::set<XY> get_n_unique_square_points(double xmin, double xmax,
+    double ymin, double ymax, size_t n);
+
+//! Gets unique indices for a square that must contain n points
+std::vector<std::pair<int,int> > get_n_unique_square_subscripts(size_t n);
+
+std::pair<int, int> ind2sub(const int sub, const int cols, const int rows);
 }  // namespace easymath
 #endif  // MATH_EASYMATH_H_
