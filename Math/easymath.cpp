@@ -34,7 +34,7 @@ std::vector<std::pair<int, int> > get_n_unique_square_subscripts(size_t n) {
 
     int n_surplus = square - n;
     for (int i = 0; i < n_surplus; i++) {
-        inds.erase(inds.begin(), inds.begin()+std::rand() % inds.size());
+        inds.erase(inds.begin()+std::rand() % inds.size());
     }
 
     int base = sqrt(square);

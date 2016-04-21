@@ -18,14 +18,14 @@ class UTMModes : public IDomainStatefulParameters {
     UTMModes() :
         // Mode defaults
         _reward_mode(UTMModes::RewardMode::GLOBAL),
-        _airspace_mode(UTMModes::AirspaceMode::SAVED),
+        _airspace_mode(UTMModes::AirspaceMode::GENERATED),
         _traffic_mode(UTMModes::TrafficMode::DETERMINISTIC),
         _agent_defn_mode(UTMModes::AgentDefinition::LINK),
         _reward_type_mode(UTMModes::RewardType::DELAY),
         _search_type_mode(UTMModes::SearchDefinition::ASTAR),
         // Constants defaults
         square_reward(false),
-        n_sectors(10)
+        n_sectors(20)
     {};
     ~UTMModes() {}
 
@@ -136,6 +136,7 @@ class UTMModes : public IDomainStatefulParameters {
     double get_dist_thresh() { return 2.0; }
     double get_conflict_thresh() { return 2.0; }
 };
+
 
 class UTMFileNames {
  public:

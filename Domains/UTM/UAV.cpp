@@ -58,10 +58,10 @@ int UAV::nextSectorID(int n) {
 int UAV::curLinkID() {
     edge link(curSectorID(), nextSectorID());
     if (link.first == link.second) {
-        on_internal_link = false;
+        on_internal_link = true;
         return linkIDs->at(link);
     } else {
-        on_internal_link = true;
+        on_internal_link = false;
         return linkIDs->at(link);
     }
 }

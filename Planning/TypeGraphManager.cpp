@@ -33,7 +33,7 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types, double gridSizeX
 {
 	//set<XY> agent_loc_set = get_n_unique_points(0.0,gridSizeX,0.0,gridSizeY, n_vertices);
     set<XY> agent_loc_set = get_n_unique_square_points(0.0, gridSizeX, 0.0, gridSizeY, n_vertices);
-    vector<XY> agentLocs;// (agent_loc_set.size());
+    vector<XY> agentLocs(agent_loc_set.size());
 	copy(agent_loc_set.begin(),agent_loc_set.end(),agentLocs.begin());
 
 	vector<edge > candidates;
