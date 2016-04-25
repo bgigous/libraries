@@ -84,12 +84,10 @@ LinkAgentManager::LinkAgentManager(int n_edges, int n_types,
 
 matrix2d LinkAgentManager::actions2weights(matrix2d agent_actions) {
     matrix2d weights = easymath::zeros(n_types, n_edges);
-    double alpha = 0.0;
-
+    
     for (int i = 0; i < n_edges; i++) {
         matrix1d predicted = links.at(i)->predicted_traversal_time();
         for (int t = 0; t < n_types; t++) {
-            // note: is there a scalable metric here?
             weights[t][i] = predicted[t] + agent_actions[i][t] * alpha;
             // weights[t][i] = agent_actions[i][t]*1000.0;
         }

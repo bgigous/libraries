@@ -38,8 +38,11 @@ IAgentManager::IAgentManager(UTMModes* params) :
             throw runtime_error("Bad reward mode.");
             break;
         }
+
+        alpha = params->alpha;
     }
     catch (runtime_error) {
+        printf("Bad reward mode!");
         exit(1);
     }
 }

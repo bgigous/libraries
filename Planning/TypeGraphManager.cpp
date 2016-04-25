@@ -80,10 +80,6 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types,
 
 
 bool TypeGraphManager::intersectsExistingEdge(edge candidate, vector<XY> locs) {
-    if (locs[candidate.first] == XY(120, 1600)
-        && locs[ candidate.second] == XY(120,1200)) {
-        printf("should pass!");
-    }
     for (edge e : edges) {
         line_segment l1, l2;
         l1 = line_segment(locs[e.first], locs[e.second]);
@@ -93,9 +89,6 @@ bool TypeGraphManager::intersectsExistingEdge(edge candidate, vector<XY> locs) {
     }
     // check ALSO if any agent locations are being crossed by an edge
     for (XY a : locs) {
-        if (a.x == 120) {
-            printf("should pass!");
-        }
         XY e1 = locs[candidate.first];
         XY e2 = locs[candidate.second];
         if (a == e1 || a == e2)

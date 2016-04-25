@@ -26,8 +26,8 @@ void SimNE::runExperiment() {
         ctime_s(end_clock_time, sizeof(end_clock_time), &run_end_time);
 #endif
 
-        // printf("Epoch %i took %i seconds.\n",ep,uint(epoch_time));
-        // cout << "Estimated run end time: " << end_clock_time << endl;
+         printf("Epoch %i took %i seconds.\n",ep,size_t(epoch_time));
+         std::cout << "Estimated run end time: " << end_clock_time << std::endl;
     }
 }
 

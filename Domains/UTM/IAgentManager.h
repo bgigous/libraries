@@ -23,7 +23,7 @@ class IAgentManager {
  public:
     typedef matrix1d(IAgentManager::*counterfactual_method)();
     counterfactual_method counterfactual;
-
+    double alpha;
     //! Constructor that sets up agent management based on UTMModes.
     explicit IAgentManager(UTMModes* params);
     ~IAgentManager() {}
