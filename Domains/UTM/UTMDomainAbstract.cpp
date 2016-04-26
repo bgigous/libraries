@@ -31,7 +31,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
     } else {
         // Generate a new airspace
         n_sectors = params->get_n_sectors();
-        highGraph = new TypeGraphManager(n_sectors, n_types, 200.0, 2000);
+        highGraph = new TypeGraphManager(n_sectors, n_types, 200.0, 200.0);
         highGraph->print_graph(domain_dir);  // saves the graph
     }
     // n_links must be set after graph created
@@ -47,7 +47,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
         XY s_loc = highGraph->getLocation(source);
         XY t_loc = highGraph->getLocation(target);
         int cardinal_dir = cardinal_direction(s_loc - t_loc);
-        int dist = static_cast<int>(manhattan_distance(s_loc, t_loc) / 10.0);
+        int dist = static_cast<int>(manhattan_distance(s_loc, t_loc));
         size_t cap = static_cast<size_t>(params->get_flat_capacity());
         links.push_back(
             new Link(links.size(), source, target, dist,
@@ -275,6 +275,8 @@ void UTMDomainAbstract::logStep() {
 // TODO(Brandon) -- we should probably dump this data to a file before
 // moving to the next neural evaluation
 void UTMDomainAbstract::exportStepsOfTeam(int team, std::string suffix) {
+
+    if (linkUAVs.size() == 0) return;
     int start = params->get_n_steps()*team;
         // 200 * team;
     // for (int i = 0; i < 200; i++) {

@@ -25,6 +25,7 @@ UAV::UAV(int start_mem, int mem_end, UTMModes::UAVType my_type,
 
     // Get initial plan and update
     planAbstractPath();
+    
 
     // Set the link ID now that the path is known
     set_cur_link_ID(curLinkID());
@@ -105,6 +106,10 @@ void UAV::planAbstractPath() {
         high_path = highGraph->astar(cur_s, end_s, type_ID);
     } else {
         high_path = highGraph->rags(cur_s, end_s, type_ID);
+    }
+
+    if (high_path.size() == 1) {
+        printf("Path not found!");
     }
 
     if (high_path_prev != high_path) {

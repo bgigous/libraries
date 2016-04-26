@@ -3,6 +3,7 @@
 #include <set>
 #include <vector>
 #include <utility>
+#include <algorithm>
 
 namespace easymath {
 std::set<XY> get_n_unique_points(double x_min, double x_max,
@@ -16,7 +17,7 @@ std::set<XY> get_n_unique_points(double x_min, double x_max,
 }
 
 int get_nearest_square(int n) {
-    return pow(ceil(sqrt(n)), 2);
+    return static_cast<int>(pow(ceil(sqrt(n)), 2));
 }
 
 std::pair<int, int> ind2sub(const int sub, const int cols, const int rows) {
@@ -28,18 +29,18 @@ std::pair<int, int> ind2sub(const int sub, const int cols, const int rows) {
 std::vector<std::pair<int, int> > get_n_unique_square_subscripts(size_t n) {
     int square = get_nearest_square(n);
     std::vector<int> inds(square);
-    for (int i = 0; i < inds.size(); i++) {
+    for (size_t i = 0; i < inds.size(); i++) {
         inds[i] = i;
     }
 
     int n_surplus = square - n;
     for (int i = 0; i < n_surplus; i++) {
-        inds.erase(inds.begin()+std::rand() % inds.size());
+        inds.erase(inds.begin() + std::rand() % inds.size());
     }
 
     int base = sqrt(square);
     std::vector<std::pair<int, int> > subs(inds.size());
-    for (int i = 0; i < subs.size(); i++) {
+    for (size_t i = 0; i < subs.size(); i++) {
         subs[i] = ind2sub(inds[i], base, base);
     }
     return subs;
@@ -51,10 +52,12 @@ std::set<XY> get_n_unique_square_points(double x_min, double x_max,
     std::vector<std::pair<int, int> > subs = get_n_unique_square_subscripts(n);
 
     std::set<XY> pts;
-    for (int i = 0; i < subs.size(); i++) {
+    for (size_t i = 0; i < subs.size(); i++) {
         double base = sqrt(get_nearest_square(n));
-        double xval = (x_max - x_min)*static_cast<double>(subs[i].first) / base;
-        double yval = (y_max - y_min)*static_cast<double>(subs[i].second) / base;
+        double xval = (x_max - x_min)
+            *static_cast<double>(subs[i].first) / base;
+        double yval = (y_max - y_min)
+            *static_cast<double>(subs[i].second) / base;
         pts.insert(XY(xval, yval));
     }
     return pts;
@@ -100,7 +103,6 @@ double cross(const XY &U, const XY &V) {
     return U.x*V.y - U.y*V.x;
 }
 
-
 bool intersects_in_center(line_segment edge1, line_segment edge2) {
     // Detects whether line intersects, but not at origin
     XY p = edge1.first;
@@ -113,7 +115,11 @@ bool intersects_in_center(line_segment edge1, line_segment edge2) {
     double u = cross((qpdiff), r) / rscross;
 
     if (rscross == 0) {
-        if (cross(qpdiff, r) == 0) {
+        if (cross(qpdiff, r)) {
+            // need to check bounds
+            if (!(0 < t && t < 1 && 0 < u && u < 1)) {
+                return false;
+            }
             return true;  // collinear
         } else {
             return false;  // parallel non-intersecting
@@ -125,6 +131,9 @@ bool intersects_in_center(line_segment edge1, line_segment edge2) {
         return false;  // not parallel, don't inersect
     }
 }
+
+
+
 
 double erfc(double x) {
     // constants

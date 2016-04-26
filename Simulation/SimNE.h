@@ -20,7 +20,7 @@ class SimNE : public ISimulator {
     SimNE(IDomainStateful* domain, MultiagentNE* MAS);
     virtual ~SimNE(void);
 
-    static const int n_epochs = 5;  // testing parameter, changed from 500;
+    static const int n_epochs = 100;
     static const int n_trials = 1;
     int* step;  // step counter for running the simulation
 

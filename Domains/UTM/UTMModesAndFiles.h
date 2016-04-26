@@ -15,19 +15,22 @@
 
 class UTMModes : public IDomainStatefulParameters {
  public:
-    UTMModes() :
-        // Mode defaults
-        _reward_mode(UTMModes::RewardMode::GLOBAL),
-        _airspace_mode(UTMModes::AirspaceMode::GENERATED),
-        _traffic_mode(UTMModes::TrafficMode::DETERMINISTIC),
-        _agent_defn_mode(UTMModes::AgentDefinition::LINK),
-        _reward_type_mode(UTMModes::RewardType::DELAY),
-        _search_type_mode(UTMModes::SearchDefinition::RAGS),
-        // Constants defaults
-        square_reward(false),
-        n_sectors(20)
+     UTMModes() :
+         // Mode defaults
+         _reward_mode(UTMModes::RewardMode::GLOBAL),
+         _airspace_mode(UTMModes::AirspaceMode::SAVED),
+         _traffic_mode(UTMModes::TrafficMode::DETERMINISTIC),
+         _agent_defn_mode(UTMModes::AgentDefinition::LINK),
+         _reward_type_mode(UTMModes::RewardType::DELAY),
+         _search_type_mode(UTMModes::SearchDefinition::ASTAR),
+         // Constants defaults
+         square_reward(false),
+         n_sectors(20),
+         alpha(1.0)
     {};
     ~UTMModes() {}
+
+    double alpha; // amount that a neural network impacts the system
 
     // OPTION HERE FOR ONE AGENT PER LINK
     enum class AgentDefinition { SECTOR, LINK };
@@ -55,6 +58,7 @@ class UTMModes : public IDomainStatefulParameters {
             }
         }
         catch (std::runtime_error) {
+            printf("Bad agent defn!");
             exit(1);
         }
     }
@@ -200,7 +204,8 @@ class UTMFileNames {
             std::to_string(modes->get_n_types()) + "_Types/";
         std::string REWARD_FOLDER = TYPES_FOLDER +
             modes->getRewardModeName() + "_Reward/";
-
+        std::string ALPHA_FOLDER = REWARD_FOLDER +
+            std::to_string(static_cast<int>(modes->alpha)) + "_alpha/";
 #ifdef _WIN32
         _mkdir(EXPERIMENT_FOLDER.c_str());
         _mkdir(AGENTS_FOLDER.c_str());
@@ -209,6 +214,7 @@ class UTMFileNames {
         _mkdir(STEPS_FOLDER.c_str());
         _mkdir(TYPES_FOLDER.c_str());
         _mkdir(REWARD_FOLDER.c_str());
+        _mkdir(ALPHA_FOLDER.c_str());
 #else
         mkdir(EXPERIMENT_FOLDER.c_str(), ACCESSPERMS);
         mkdir(AGENTS_FOLDER.c_str(), ACCESSPERMS);
@@ -218,7 +224,7 @@ class UTMFileNames {
         mkdir(TYPES_FOLDER.c_str(), ACCESSPERMS);
         mkdir(REWARD_FOLDER.c_str(), ACCESSPERMS);
 #endif
-        return REWARD_FOLDER;  // returns the full directory path just generated
+        return ALPHA_FOLDER;  // returns the full directory path just generated
     }
 };
 #endif  // DOMAINS_UTM_UTMMODESANDFILES_H_
