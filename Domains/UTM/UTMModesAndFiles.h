@@ -22,7 +22,7 @@ class UTMModes : public IDomainStatefulParameters {
         _traffic_mode(UTMModes::TrafficMode::DETERMINISTIC),
         _agent_defn_mode(UTMModes::AgentDefinition::LINK),
         _reward_type_mode(UTMModes::RewardType::DELAY),
-        _search_type_mode(UTMModes::SearchDefinition::ASTAR),
+        _search_type_mode(UTMModes::SearchDefinition::RAGS),
         // Constants defaults
         square_reward(false),
         n_sectors(20)
