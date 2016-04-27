@@ -26,7 +26,7 @@ class UTMModes : public IDomainStatefulParameters {
          // Constants defaults
          square_reward(false),
          n_sectors(20),
-         alpha(1.0)
+         alpha(1000.0)
     {};
     ~UTMModes() {}
 

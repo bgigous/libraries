@@ -122,7 +122,7 @@ void UTMDomainDetail::reset() {
 }
 
 
-void UTMDomainDetail::exportLog(std::string fid, double G) {
+void UTMDomainDetail::exportLog(std::string fid, double ) {
     static int calls = 0;
     calls++;
 }

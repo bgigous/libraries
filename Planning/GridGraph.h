@@ -10,12 +10,7 @@
 #include <boost/unordered_map.hpp>
 
 // from stl
-#include <float.h>
 #include <fstream>
-#include <utility>
-#include <string>
-#include <vector>
-#include <functional>
 
 // from libraries
 #include "../../libraries/Math/easymath.h"
@@ -55,7 +50,7 @@ class mt {  // "my types"
 class euclidean_heuristic :
     public boost::astar_heuristic<mt::filtered_grid, double> {
  public:
-    euclidean_heuristic() {}
+    euclidean_heuristic(mt::vertex_descriptor v): m_goal(v) {}
     double operator()(mt::vertex_descriptor v) {
         double dx = static_cast<double>(m_goal[0]-v[0]);
         double dy = static_cast<double>(m_goal[1]-v[1]);
@@ -86,8 +81,8 @@ class GridGraph {
 
     // Visitor that terminates when we find the goal vertex
     struct astar_goal_visitor :public boost::default_astar_visitor {
-        // astar_goal_visitor(mt::vertex_descriptor goal):m_goal(goal) {};
-        astar_goal_visitor() {}
+        astar_goal_visitor(mt::vertex_descriptor goal):m_goal(goal) {};
+        //astar_goal_visitor() {}
 
         void examine_vertex(mt::vertex_descriptor u, const mt::filtered_grid&) {
             if (u == m_goal)
@@ -97,32 +92,10 @@ class GridGraph {
         mt::vertex_descriptor m_goal;
     };
 
-    // CREATION FUNCTIONS
-    GridGraph() :
-        m_grid(create_grid(0, 0)), m_barrier_grid(create_barrier_grid()) {}
-    GridGraph(std::size_t x, std::size_t y) :
-        m_grid(create_grid(x, y)), m_barrier_grid(create_barrier_grid()) {}
-
-    explicit GridGraph(mt::barrier_grid obstacle_map) :
-        m_grid(create_grid(obstacle_map.size(), obstacle_map[0].size())),
-        m_barrier_grid(create_barrier_grid()),
-        m_solution_length(0) {
-        int v_index = 0;
-        for (size_t y = 0; y < obstacle_map[0].size(); y++) {
-            for (size_t x = 0; x < obstacle_map.size(); x++) {
-                if (obstacle_map[x][y]) {  // there is an obstacle!
-                    mt::vertex_descriptor u = vertex(v_index, m_grid);
-                    m_barriers.insert(u);  // insert a barrier!
-                }
-                v_index++;  // increment v_index even if no barrier added!
-            }
-        }
-    }
-
     GridGraph(const matrix2d &members, int m1, int m2) :
         m_grid(create_grid(members.size(), members[0].size())),
         m_barrier_grid(create_barrier_grid()) {
-        mt::barrier_grid obstacle_map(members.size());
+        mt::barrier_grid obstacle_map(members.size(),std::vector<bool>(members[0].size()));
         for (size_t i = 0; i < members.size(); i++) {
             for (size_t j = 0; j < members[i].size(); j++) {
                 obstacle_map[i][j] = members[i][j] < 0;
@@ -155,49 +128,6 @@ class GridGraph {
     bool has_barrier(mt::vertex_descriptor u) const {
         return m_barriers.find(u) != m_barriers.end();
     }
-
-    double solve(size_t xsource, size_t ysource, size_t xgoal, size_t ygoal) {
-        boost::static_property_map<mt::distance> weight(1);
-        // The predecessor map is a vertex-to-vertex mapping.
-        typedef boost::unordered_map<mt::vertex_descriptor,
-            mt::vertex_descriptor,
-            mt::vertex_hash> pred_map;
-        pred_map predecessor;
-        boost::associative_property_map<pred_map> pred_pmap(predecessor);
-
-        // The distance map is a vertex-to-distance mapping.
-        typedef boost::unordered_map<mt::vertex_descriptor,
-            mt::distance, mt::vertex_hash> dist_map;
-        dist_map distance;
-        boost::associative_property_map<dist_map> dist_pmap(distance);
-
-        mt::vertex_descriptor s = { {xsource, ysource} };
-        mt::vertex_descriptor g = { {xgoal, ygoal} };
-        heuristic.m_goal = g;
-        visitor.m_goal = g;
-        m_solution.clear();
-
-        try {
-            astar_search(m_barrier_grid, s, heuristic,
-                boost::weight_map(weight).
-                predecessor_map(pred_pmap).
-                distance_map(dist_pmap).
-                visitor(visitor));
-        }
-        catch (found_goal fg) {
-            (void)fg;
-            // Walk backwards from the goal through the predecessor chain adding
-            // vertices to the solution path.
-            for (mt::vertex_descriptor u = g; u != s; u = predecessor[u])
-                m_solution.push_back(u);
-            m_solution.push_back(s);
-            m_solution_length = distance[g];
-            return m_solution_length;
-        }
-        double maxdist = DBL_MAX;
-        return maxdist;
-    }
-
     std::vector<easymath::XY> astar(easymath::XY source, easymath::XY goal) {
         size_t xs = static_cast<size_t>(source.x);
         size_t ys = static_cast<size_t>(source.y);
@@ -221,8 +151,8 @@ class GridGraph {
             != m_solution.end();
     }
 
-    euclidean_heuristic heuristic;
-    astar_goal_visitor visitor;
+    //euclidean_heuristic heuristic;
+    //astar_goal_visitor visitor;
 
 
     // The length of the solution path
@@ -269,5 +199,46 @@ class GridGraph {
     mt::filtered_grid m_barrier_grid;
     //! The barriers in the AStarGrid
     mt::vertex_set m_barriers;
+
+    double solve(size_t xsource, size_t ysource, size_t xgoal, size_t ygoal) {
+        boost::static_property_map<mt::distance> weight(1);
+        // The predecessor map is a vertex-to-vertex mapping.
+        typedef boost::unordered_map<mt::vertex_descriptor,
+            mt::vertex_descriptor,
+            mt::vertex_hash> pred_map;
+        pred_map predecessor;
+        boost::associative_property_map<pred_map> pred_pmap(predecessor);
+
+        // The distance map is a vertex-to-distance mapping.
+        typedef boost::unordered_map<mt::vertex_descriptor,
+            mt::distance, mt::vertex_hash> dist_map;
+        dist_map distance;
+        boost::associative_property_map<dist_map> dist_pmap(distance);
+
+        mt::vertex_descriptor s = { { xsource, ysource } };
+        mt::vertex_descriptor g = { { xgoal, ygoal } };
+        //heuristic.m_goal = g;
+        m_solution.clear();
+
+        try {
+            astar_search(m_barrier_grid, s, euclidean_heuristic(g),
+                boost::weight_map(weight).
+                predecessor_map(pred_pmap).
+                distance_map(dist_pmap).
+                visitor(astar_goal_visitor(g)));
+        }
+        catch (found_goal fg) {
+            (void)fg;
+            // Walk backwards from the goal through the predecessor chain adding
+            // vertices to the solution path.
+            for (mt::vertex_descriptor u = g; u != s; u = predecessor[u])
+                m_solution.push_back(u);
+            m_solution.push_back(s);
+            m_solution_length = distance[g];
+            return m_solution_length;
+        }
+        double maxdist = DBL_MAX;
+        return maxdist;
+    }
 };
 #endif  // PLANNING_GRIDGRAPH_H_
