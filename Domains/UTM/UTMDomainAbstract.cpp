@@ -61,7 +61,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
     vector<XY> sector_locs;
     for (int i = 0; i < n_sectors; i++) {
         sector_locs.push_back(highGraph->getLocation(i));
-        Sector* s = new Sector(sector_locs.back(), i, connections[i]);
+        Sector* s = new Sector(sector_locs.back(), i, connections[i],sector_locs,highGraph,params,linkIDs);
         sectors.push_back(s);
         numUAVsAtSector.push_back(0.0);  // Brandon change
     }
@@ -73,9 +73,9 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
 
     // Fix construction
     for (Sector* s : sectors)
-        fixes.push_back(new Fix(s->xy, s->ID, highGraph,
+        s->generation_pt = Fix(s->xy, s->ID, highGraph,
             sector_locs,
-            params, linkIDs));
+            params, linkIDs);
 }
 
 string UTMDomainAbstract::createExperimentDirectory() {
@@ -93,9 +93,6 @@ UTMDomainAbstract::~UTMDomainAbstract(void) {
 
     for (Sector* s : sectors)
         delete s;
-
-    for (Fix* f : fixes)
-        delete f;
 
     for (UAV* u : UAVs)
         delete u;
@@ -480,8 +477,8 @@ void UTMDomainAbstract::absorbUAVTraffic() {
 
 void UTMDomainAbstract::getNewUAVTraffic() {
     // Generates (with some probability) plane traffic for each sector
-    for (Fix* f : fixes) {
-        list<UAV*> new_UAVs = f->generateTraffic(*step);
+    for (Sector* s:sectors) {
+        list<UAV*> new_UAVs = s->generation_pt.generateTraffic(*step);
         for (UAV* u : new_UAVs) {
             UAVs.push_back(u);
             links.at(u->cur_link_ID)->add(u);
