@@ -50,14 +50,17 @@ TypeGraphManager::TypeGraphManager(int n_vertices, int n_types,
     vector<XY> agentLocs(agent_loc_set.size());
     copy(agent_loc_set.begin(), agent_loc_set.end(), agentLocs.begin());
 
-    vector<edge > candidates;
+    set<edge> candidates_set;
     for (size_t i = 0; i < agentLocs.size(); i++) {
         for (size_t j = 0; j < agentLocs.size(); j++) {
             if (i == j)
                 continue;
-            candidates.push_back(make_pair(i, j));
+            candidates_set.insert(make_pair(i, j));
         }
     }
+    vector<edge > candidates(candidates_set.size());
+    copy(candidates_set.begin(), candidates_set.end(), candidates.begin());
+
     random_shuffle(candidates.begin(), candidates.end());
 
     // Add as many edges as possible
