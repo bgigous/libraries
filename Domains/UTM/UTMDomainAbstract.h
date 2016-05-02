@@ -92,5 +92,6 @@ class UTMDomainAbstract :
  private:
     // records number of UAVs at each sector at current time step
     matrix1d numUAVsAtSector;
+	matrix1d numUAVsOnLinks;
 };
 #endif  // DOMAINS_UTM_UTMDOMAINABSTRACT_H_

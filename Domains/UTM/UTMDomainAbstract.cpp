@@ -55,6 +55,8 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
         linkIDs->insert(std::make_pair(e, links.size() - 1));
 
         connections[source].push_back(target);
+
+		numUAVsOnLinks.push_back(0.0);
     }
 
     // Sector construction
@@ -108,6 +110,10 @@ matrix1d UTMDomainAbstract::getRewards() {
 
 
 void UTMDomainAbstract::incrementUAVPath() {
+	for (size_t i = 0; i < links.size(); i++) {
+		numUAVsOnLinks[i] = links[i]->traffic[0].size();
+	}
+
     vector<UAV*> eligible;              // UAVs eligible to move to next link
     copy_if(UAVs.begin(), UAVs.end(), back_inserter(eligible), [](UAV* u) {
         if (u->t <= 0) {
@@ -151,6 +157,8 @@ void UTMDomainAbstract::incrementUAVPath() {
                 continue;
         }
     }
+
+
 }
 
 void UTMDomainAbstract::try_to_move(vector<UAV*> * eligible_to_move) {
@@ -247,12 +255,7 @@ void UTMDomainAbstract::simulateStep(matrix2d agent_actions) {
 void UTMDomainAbstract::logStep() {
     if (params->_agent_defn_mode == UTMModes::AgentDefinition::SECTOR
         || params->_agent_defn_mode == UTMModes::AgentDefinition::LINK) {
-        matrix1d numUAVsOnLinks(links.size(), 0);
-        // int i = 0;  // TERRIBLE FORM
-        // for (Link* l : links) {
-        for (size_t i = 0; i < links.size(); i++) {
-            numUAVsOnLinks[i] = links[i]->traffic[0].size();
-        }
+        
         linkUAVs.push_back(numUAVsOnLinks);
         // numUAVsAtSector is a private member because hacky coding
         sectorUAVs.push_back(numUAVsAtSector);
@@ -260,6 +263,10 @@ void UTMDomainAbstract::logStep() {
             // Clear the UAVs
             numUAVsAtSector[i] = 0.0;
         }
+		for (size_t i = 0; i < links.size(); i++)
+		{
+			numUAVsOnLinks[i] = 0.0;
+		}
     }
 }
 
