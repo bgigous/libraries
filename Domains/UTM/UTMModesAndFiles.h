@@ -18,7 +18,7 @@ class UTMModes : public IDomainStatefulParameters {
      UTMModes() :
          // Mode defaults
          _reward_mode(UTMModes::RewardMode::GLOBAL),
-         _airspace_mode(UTMModes::AirspaceMode::SAVED),
+         _airspace_mode(UTMModes::AirspaceMode::GENERATED),
          _traffic_mode(UTMModes::TrafficMode::DETERMINISTIC),
          _agent_defn_mode(UTMModes::AgentDefinition::LINK),
          _reward_type_mode(UTMModes::RewardType::DELAY),

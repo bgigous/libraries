@@ -257,7 +257,7 @@ void UTMDomainAbstract::logStep() {
         || params->_agent_defn_mode == UTMModes::AgentDefinition::LINK) {
         
         linkUAVs.push_back(numUAVsOnLinks);
-        // numUAVsAtSector is a private member because hacky coding
+
         sectorUAVs.push_back(numUAVsAtSector);
         for (size_t i = 0; i < sectors.size(); i++) {
             // Clear the UAVs
