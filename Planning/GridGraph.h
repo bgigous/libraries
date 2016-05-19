@@ -132,7 +132,7 @@ class GridGraph {
         size_t xs = static_cast<size_t>(source.x);
         size_t ys = static_cast<size_t>(source.y);
         size_t xg = static_cast<size_t>(goal.x);
-        size_t yg = static_cast<size_t>(goal.x);
+        size_t yg = static_cast<size_t>(goal.y); // This was goal.x before I changed it. -B
         solve(xs, ys, xg, yg);
 
         std::vector<easymath::XY> soln;

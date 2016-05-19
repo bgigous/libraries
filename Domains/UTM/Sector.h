@@ -22,7 +22,8 @@ class Sector {
     const int ID;  // the identifier for this sector
     const std::vector<int> connections;
     const easymath::XY xy;  // sector center
-    Fix generation_pt;
+	// Carrie! This is now a pointer
+    Fix* generation_pt;
 };
 
 //! Class that manages sectors as agents

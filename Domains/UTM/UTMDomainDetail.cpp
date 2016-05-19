@@ -39,7 +39,8 @@ UTMDomainDetail::UTMDomainDetail(UTMModes* params_set) :
         sector_locs[i] = sectors[i]->xy;
     }
     for (Sector* s : sectors) {
-        s->generation_pt = FixDetail(s->xy, s->ID, highGraph, lowGraph, sector_locs, params, linkIDs);
+		delete s->generation_pt; // Delete the Fix created by the abstract constructor
+        s->generation_pt = new FixDetail(s->xy, s->ID, highGraph, lowGraph, sector_locs, params, linkIDs);
     }
 
     // NOTE: MAKE A 'SECTORDETAIL'?

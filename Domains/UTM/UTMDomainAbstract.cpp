@@ -74,8 +74,9 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
         agents = new LinkAgentManager(links.size(), n_types, links, params);
 
     // Fix construction
+	// Carrie! Since the fixes are created here, I got rid of a line in the Sector contructor.
     for (Sector* s : sectors)
-        s->generation_pt = Fix(s->xy, s->ID, highGraph,
+        s->generation_pt = new Fix(s->xy, s->ID, highGraph,
             sector_locs,
             params, linkIDs);
 }
@@ -145,6 +146,7 @@ void UTMDomainAbstract::incrementUAVPath() {
             agents->add_delay(u);
 
             // Add 1 to the sector that the UAV is trying to move from
+            int n = u->nextSectorID();
             numUAVsAtSector[u->nextSectorID()]++;
 
             // counterfactuals
@@ -485,7 +487,7 @@ void UTMDomainAbstract::absorbUAVTraffic() {
 void UTMDomainAbstract::getNewUAVTraffic() {
     // Generates (with some probability) plane traffic for each sector
     for (Sector* s:sectors) {
-        list<UAV*> new_UAVs = s->generation_pt.generateTraffic(*step);
+        list<UAV*> new_UAVs = s->generation_pt->generateTraffic(*step);
         for (UAV* u : new_UAVs) {
             UAVs.push_back(u);
             links.at(u->cur_link_ID)->add(u);
