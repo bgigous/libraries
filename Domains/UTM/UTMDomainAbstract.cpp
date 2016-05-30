@@ -73,6 +73,16 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
     else
         agents = new LinkAgentManager(links.size(), n_types, links, params);
 
+	// Add internal links
+	// internal links start and end at same sector, but aren't controlled by a traffic agent
+	for (int i = 0; i < n_sectors; i++) {
+		links.push_back(
+			new Link(links.size(), i, i, 0,
+				vector<size_t>(n_types, SIZE_MAX), 0));
+		linkIDs->insert(std::make_pair(edge(i, i), links.size() - 1));
+		numUAVsOnLinks.push_back(0.0);
+	}
+
     // Fix construction
 	// Carrie! Since the fixes are created here, I got rid of a line in the Sector contructor.
     for (Sector* s : sectors)
@@ -147,7 +157,7 @@ void UTMDomainAbstract::incrementUAVPath() {
 
             // Add 1 to the sector that the UAV is trying to move from
             int n = u->nextSectorID();
-            numUAVsAtSector[u->nextSectorID()]++;
+            numUAVsAtSector[n]++;
 
             // counterfactuals
             if (params->_reward_mode == UTMModes::RewardMode::DIFFERENCE_AVG)
@@ -219,6 +229,13 @@ matrix2d UTMDomainAbstract::getStates() {
         }
     } else {
         for (UAV* u : UAVs)
+			/*
+				if (u->cur_link_ID < params->n_links)
+					allStates[u->cur_link_ID][u->type_ID]++;
+				else {
+					some stuff
+				}
+			*/
             allStates[u->cur_link_ID][u->type_ID]++;
     }
 

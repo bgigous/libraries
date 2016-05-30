@@ -49,8 +49,8 @@ class UTMDomainAbstract :
 
     // Traffic
     std::list<UAV*> UAVs;
-    void getNewUAVTraffic();
-    void absorbUAVTraffic();
+    virtual void getNewUAVTraffic();
+    virtual void absorbUAVTraffic();
 
     TypeGraphManager* highGraph;
 
@@ -83,13 +83,13 @@ class UTMDomainAbstract :
 
     //! Moves all it can in the list.
     // Those eligible to move but who are blocked are left after the function.
-    void try_to_move(std::vector<UAV*> * eligible_to_move);
+    virtual void try_to_move(std::vector<UAV*> * eligible_to_move);
 
     // this has moved or something?
     // void move_UAV_to_link(UAV* u, Link* cur_link, Link* new_link);
     // handles motion of the UAV in the simulation, also includes logging
 
- private:
+ protected:
     // records number of UAVs at each sector at current time step
     matrix1d numUAVsAtSector;
 	matrix1d numUAVsOnLinks;

@@ -30,6 +30,9 @@ UAV::UAV(int start_mem, int mem_end, UTMModes::UAVType my_type,
     // Set the link ID now that the path is known
     set_cur_link_ID(curLinkID());
 
+	next_sector_ID = -1; // Set this for initialization n stuff what?
+	cur_sector_ID = curSectorID();
+
     // printf("ID = %i, l next = %i\n",ID,next_link_ID);
 }
 
@@ -61,6 +64,7 @@ int UAV::curLinkID() {
     if (link.first == link.second) {
         on_internal_link = true;
         return linkIDs->at(link);
+		//return -1;
     } else {
         on_internal_link = false;
         return linkIDs->at(link);
@@ -159,19 +163,31 @@ void UAVDetail::planAbstractPath() {
 }
 
 void UAVDetail::planDetailPath() {
+	if (!on_internal_link) links_touched.insert(cur_link_ID);
+	sectors_touched.insert(curSectorID());
+
     // Get the high-level path
     high_path_prev = getBestPath();
+	high_path_prev_prev.push_back(high_path_prev);
 
-    // Get the astar low-level path
-    XY next_loc = highGraph->getLocation(nextSectorID());
-    vector<XY> low_path = lowGraph->astar(loc, next_loc);
-    std::reverse(low_path.begin(), low_path.end());
+	int nsID = nextSectorID(), csID = curSectorID();
 
-    // Add to target waypoints
-    clear(&target_waypoints);
-    for (XY i : low_path)
-        target_waypoints.push(i);
-    target_waypoints.pop();  // removes current location from target
+	//if (nsID != csID) { // if not an internal link
+		// Get the astar low-level path
+		XY next_loc = highGraph->getLocation(nsID);
+		vector<XY> low_path = lowGraph->astar(loc, next_loc);
+		std::reverse(low_path.begin(), low_path.end());
+		
+		// Add to target waypoints
+		clear(&target_waypoints);
+		for (XY i : low_path)
+			target_waypoints.push(i);
+		target_waypoints.pop();  // removes current location from target
+		
+		next_link_ID = nextLinkID();
+	//}
+
+	
 }
 
 int UAV::getDirection() {
@@ -185,8 +201,20 @@ void UAVDetail::moveTowardNextWaypoint() {
     if (!target_waypoints.size())
         return;  // return if no waypoints
 
+	next_sector_ID = nextSectorID();
+
+	if (!committed_to_link) // Not sure if best way to go about this
+		return;
+	
     for (int i = 0; i < speed; i++) {
+		prev_locs.push_back(loc);
+		prev_secs.push_back(curSectorID());
         loc = target_waypoints.front();
         target_waypoints.pop();
     }
+
+	prev_mems.push_back(mem);
+	mem = cur_sector_ID = curSectorID();
+	
+	
 }

@@ -86,5 +86,8 @@ UAVDetail* FixDetail::generate_UAV() {
         static_cast<UTMModes::UAVType>(type_id_set),
         highGraph, linkIDs, params, lowGraph);
     u->planAbstractPath();
+
+	u->committed_to_link = false;
+
     return u;
 }

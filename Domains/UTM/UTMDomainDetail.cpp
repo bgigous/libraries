@@ -85,6 +85,7 @@ vector<double> UTMDomainDetail::getRewards() {
     // QUADRATIC REWARD
     /* int conflict_sum = 0;
     for (int i=0; i<conflict_count_map->size(); i++){
+
     for (int j=0; j<conflict_count_map->at(i).size(); j++){
     int c = conflict_count_map->at(i)[j];
     conflict_sum += c*c;
@@ -102,23 +103,188 @@ size_t UTMDomainDetail::getSector(easymath::XY p) {
 void UTMDomainDetail::getPathPlans() {
     // REPLACE WITH PLANPATH
     for (UAV* u : UAVs) {
+		if (!static_cast<UAVDetail*>(u)->committed_to_link) // Indicates UAV has reached new sector and 
         // sets own next waypoint
-        static_cast<UAVDetail*>(u)->planDetailPath();
+	        static_cast<UAVDetail*>(u)->planDetailPath();
     }
 }
 
 void UTMDomainDetail::getPathPlans(const std::list<UAV* > &new_UAVs) {
     for (UAV* u : new_UAVs) {
-        static_cast<UAVDetail*>(u)->planDetailPath();  // sets own next waypoint
+		if (!static_cast<UAVDetail*>(u)->committed_to_link) // Indicates UAV has reached new sector and 
+			static_cast<UAVDetail*>(u)->planDetailPath();  // sets own next waypoint
     }
 }
 
 
 void UTMDomainDetail::incrementUAVPath() {
-    for (UAV* u : UAVs) {
-        // moves toward next waypoint (next in low-level plan)
-        static_cast<UAVDetail*>(u)->moveTowardNextWaypoint();
-    }
+    //for (UAV* u : UAVs) {
+		// move toward next waypoint (next in low-level plan)
+		//static_cast<UAVDetail*>(u)->moveTowardNextWaypoint();
+
+		//int nsID = u->nextSectorID(), csID = u->curSectorID();
+		//if (nsID == csID)
+		//{
+		//	int n = u->next_link_ID;
+		//	int c = u->cur_link_ID;
+		//	if (n != c) // UAV has reached last link
+		//		links[n]->move_from(u, links[c]);
+		//	else
+		//		u->mem = u->mem_end;
+		//}
+    //}
+
+	for (size_t i = 0; i < links.size(); i++) {
+		numUAVsOnLinks[i] = links[i]->traffic[0].size();
+	}
+	
+	vector<UAV*> eligible;              // UAVs eligible to move to next link
+	size_t num_agents = links.size() - sectors.size();
+	copy_if(UAVs.begin(), UAVs.end(), back_inserter(eligible), [num_agents](UAV* u) {
+		if (u->ID == 0)
+			std::cout << std::endl;
+
+		int csID = u->curSectorID();
+		
+		if (u->next_sector_ID == csID) { // UAV has reached boundary of the next sector
+			int nlID = u->nextLinkID();
+			if (nlID >= num_agents) { // internal link
+				u->mem = u->mem_end;    // At destination. Moves to end of link.
+				// since UAV is in goal sector, it is committed to the internal link and can move within it
+				static_cast<UAVDetail*>(u)->committed_to_link = true;
+				//static_cast<UAVDetail*>(u)->moveTowardNextWaypoint();
+				return false;
+			}
+			else {
+				// UAV has reached the next non-goal sector. It may have to wait before it can move,
+				//	so it is free to choose a different link if necessary
+				static_cast<UAVDetail*>(u)->committed_to_link = false;
+				static_cast<UAVDetail*>(u)->planDetailPath();
+				return true;            // At end of non-destination link
+			}
+		}
+		else {
+			// TYPE IMPLEMENTATION
+			// Not yet has it reached next sector
+			// move toward next waypoint (next in low-level plan)			
+			//static_cast<UAVDetail*>(u)->moveTowardNextWaypoint();
+			if (!static_cast<UAVDetail*>(u)->committed_to_link)
+				return true; // UAV got to a new sector, but is waiting to traverse next link
+			else
+				return false; // UAV has already committed to a link and is therefore not waiting
+		}
+	});
+
+	if (eligible.empty()) {
+		return;
+	}
+	else {
+		// preemtively commit all eligible UAVs to link
+		// those that don't move will uncommit (how rude)
+		//for (UAV * u : eligible)
+		//	static_cast<UAVDetail*>(u)->committed_to_link = true;
+		// This moves all UAVs that are eligible and not blocked
+		try_to_move(&eligible);
+		// Only those that cannot move are left in eligible
+		// std::printf("%i UAVs delayed. \n",eligible.size());
+
+		for (UAV* u : eligible) {
+			static_cast<UAVDetail*>(u)->committed_to_link = false;	// UAV is still waiting to move
+																	// it can decide to take a different link before it moves
+			// adds delay for each eligible UAV not able to move
+			agents->add_delay(u);
+
+			// Add 1 to the sector that the UAV is trying to move from
+			// Carrie! Would this be correct, do ya think?
+			// Different from AbstractDomain
+			int n = u->curSectorID(); 
+			numUAVsAtSector[n]++;
+
+			// counterfactuals
+			if (params->_reward_mode == UTMModes::RewardMode::DIFFERENCE_AVG)
+				agents->add_average_counterfactual();
+			else if (params->_reward_mode ==
+				UTMModes::RewardMode::DIFFERENCE_DOWNSTREAM)
+				agents->add_downstream_delay_counterfactual(u);
+			else
+				continue;
+		}
+	}
+
+	for (UAV* u : UAVs)
+		static_cast<UAVDetail*>(u)->moveTowardNextWaypoint();
+}
+
+void UTMDomainDetail::try_to_move(vector<UAV*> * eligible_to_move) {
+	random_shuffle(eligible_to_move->begin(), eligible_to_move->end());
+
+	size_t el_size;
+	do {
+		el_size = eligible_to_move->size();
+
+		vector<Link*> L = links;
+		eligible_to_move->erase(
+			remove_if(eligible_to_move->begin(), eligible_to_move->end(),
+				[L](UAV* u) {
+			if (u->ID == 0)
+				std::cout << std::endl;
+			int n = u->next_link_ID;
+			int c = u->cur_link_ID;
+			int t = u->type_ID;
+			// Carrie! I had to add the first condition because otherwise the UAVs
+			// would be moved to the next link before the UAV even got to the right sector
+			// Suggestions highly welcome if this is hacky
+			if (!L[n]->at_capacity(t)) {
+				L[n]->move_from(u, L[c]);
+				static_cast<UAVDetail*>(u)->committed_to_link = true;
+				return true;
+			}
+			else {
+				return false;
+			} }),
+			eligible_to_move->end());
+	} while (el_size != eligible_to_move->size());
+}
+
+void UTMDomainDetail::absorbUAVTraffic() {
+	// Deletes UAVs
+	vector<Link*> l = links;
+	vector<Sector*> s = sectors;
+	bool yes = false;
+	bool keep = params->_disposal_mode == UTMModes::DisposalMode::KEEP ? true : false;
+	UAVs.erase(remove_if(UAVs.begin(), UAVs.end(), [l, s, keep](UAV* u) {
+		if (u->mem == u->mem_end) {
+			FixDetail* fix = (FixDetail*)s[u->curSectorID()]->generation_pt;
+			if (fix->atDestinationFix(*static_cast<UAVDetail*>(u))) {
+				l[u->cur_link_ID]->remove(u);
+				if (keep)
+					std::cout<<std::endl;
+				else
+					delete u;
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		return false;
+	}), UAVs.end());
+}
+
+void UTMDomainDetail::getNewUAVTraffic() {
+	// Generates (with some probability) plane traffic for each sector
+	for (Sector* s : sectors) {
+		list<UAV*> new_UAVs = s->generation_pt->generateTraffic(*step);
+		for (UAV* u : new_UAVs) {
+			UAVs.push_back(u);
+			links.at(u->cur_link_ID)->add(u);
+			if (!links.at(u->cur_link_ID)->at_capacity(u->type_ID)) {
+				static_cast<UAVDetail*>(u)->committed_to_link = true;
+				static_cast<UAVDetail*>(u)->planDetailPath(); // I don't know if it's a no-no to do it here
+															// 
+			}
+		}
+	}
 }
 
 void UTMDomainDetail::reset() {

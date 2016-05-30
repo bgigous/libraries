@@ -21,8 +21,9 @@ class UTMModes : public IDomainStatefulParameters {
          _airspace_mode(UTMModes::AirspaceMode::SAVED),
          _traffic_mode(UTMModes::TrafficMode::DETERMINISTIC),
          _agent_defn_mode(UTMModes::AgentDefinition::LINK),
-         _reward_type_mode(UTMModes::RewardType::DELAY),
+         _reward_type_mode(UTMModes::RewardType::CONFLICTS),
          _search_type_mode(UTMModes::SearchDefinition::ASTAR),
+		 _disposal_mode(UTMModes::DisposalMode::DESTROY),
          // Constants defaults
          square_reward(false),
          n_sectors(20),
@@ -118,6 +119,13 @@ class UTMModes : public IDomainStatefulParameters {
 
     enum class UAVType { SLOW, FAST, NTYPES = 1 };
     // const enum UAVType{SLOW,NTYPES};
+
+	// DISPOSAL
+	// KEEP means when UAVs reach their goal, they are removed from the system temporarily
+	// DESTROY removes permanently UAVs that have reached their goals
+	enum class DisposalMode { KEEP, DESTROY };
+
+	DisposalMode _disposal_mode;
 
     // CONSTANTS
     //! Returns 4 state elements for sectors (number of planes traveling in

@@ -30,6 +30,9 @@ class UTMDomainDetail :
     virtual void exportLog(std::string fid, double G);
     virtual void detectConflicts();
     virtual void incrementUAVPath();
+	virtual void try_to_move(std::vector<UAV*> * eligible_to_move);
+	virtual void absorbUAVTraffic();
+	virtual void getNewUAVTraffic();
     virtual void reset();
 
     // maps/Graph
@@ -49,5 +52,8 @@ class UTMDomainDetail :
     //! twice as long because there are x- and y-values
     matrix2d UAVLocations;
     void exportUAVLocations(int fileID);
+
+	// The UAVs that have reached their goals
+	std::list<UAV*> UAVs_cached;
 };
 #endif  // DOMAINS_UTM_UTMDOMAINDETAIL_H_

@@ -10,6 +10,9 @@
 #include <list>
 #include <set>
 
+// TEMP
+#include <vector>
+
 // libraries includes
 #include "../../Planning/TypeGraphManager.h"
 #include "../../Planning/SectorGraphManager.h"
@@ -50,10 +53,13 @@ class UAV {
     bool pathChanged;
     int mem, mem_end;
     std::list<int> high_path_prev;  // saves the high level path
+	std::vector<std::list<int> > high_path_prev_prev;
     std::map<edge, int> *linkIDs;
 
     int next_link_ID;
     int cur_link_ID;
+	int next_sector_ID; // This gets updated after UAV moves
+	int cur_sector_ID; // for debugging
 
     //! Gets the sector ID from the location
     int nextSectorID(int n = 1);
@@ -97,7 +103,11 @@ class UAVDetail : public UAV {
     // Physical location of a UAV
     easymath::XY loc;
     easymath::XY end_loc;
+	std::vector<easymath::XY> prev_locs;
+	std::vector<int> prev_secs;
+	std::vector<int> prev_mems;
     std::queue<easymath::XY> target_waypoints;  // target waypoints, low-level
+	bool committed_to_link;		// indicates if the UAV can't change which link to take
     void moveTowardNextWaypoint();  // takes a time increment to move over
 
     //! Gets the sector ID from the location
