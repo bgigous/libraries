@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <vector>
 #include <list>
+#include <map>
 #include <string>
 
 // Library includes
@@ -52,8 +53,5 @@ class UTMDomainDetail :
     //! twice as long because there are x- and y-values
     matrix2d UAVLocations;
     void exportUAVLocations(int fileID);
-
-	// The UAVs that have reached their goals
-	std::list<UAV*> UAVs_cached;
 };
 #endif  // DOMAINS_UTM_UTMDOMAINDETAIL_H_

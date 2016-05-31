@@ -51,6 +51,8 @@ class UTMDomainAbstract :
     std::list<UAV*> UAVs;
     virtual void getNewUAVTraffic();
     virtual void absorbUAVTraffic();
+	// The UAVs that have reached their goals (mapping: sector -> UAVs that are "standing by")
+	std::map<int, std::list<UAV*> > UAVs_done;
 
     TypeGraphManager* highGraph;
 
@@ -88,6 +90,9 @@ class UTMDomainAbstract :
     // this has moved or something?
     // void move_UAV_to_link(UAV* u, Link* cur_link, Link* new_link);
     // handles motion of the UAV in the simulation, also includes logging
+
+	// Maps sectors to links that end in said sector
+	std::map<int, std::list<int> > incoming_links;
 
  protected:
     // records number of UAVs at each sector at current time step

@@ -51,6 +51,20 @@ list<UAV* > Fix::generateTraffic(int step) {
     UAV* u = generate_UAV();
     newTraffic.push_back(u);
 
+	// if there UAVs that have reached their goal here
+	for (UAV* us : *UAVs_stationed)
+	{
+		XY end_loc;
+		// Will this be a problem for Pioneers?
+		if (ID == 0)
+			end_loc = destination_locs.back();
+		else
+			end_loc = destination_locs.at(ID - 1);  // go to previous
+		us->mem_end = highGraph->getMembership(end_loc);
+
+		us->planAbstractPath();
+	}
+
     return newTraffic;
 }
 

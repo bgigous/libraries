@@ -43,6 +43,11 @@ UTMDomainDetail::UTMDomainDetail(UTMModes* params_set) :
         s->generation_pt = new FixDetail(s->xy, s->ID, highGraph, lowGraph, sector_locs, params, linkIDs);
     }
 
+	// This is assuming there is one fix. If there's more and we need to keep track
+	// of "done" UAVs, well... Guess we'll have to come up with something else
+	for (int s = 0; s < params->n_sectors; s++)
+		sectors[s]->generation_pt->UAVs_stationed = &UAVs_done[s];
+
     // NOTE: MAKE A 'SECTORDETAIL'?
 }
 
@@ -147,19 +152,27 @@ void UTMDomainDetail::incrementUAVPath() {
 		int csID = u->curSectorID();
 		
 		if (u->next_sector_ID == csID) { // UAV has reached boundary of the next sector
-			int nlID = u->nextLinkID();
-			if (nlID >= num_agents) { // internal link
+			if (u->cur_link_ID < num_agents && u->next_link_ID >= num_agents) { // internal link
 				u->mem = u->mem_end;    // At destination. Moves to end of link.
 				// since UAV is in goal sector, it is committed to the internal link and can move within it
-				static_cast<UAVDetail*>(u)->committed_to_link = true;
+				// but in order for it to be added to the internal link, we'll uncommit it, k?
+				// It's guaranteed to be added since capacity is inf
+				static_cast<UAVDetail*>(u)->committed_to_link = false;
+				if (u->ID == 0)
+					std::cout << std::endl;
 				//static_cast<UAVDetail*>(u)->moveTowardNextWaypoint();
+				return true;
+			}
+			else if (u->cur_link_ID >= num_agents)
+			{
+				// UAV is traveling through goal sector via its internal link
 				return false;
 			}
 			else {
 				// UAV has reached the next non-goal sector. It may have to wait before it can move,
 				//	so it is free to choose a different link if necessary
 				static_cast<UAVDetail*>(u)->committed_to_link = false;
-				static_cast<UAVDetail*>(u)->planDetailPath();
+				static_cast<UAVDetail*>(u)->planDetailPath(); // a no-no?
 				return true;            // At end of non-destination link
 			}
 		}
@@ -228,11 +241,13 @@ void UTMDomainDetail::try_to_move(vector<UAV*> * eligible_to_move) {
 				[L](UAV* u) {
 			if (u->ID == 0)
 				std::cout << std::endl;
+			if (u->ID == 1)
+				std::cout << std::endl;
 			int n = u->next_link_ID;
 			int c = u->cur_link_ID;
 			int t = u->type_ID;
 			// Carrie! I had to add the first condition because otherwise the UAVs
-			// would be moved to the next link before the UAV even got to the right sector
+			// would be moved to the next link before they get to the right sector
 			// Suggestions highly welcome if this is hacky
 			if (!L[n]->at_capacity(t)) {
 				L[n]->move_from(u, L[c]);
@@ -249,26 +264,44 @@ void UTMDomainDetail::try_to_move(vector<UAV*> * eligible_to_move) {
 void UTMDomainDetail::absorbUAVTraffic() {
 	// Deletes UAVs
 	vector<Link*> l = links;
-	vector<Sector*> s = sectors;
-	bool yes = false;
+	vector<Sector*> S = sectors;
 	bool keep = params->_disposal_mode == UTMModes::DisposalMode::KEEP ? true : false;
-	UAVs.erase(remove_if(UAVs.begin(), UAVs.end(), [l, s, keep](UAV* u) {
-		if (u->mem == u->mem_end) {
-			FixDetail* fix = (FixDetail*)s[u->curSectorID()]->generation_pt;
-			if (fix->atDestinationFix(*static_cast<UAVDetail*>(u))) {
-				l[u->cur_link_ID]->remove(u);
-				if (keep)
-					std::cout<<std::endl;
-				else
-					delete u;
-				return true;
-			}
-			else {
+	if (keep) { // remove UAVs from the domain, but keep track of where they were for later
+		// THIS IS ASSUMING 1 FIX PER SECTOR
+		for (int s = 0; s < params->n_sectors; s++)
+		{
+			UAVs_done[s].splice(UAVs_done[s].begin(), UAVs, remove_if(UAVs.begin(), UAVs.end(), [l, S, s](UAV* u) {
+				if (u->mem == u->mem_end && u->curSectorID() == s) {
+					FixDetail* fix = (FixDetail*)S[u->curSectorID()]->generation_pt;
+					if (fix->atDestinationFix(*static_cast<UAVDetail*>(u))) {
+						l[u->cur_link_ID]->remove(u);
+						static_cast<UAVDetail*>(u)->committed_to_link = false; // uncommit it since it's done anyway
+						return true;
+					}
+					else {
+						return false;
+					}
+				}
 				return false;
-			}
+			}), UAVs.end());
 		}
-		return false;
-	}), UAVs.end());
+	}
+	else { // just get rid of UAVs forever if the reach their respective goals
+		UAVs.erase(remove_if(UAVs.begin(), UAVs.end(), [l, S](UAV* u) {
+			if (u->mem == u->mem_end) {
+				FixDetail* fix = (FixDetail*)S[u->curSectorID()]->generation_pt;
+				if (fix->atDestinationFix(*static_cast<UAVDetail*>(u))) {
+					l[u->cur_link_ID]->remove(u);
+					delete u;
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+			return false;
+		}), UAVs.end());
+	}
 }
 
 void UTMDomainDetail::getNewUAVTraffic() {

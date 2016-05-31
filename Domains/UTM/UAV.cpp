@@ -172,7 +172,7 @@ void UAVDetail::planDetailPath() {
 
 	int nsID = nextSectorID(), csID = curSectorID();
 
-	//if (nsID != csID) { // if not an internal link
+	if (nsID != csID) { // if not an internal link
 		// Get the astar low-level path
 		XY next_loc = highGraph->getLocation(nsID);
 		vector<XY> low_path = lowGraph->astar(loc, next_loc);
@@ -185,9 +185,7 @@ void UAVDetail::planDetailPath() {
 		target_waypoints.pop();  // removes current location from target
 		
 		next_link_ID = nextLinkID();
-	//}
-
-	
+	}
 }
 
 int UAV::getDirection() {
@@ -214,7 +212,8 @@ void UAVDetail::moveTowardNextWaypoint() {
     }
 
 	prev_mems.push_back(mem);
-	mem = cur_sector_ID = curSectorID();
+	mem = cur_sector_ID = curSectorID(); // I don't exactly know what mem is,
+										// so I'm probably doing dangerous things with it
 	
-	
+	next_link_ID = nextLinkID();
 }

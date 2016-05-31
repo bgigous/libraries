@@ -23,10 +23,10 @@ class UTMModes : public IDomainStatefulParameters {
          _agent_defn_mode(UTMModes::AgentDefinition::LINK),
          _reward_type_mode(UTMModes::RewardType::CONFLICTS),
          _search_type_mode(UTMModes::SearchDefinition::ASTAR),
-		 _disposal_mode(UTMModes::DisposalMode::DESTROY),
+		 _disposal_mode(UTMModes::DisposalMode::KEEP),
          // Constants defaults
          square_reward(false),
-         n_sectors(20),
+         n_sectors(15),
          alpha(1000.0)
     {};
     ~UTMModes() {}

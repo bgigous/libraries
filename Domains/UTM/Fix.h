@@ -28,6 +28,9 @@ class Fix {
 
     TypeGraphManager* highGraph;
     std::vector<easymath::XY> destination_locs;
+
+	// A pointer to a list of UAVs that have arrived at the fix as their destination
+	std::list<UAV*> * UAVs_stationed;
 };
 
 class FixDetail : public Fix {

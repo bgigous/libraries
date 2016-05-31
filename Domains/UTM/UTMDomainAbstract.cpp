@@ -56,6 +56,8 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
 
         connections[source].push_back(target);
 
+		// Add link's ID to mapping
+		incoming_links[target].push_back(links.size() - 1);
 		numUAVsOnLinks.push_back(0.0);
     }
 
@@ -78,7 +80,7 @@ UTMDomainAbstract::UTMDomainAbstract(UTMModes* params_set) :
 	for (int i = 0; i < n_sectors; i++) {
 		links.push_back(
 			new Link(links.size(), i, i, 0,
-				vector<size_t>(n_types, SIZE_MAX), 0));
+				vector<size_t>(n_types, INT_MAX), 0));
 		linkIDs->insert(std::make_pair(edge(i, i), links.size() - 1));
 		numUAVsOnLinks.push_back(0.0);
 	}
@@ -109,6 +111,10 @@ UTMDomainAbstract::~UTMDomainAbstract(void) {
 
     for (UAV* u : UAVs)
         delete u;
+	
+	for (int s = 0; s < params->n_sectors; s++)
+		for (UAV* u : UAVs_done[s])
+			delete u;
 }
 
 matrix1d UTMDomainAbstract::getPerformance() {
@@ -335,7 +341,23 @@ matrix3d UTMDomainAbstract::getTypeStates() {
         for (UAV* u : UAVs) {
             int a = u->cur_link_ID;
             int id = u->type_ID;
-            allStates[a][id][0] += 1.0;
+			if (a >= params->n_links) // internal link?
+			{
+				// When counting UAVs in internal links,
+				// we'll add a "portion" of the UAV to the
+				// nearby links
+				int target = a - params->n_links;
+				std::list<int> incoming = incoming_links[target];
+				for (std::list<int>::iterator it = incoming.begin(); it != incoming.end(); it++)
+				{
+					a = *it;
+					allStates[a][id][0] += 1.0 / (double)incoming.size();
+				}
+			}
+			else
+			{
+				allStates[a][id][0] += 1.0;
+			}
         }
     }
     agents->agentStates.push_back(state_printout);
